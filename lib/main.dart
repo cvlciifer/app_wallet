@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:app_wallet/widgets/expenses.dart';
 
 var kColorScheme = ColorScheme.fromSeed(
-  seedColor: const Color.fromARGB(255, 96, 59, 181),
+  seedColor: Color.fromARGB(255, 8, 115, 158),
 );
 
 var kDarkColorScheme = ColorScheme.fromSeed(
   brightness: Brightness.dark,
-  seedColor: const Color.fromARGB(255, 5, 99, 125),
+  seedColor: Color.fromARGB(255, 85, 139, 155),
 );
 
 void main() {
