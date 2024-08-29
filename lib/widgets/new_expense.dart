@@ -41,7 +41,7 @@ class _NewExpenseState extends State<NewExpense> {
       showCupertinoDialog(
           context: context,
           builder: (ctx) => CupertinoAlertDialog(
-                title: const Text('Invalid input'),
+                title: const Text('Ingreso Invalido'),
                 content: const Text(
                     'Please make sure a valid title, amount, date and category was entered.'),
                 actions: [
@@ -57,7 +57,7 @@ class _NewExpenseState extends State<NewExpense> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Invalid input'),
+          title: const Text('Ingreso Invalido'),
           content: const Text(
               'Please make sure a valid title, amount, date and category was entered.'),
           actions: [
@@ -124,7 +124,7 @@ class _NewExpenseState extends State<NewExpense> {
                           controller: _titleController,
                           maxLength: 50,
                           decoration: const InputDecoration(
-                            label: Text('Title'),
+                            label: Text('Titulo'),
                           ),
                         ),
                       ),
@@ -135,7 +135,7 @@ class _NewExpenseState extends State<NewExpense> {
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             prefixText: '\$ ',
-                            label: Text('Amount'),
+                            label: Text('Precio'),
                           ),
                         ),
                       ),
@@ -146,7 +146,7 @@ class _NewExpenseState extends State<NewExpense> {
                     controller: _titleController,
                     maxLength: 50,
                     decoration: const InputDecoration(
-                      label: Text('Title'),
+                      label: Text('Titulo'),
                     ),
                   ),
                 if (width >= 600)
@@ -202,7 +202,7 @@ class _NewExpenseState extends State<NewExpense> {
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             prefixText: '\$ ',
-                            label: Text('Amount'),
+                            label: Text('Precio'),
                           ),
                         ),
                       ),
@@ -214,7 +214,7 @@ class _NewExpenseState extends State<NewExpense> {
                           children: [
                             Text(
                               _selectedDate == null
-                                  ? 'No date selected'
+                                  ? 'Calendario.'
                                   : formatter.format(_selectedDate!),
                             ),
                             IconButton(
@@ -236,11 +236,11 @@ class _NewExpenseState extends State<NewExpense> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text('Cancel'),
+                      child: const Text('Cancelar'),
                     ),
                     ElevatedButton(
                       onPressed: _submitExpenseData,
-                      child: const Text('Save Expense'),
+                      child: const Text('Guardar Transacción'),
                     ),
                   ])
                 else
@@ -272,11 +272,11 @@ class _NewExpenseState extends State<NewExpense> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        child: const Text('Cancel'),
+                        child: const Text('Cancelar'),
                       ),
                       ElevatedButton(
                         onPressed: _submitExpenseData,
-                        child: const Text('Save Expense'),
+                        child: const Text('Guardar Transacción'),
                       ),
                     ],
                   ),
