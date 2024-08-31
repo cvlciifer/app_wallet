@@ -20,7 +20,7 @@ class _NewExpenseState extends State<NewExpense> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime? _selectedDate;
-  Category _selectedCategory = Category.leisure;
+  Category _selectedCategory = Category.ocio;
 
   void _presentDatePicker() async {
     final now = DateTime.now();
@@ -41,7 +41,7 @@ class _NewExpenseState extends State<NewExpense> {
       showCupertinoDialog(
           context: context,
           builder: (ctx) => CupertinoAlertDialog(
-                title: const Text('Entrada no válida'),
+                title: const Text('Invalid input'),
                 content: const Text(
                     'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
                 actions: [
@@ -57,7 +57,7 @@ class _NewExpenseState extends State<NewExpense> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Entrada no válida'),
+          title: const Text('Invalid input'),
           content: const Text(
               'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
           actions: [
@@ -135,7 +135,7 @@ class _NewExpenseState extends State<NewExpense> {
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             prefixText: '\$ ',
-                            label: Text('Cantidad'),
+                            label: Text('Amount'),
                           ),
                         ),
                       ),
@@ -202,7 +202,7 @@ class _NewExpenseState extends State<NewExpense> {
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             prefixText: '\$ ',
-                            label: Text('Cantidad'),
+                            label: Text('Amount'),
                           ),
                         ),
                       ),
@@ -214,7 +214,7 @@ class _NewExpenseState extends State<NewExpense> {
                           children: [
                             Text(
                               _selectedDate == null
-                                  ? 'Seleccione'
+                                  ? 'No date selected'
                                   : formatter.format(_selectedDate!),
                             ),
                             IconButton(
@@ -240,7 +240,7 @@ class _NewExpenseState extends State<NewExpense> {
                     ),
                     ElevatedButton(
                       onPressed: _submitExpenseData,
-                      child: const Text('Ingresar'),
+                      child: const Text('Save Expense'),
                     ),
                   ])
                 else
@@ -276,7 +276,7 @@ class _NewExpenseState extends State<NewExpense> {
                       ),
                       ElevatedButton(
                         onPressed: _submitExpenseData,
-                        child: const Text('Ingresar'),
+                        child: const Text('Save Expense'),
                       ),
                     ],
                   ),
