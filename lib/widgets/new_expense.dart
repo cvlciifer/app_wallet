@@ -41,7 +41,7 @@ class _NewExpenseState extends State<NewExpense> {
       showCupertinoDialog(
           context: context,
           builder: (ctx) => CupertinoAlertDialog(
-                title: const Text('Invalid input'),
+                title: const Text('Entrada no válida'),
                 content: const Text(
                     'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
                 actions: [
@@ -49,7 +49,7 @@ class _NewExpenseState extends State<NewExpense> {
                     onPressed: () {
                       Navigator.pop(ctx);
                     },
-                    child: const Text('Okay'),
+                    child: const Text('Ok'),
                   ),
                 ],
               ));
@@ -57,7 +57,7 @@ class _NewExpenseState extends State<NewExpense> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Invalid input'),
+          title: const Text('Entrada no válida'),
           content: const Text(
               'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
           actions: [
@@ -65,7 +65,7 @@ class _NewExpenseState extends State<NewExpense> {
               onPressed: () {
                 Navigator.pop(ctx);
               },
-              child: const Text('Okay'),
+              child: const Text('Ok'),
             ),
           ],
         ),
@@ -135,7 +135,7 @@ class _NewExpenseState extends State<NewExpense> {
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             prefixText: '\$ ',
-                            label: Text('Amount'),
+                            label: Text('Cantidad'),
                           ),
                         ),
                       ),
@@ -202,7 +202,7 @@ class _NewExpenseState extends State<NewExpense> {
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             prefixText: '\$ ',
-                            label: Text('Amount'),
+                            label: Text('Cantidad'),
                           ),
                         ),
                       ),
@@ -214,7 +214,7 @@ class _NewExpenseState extends State<NewExpense> {
                           children: [
                             Text(
                               _selectedDate == null
-                                  ? 'No date selected'
+                                  ? 'Seleccione Fecha'
                                   : formatter.format(_selectedDate!),
                             ),
                             IconButton(
@@ -240,7 +240,7 @@ class _NewExpenseState extends State<NewExpense> {
                     ),
                     ElevatedButton(
                       onPressed: _submitExpenseData,
-                      child: const Text('Save Expense'),
+                      child: const Text('Ingresar'),
                     ),
                   ])
                 else
@@ -276,7 +276,7 @@ class _NewExpenseState extends State<NewExpense> {
                       ),
                       ElevatedButton(
                         onPressed: _submitExpenseData,
-                        child: const Text('Save Expense'),
+                        child: const Text('Ingresar'),
                       ),
                     ],
                   ),

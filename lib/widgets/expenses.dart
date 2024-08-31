@@ -84,7 +84,7 @@ class _ExpensesState extends State<Expenses> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flutter ExpenseTracker'),
+        title: const Text('Mi Billetera'),
         actions: [
           IconButton(
             onPressed: _openAddExpenseOverlay,
