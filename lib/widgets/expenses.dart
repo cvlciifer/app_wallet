@@ -4,6 +4,7 @@ import 'package:app_wallet/widgets/new_expense.dart';
 import 'package:app_wallet/widgets/expenses_list/expenses_list.dart';
 import 'package:app_wallet/models/expense.dart';
 import 'package:app_wallet/widgets/chart/chart.dart';
+import 'package:app_wallet/widgets/main_drawer.dart';
 
 class Expenses extends StatefulWidget {
   const Expenses({super.key});
@@ -66,6 +67,11 @@ class _ExpensesState extends State<Expenses> {
       ),
     );
   }
+  void _selectScreen(String identifier) {
+  Navigator.of(context).pop(); // Cierra el Drawer al seleccionar una opción
+
+  // No se realiza ninguna acción adicional
+}
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +98,7 @@ class _ExpensesState extends State<Expenses> {
           ),
         ],
       ),
+      drawer: MainDrawer(onSelectScreen: _selectScreen),
       body: width < 600
           ? Column(
               children: [
