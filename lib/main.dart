@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 
-import 'package:app_wallet/widgets/expenses.dart';
+import 'package:app_wallet/screens/expenses.dart';
+import 'package:app_wallet/screens/blank.dart';
+
+
+
+
 
 var kColorScheme = ColorScheme.fromSeed(
   seedColor: Color.fromARGB(255, 8, 115, 158),
@@ -65,7 +70,12 @@ void main() {
       ),
       // themeMode: ThemeMode.system, // default
       home: const Expenses(),
+       routes: {
+        '/main': (ctx) => const Expenses(),
+        '/blank': (ctx) => BlankScreen(), // Agrega la ruta aquí
+        
+      },
     ),
+    
   );
-  // });
 }

@@ -56,7 +56,7 @@ class MainDrawer extends StatelessWidget {
                   ),
             ),
             onTap: () {
-              onSelectScreen('Ahorros');
+              onSelectScreen('gastos');
             },
           ),
           ListTile(
@@ -73,7 +73,7 @@ class MainDrawer extends StatelessWidget {
                   ),
             ),
             onTap: () {
-              onSelectScreen('filters');
+              onSelectScreen('estadisticas');
             },
           ),
         ],

@@ -6,6 +6,8 @@ import 'package:app_wallet/models/expense.dart';
 import 'package:app_wallet/widgets/chart/chart.dart';
 import 'package:app_wallet/widgets/main_drawer.dart';
 
+
+
 class Expenses extends StatefulWidget {
   const Expenses({super.key});
 
@@ -17,7 +19,7 @@ class Expenses extends StatefulWidget {
 
 class _ExpensesState extends State<Expenses> {
   final List<Expense> _registeredExpenses = [
-    Expense(
+   /*  Expense(
       title: 'Flutter Course',
       amount: 19.99,
       date: DateTime.now(),
@@ -28,7 +30,7 @@ class _ExpensesState extends State<Expenses> {
       amount: 15.69,
       date: DateTime.now(),
       category: Category.ocio,
-    ),
+    ), */
   ];
 
   void _openAddExpenseOverlay() {
@@ -67,10 +69,15 @@ class _ExpensesState extends State<Expenses> {
       ),
     );
   }
-  void _selectScreen(String identifier) {
+  
+void _selectScreen(String identifier) {
   Navigator.of(context).pop(); // Cierra el Drawer al seleccionar una opción
 
-  // No se realiza ninguna acción adicional
+  if (identifier == 'gastos') {
+    Navigator.of(context).pushReplacementNamed('/blank');
+  } else if (identifier == 'estadisticas') {
+    Navigator.of(context).pushReplacementNamed('/blank');
+  }
 }
 
   @override
