@@ -1,6 +1,5 @@
-// lib/screens/blank_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:app_wallet/screens/expenses.dart'; // Importa la pantalla principal
 
 class BlankScreen extends StatelessWidget {
   @override
@@ -18,8 +17,10 @@ class BlankScreen extends StatelessWidget {
       body: Center(
         child: ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              '/main', // Ruta de la pantalla principal
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (ctx) => Expenses(), // Pantalla principal
+              ),
               (route) => false, // Elimina todas las pantallas anteriores
             );
           },

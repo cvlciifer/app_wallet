@@ -71,10 +71,10 @@ void main() {
       // themeMode: ThemeMode.system, // default
       home: const Expenses(),
        routes: {
-        '/main': (ctx) => const Expenses(),
+        '/expense': (ctx) => const Expenses(),
         '/blank': (ctx) => BlankScreen(), // Agrega la ruta aquí
-        
       },
+      
     ),
     
   );
