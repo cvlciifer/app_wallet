@@ -10,7 +10,12 @@ class BlankScreen extends StatelessWidget {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pop(); // Regresar a la pantalla anterior
+           Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (ctx) => Expenses(), // Pantalla principal
+              ),
+              (route) => false, // Elimina todas las pantallas anteriores
+            );
           },
         ),
       ),
