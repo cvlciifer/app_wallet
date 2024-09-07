@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_wallet/widgets/estadisticas_screen.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({super.key, required this.onSelectScreen});
@@ -74,6 +75,11 @@ class MainDrawer extends StatelessWidget {
             ),
             onTap: () {
               onSelectScreen('estadisticas');
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (ctx) => EstadisticasScreen(),
+                ),
+              );
             },
           ),
         ],
