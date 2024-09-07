@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:104741833617:android:1fab19f9e72c0d6c7ca830",
         "android_client_info": {
-          "package_name": "settings.json"
+          "package_name": "com.example.app_wallet"
         }
       },
       "oauth_client": [],
