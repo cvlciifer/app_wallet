@@ -70,13 +70,12 @@ void main() async {
                 fontSize: 16,
               ),
             ),
-            
       ),
-      
+
       // themeMode: ThemeMode.system, // default
-      home: const Expenses(),
+      home: Expenses(),
       routes: {
-        '/expense': (ctx) => const Expenses(),
+        '/expense': (ctx) => Expenses(),
         '/blank': (ctx) => BlankScreen(), // Agrega la ruta aquí
       },
     ),

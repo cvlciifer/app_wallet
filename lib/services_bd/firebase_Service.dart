@@ -3,26 +3,34 @@ import 'dart:math';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
-/* Future<List> getgastos() async {
-  List NGastos = [];
-  CollectionReference collectionReferenceNgastos = db.collection('gastos');
-  //abre todos los datos de la tabla
-  QuerySnapshot queryGastos = await collectionReferenceNgastos.get();
+// CRUD READ
+Future<List> getGastos() async {
+  List lisgastos = [];
+  CollectionReference collectionReferenceGastos = db.collection('gastos');
+  QuerySnapshot queryGastos = await collectionReferenceGastos.get();
 
-  queryGastos.docs.forEach((documento) {
-    NGastos.add(documento.data());
-  });
-  return NGastos;
-} */
+  for (var doc in queryGastos.docs) {
+    final Map<String, dynamic> docData = doc.data() as Map<String, dynamic>;
+    final gastos = {
+      'id': doc.id,
+      'name': docData['name'],
+      'fecha': docData['fecha'],
+      'cantidad': docData['cantidad'],
+      'tipo': docData['tipo'],
+    };
+    lisgastos.add(gastos);
+  }
 
+  return lisgastos;
+}
 
 Future<Map<String, dynamic>> getRandomConsejo() async {
   List<Map<String, dynamic>> consejos = [];
   CollectionReference collectionReferenceConsejos = db.collection('consejos');
   // Abre todos los datos de la colección
   QuerySnapshot queryConsejos = await collectionReferenceConsejos.get();
-
-  print('Número de documentos recuperados: ${queryConsejos.docs.length}'); // Mensaje de depuración
+// Mensaje de depuración
+  print('Número de documentos recuperados: ${queryConsejos.docs.length}');
 
   queryConsejos.docs.forEach((documento) {
     print('Documento: ${documento.data()}'); // Mensaje de depuración
@@ -37,4 +45,3 @@ Future<Map<String, dynamic>> getRandomConsejo() async {
   final randomIndex = Random().nextInt(consejos.length);
   return consejos[randomIndex];
 }
-

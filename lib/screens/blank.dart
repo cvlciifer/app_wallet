@@ -67,7 +67,7 @@ class BlankScreen extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
-                builder: (ctx) => const Expenses(), // Pantalla principal
+                builder: (ctx) => Expenses(), // Pantalla principal
               ),
               (route) => false, // Elimina todas las pantallas anteriores
             );
@@ -81,7 +81,8 @@ class BlankScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error al cargar el consejo: ${snapshot.error}'));
+            return Center(
+                child: Text('Error al cargar el consejo: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No hay consejos disponibles'));
