@@ -34,7 +34,7 @@ Future<void> createExpense(Expense expense) async {
     'tipo': expense.category
         .toString()
         .split('.')
-        .last, // Guardar solo el valor de la categoría
+        .last, // Guardar solo el valor de la categorías
   });
 }
 
