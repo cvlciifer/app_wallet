@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
+import 'package:app_wallet/models/expense.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
@@ -22,6 +23,41 @@ Future<List> getGastos() async {
   }
 
   return lisgastos;
+}
+
+// CRUD CREATE: función para guardar un gasto en Firebase
+Future<void> createExpense(Expense expense) async {
+  await db.collection('gastos').add({
+    'name': expense.title,
+    'fecha': Timestamp.fromDate(expense.date), // Convertir DateTime a Timestamp
+    'cantidad': expense.amount,
+    'tipo': expense.category
+        .toString()
+        .split('.')
+        .last, // Guardar solo el valor de la categoría
+  });
+}
+
+// CRUD DELETE
+Future<void> deleteExpense(String name, DateTime fecha) async {
+  try {
+    // Busca el documento que coincide con el nombre y la fecha
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('gastos')
+        .where('name', isEqualTo: name)
+        .where('fecha', isEqualTo: Timestamp.fromDate(fecha))
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      for (var doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
+    } else {
+      print('No se encontró ningún gasto para eliminar.');
+    }
+  } catch (error) {
+    print('Error al eliminar el gasto: $error');
+  }
 }
 
 Future<Map<String, dynamic>> getRandomConsejo() async {

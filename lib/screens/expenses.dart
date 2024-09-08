@@ -58,9 +58,27 @@ class _ExpensesState extends State<Expenses> {
         return Category.trabajo;
       case 'ocio':
         return Category.ocio;
+      case 'comida':
+        return Category.comida;
+      case 'viajes':
+        return Category.viajes;
       default:
-        return Category.comida; // Si tienes una categoría por defecto
+        return Category.categoria;
     }
+  }
+
+  // CRUD CREATE: función para guardar un gasto en Firebase
+  Future<void> createExpense(Expense expense) async {
+    await db.collection('gastos').add({
+      'name': expense.title,
+      'fecha':
+          Timestamp.fromDate(expense.date), // Convertir DateTime a Timestamp
+      'cantidad': expense.amount,
+      'tipo': expense.category
+          .toString()
+          .split('.')
+          .last, // Guardar solo el valor de la categoría
+    });
   }
 
   // Función para abrir el modal de añadir gasto
@@ -73,10 +91,18 @@ class _ExpensesState extends State<Expenses> {
     );
   }
 
-  // Función para añadir un gasto a la lista
+  // Función para añadir un gasto a la lista y a Firebase
   void _addExpense(Expense expense) {
     setState(() {
       _registeredExpenses.add(expense);
+    });
+
+    // Llamada para agregar el gasto a Firebase
+    createExpense(expense).catchError((error) {
+      // Muestra un mensaje de error si no se puede guardar en Firebase
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al agregar gasto: $error')),
+      );
     });
   }
 
