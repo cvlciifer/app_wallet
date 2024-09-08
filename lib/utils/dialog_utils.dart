@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app_wallet/services_bd/firebase_service.dart'; // Asegúrate de importar el servicio
+import 'package:app_wallet/services_bd/firebase_service.dart';
 
 Future<void> showConsejoDialog(BuildContext context) async {
   try {
