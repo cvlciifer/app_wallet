@@ -61,7 +61,7 @@ Future<void> deleteExpense(String name, DateTime fecha) async {
   }
 }
 
-
+//get consejo
 Future<Map<String, dynamic>> getRandomConsejo() async {
   List<Map<String, dynamic>> consejos = [];
   CollectionReference collectionReferenceConsejos = db.collection('consejos');

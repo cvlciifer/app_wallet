@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/estadisticas_screen.dart';
+import 'package:app_wallet/screens/dialogs.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({super.key, required this.onSelectScreen});
@@ -83,22 +84,23 @@ class MainDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(
-              Icons.money_off,
-              size: 26,
-              color: Theme.of(context).colorScheme.onBackground,
+              leading: Icon(
+                Icons.question_answer_outlined,
+                size: 26,
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
+              title: Text(
+                'Obtener Consejo',
+                style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                      color: Theme.of(context).colorScheme.onBackground,
+                      fontSize: 24,
+                    ),
+              ),
+              onTap: () {
+                Navigator.of(context).pop(); // Cierra el menú antes de mostrar el diálogo
+                showConsejoDialog(context); // Muestra el diálogo
+              },
             ),
-            title: Text(
-              'Consejos',
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                    fontSize: 24,
-                  ),
-            ),
-            onTap: () {
-              onSelectScreen('consejos');
-            },
-          ),
         ],
       ),
     );

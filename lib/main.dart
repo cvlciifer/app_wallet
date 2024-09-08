@@ -71,7 +71,6 @@ void main() async {
               ),
             ),
       ),
-
       // themeMode: ThemeMode.system, // default
       home: Expenses(),
       routes: {
