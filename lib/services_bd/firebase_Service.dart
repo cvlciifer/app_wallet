@@ -41,7 +41,7 @@ Future<void> createExpense(Expense expense) async {
 // CRUD DELETE
 Future<void> deleteExpense(String name, DateTime fecha) async {
   try {
-    // Busca el documento que coincide con el nombre y la fecha
+    // Search for the document with matching name and date
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('gastos')
         .where('name', isEqualTo: name)
@@ -51,6 +51,7 @@ Future<void> deleteExpense(String name, DateTime fecha) async {
     if (snapshot.docs.isNotEmpty) {
       for (var doc in snapshot.docs) {
         await doc.reference.delete();
+        print('Gasto eliminado: ${doc.id}');
       }
     } else {
       print('No se encontró ningún gasto para eliminar.');
@@ -59,6 +60,7 @@ Future<void> deleteExpense(String name, DateTime fecha) async {
     print('Error al eliminar el gasto: $error');
   }
 }
+
 
 Future<Map<String, dynamic>> getRandomConsejo() async {
   List<Map<String, dynamic>> consejos = [];
