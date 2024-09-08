@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app_wallet/widgets/estadisticas_screen.dart';
+import 'package:app_wallet/screens/estadisticas_screen.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({super.key, required this.onSelectScreen});
@@ -80,6 +80,23 @@ class MainDrawer extends StatelessWidget {
                   builder: (ctx) => EstadisticasScreen(),
                 ),
               );
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.money_off,
+              size: 26,
+              color: Theme.of(context).colorScheme.onBackground,
+            ),
+            title: Text(
+              'Consejos',
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground,
+                    fontSize: 24,
+                  ),
+            ),
+            onTap: () {
+              onSelectScreen('consejos');
             },
           ),
         ],

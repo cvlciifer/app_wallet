@@ -70,7 +70,9 @@ void main() async {
                 fontSize: 16,
               ),
             ),
+            
       ),
+      
       // themeMode: ThemeMode.system, // default
       home: const Expenses(),
       routes: {

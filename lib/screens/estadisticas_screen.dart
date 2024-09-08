@@ -15,9 +15,9 @@ class EstadisticasScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Estadísticas'),
+        title: const Text('Estadísticas'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
@@ -43,7 +43,7 @@ class EstadisticasScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Título en la parte superior centrado y un poco más abajo
-            SizedBox(height: 32.0),
+            const SizedBox(height: 32.0),
             Center(
               child: Text(
                 'Estadísticas Mensuales',
@@ -55,7 +55,7 @@ class EstadisticasScreen extends StatelessWidget {
               ),
             ),
             // Espacio entre el título y el gráfico
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             // Gráfico de pastel
             Expanded(
               child: Padding(
@@ -70,7 +70,7 @@ class EstadisticasScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             // Resumen de Datos
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -91,7 +91,7 @@ class EstadisticasScreen extends StatelessWidget {
                                   color: Colors.black87,
                                 ),
                       ),
-                      SizedBox(height: 8.0),
+                      const SizedBox(height: 8.0),
                       Text(
                         'Total: \$${data.fold(0.0, (sum, item) => sum + item['amount']).toStringAsFixed(2)}',
                         style: TextStyle(fontSize: 16),
@@ -101,7 +101,7 @@ class EstadisticasScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             // Lista de categorías
             ..._getCategoryTexts(data),
           ],
@@ -124,7 +124,7 @@ class EstadisticasScreen extends StatelessWidget {
         value: percentage,
         title: '${percentage.toStringAsFixed(1)}%',
         radius: 100,
-        titleStyle: TextStyle(
+        titleStyle: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -164,7 +164,7 @@ class EstadisticasScreen extends StatelessWidget {
               height: 16,
               color: _getCategoryColor(category),
             ),
-            SizedBox(width: 8),
+           const SizedBox(width: 8),
             Text(
               '$category: \$${amount.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 16),
@@ -181,9 +181,9 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pantalla Principal'),
+        title: const Text('Pantalla Principal'),
       ),
-      body: Center(
+      body: const Center(
         child: Text('Página Principal'),
       ),
     );

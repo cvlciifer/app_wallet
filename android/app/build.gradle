@@ -1,4 +1,4 @@
-plugins {
+/* plugins {
     id "com.android.application"
     // START: FlutterFire Configuration
     id 'com.google.gms.google-services'
@@ -58,4 +58,64 @@ android {
 
 flutter {
     source = "../.."
+}
+ */
+
+ plugins {
+    id "com.android.application"
+    // START: FlutterFire Configuration
+    id 'com.google.gms.google-services' // Para Firebase si lo usas
+    // END: FlutterFire Configuration
+    id "kotlin-android"
+    // El plugin de Flutter debe ir después de los plugins de Android y Kotlin.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode")
+if (flutterVersionCode == null) {
+    flutterVersionCode = "1"
+}
+
+def flutterVersionName = localProperties.getProperty("flutter.versionName")
+if (flutterVersionName == null) {
+    flutterVersionName = "1.0"
+}
+
+android {
+    namespace = "com.example.app_wallet"  // Debes reemplazarlo con tu Application ID único
+    compileSdk = flutter.compileSdkVersion  // Usas el SDK definido por Flutter
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        // Cambia el applicationId a uno propio
+        applicationId = "com.example.app_wallet"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutterVersionCode.toInteger()  // Versión de la aplicación
+        versionName = flutterVersionName  // Nombre de la versión
+    }
+
+    buildTypes {
+        release {
+            // Añade tu propia configuración de firma para builds de release
+            signingConfig = signingConfigs.debug // Temporalmente usas la firma de debug
+        }
+    }
+}
+
+flutter {
+    source = "../.." // La ubicación del código fuente de Flutter
 }

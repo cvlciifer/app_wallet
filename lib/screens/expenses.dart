@@ -73,7 +73,7 @@ class _ExpensesState extends State<Expenses> {
 
     if (identifier == 'gastos') {
       Navigator.of(context).pushReplacementNamed('/blank');
-    } else if (identifier == 'estadisticas') {
+    } else if (identifier == 'consejos') {
       Navigator.of(context).pushReplacementNamed('/blank');
     }
   }
