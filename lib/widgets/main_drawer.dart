@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/estadisticas_screen.dart';
+import 'package:app_wallet/services_bd/firebase_Service.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({super.key, required this.onSelectScreen});
@@ -84,19 +85,43 @@ class MainDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(
-              Icons.money_off,
+              Icons.question_answer,
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
             title: Text(
-              'Consejos',
+              'Obtener Consejo',
               style: Theme.of(context).textTheme.titleSmall!.copyWith(
                     color: Theme.of(context).colorScheme.onBackground,
                     fontSize: 24,
                   ),
             ),
-            onTap: () {
-              onSelectScreen('consejos');
+            onTap: () async {
+              // Cierra el Drawer
+              Navigator.of(context).pop();
+              // Obtén el consejo y muestra el Dialog en el contexto correcto
+              var consejoData = await getRandomConsejo();
+              // Usa `Future.delayed` para evitar problemas con el contexto
+              Future.delayed(Duration.zero, () {
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Tu consejo<3'),
+                      content: Text(
+                          consejoData['consejo'] ?? 'Consejo no disponible'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Cierra el Dialog
+                          },
+                          child: const Text('Cerrar'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              });
             },
           ),
         ],
