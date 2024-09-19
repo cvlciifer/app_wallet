@@ -50,14 +50,14 @@ class MainDrawer extends StatelessWidget {
               color: Theme.of(context).colorScheme.onBackground,
             ),
             title: Text(
-              'Gastos',
+              'Filtros',
               style: Theme.of(context).textTheme.titleSmall!.copyWith(
                     color: Theme.of(context).colorScheme.onBackground,
                     fontSize: 24,
                   ),
             ),
             onTap: () {
-              onSelectScreen('gastos');
+              onSelectScreen('filtros');
             },
           ),
           ListTile(

@@ -9,6 +9,10 @@ import 'package:app_wallet/widgets/new_expense.dart'; // Importa el widget para 
 import 'package:cloud_firestore/cloud_firestore.dart'; // Importa para usar Timestamp
 
 class Expenses extends StatefulWidget {
+  final Map<Category, bool>? filters; // Recibe los filtros como argumento
+
+  const Expenses({super.key, this.filters}); // Constructor actualizado
+
   @override
   State<Expenses> createState() {
     return _ExpensesState();
@@ -26,25 +30,20 @@ class _ExpensesState extends State<Expenses> {
 
   // Función para obtener los datos de Firebase
   Future<void> _loadGastosFromFirebase() async {
-    List gastosFromFirebase =
-        await getGastos(); // Llamada a tu función para obtener gastos de Firebase
+    List gastosFromFirebase = await getGastos(); // Llamada a tu función para obtener gastos de Firebase
 
     setState(() {
-      _registeredExpenses
-          .clear(); // Limpiar la lista antes de agregar nuevos gastos
+      _registeredExpenses.clear(); // Limpiar la lista antes de agregar nuevos gastos
       for (var gasto in gastosFromFirebase) {
-        // Si 'fecha' es un Timestamp, lo convertimos a DateTime
         Timestamp timestamp = gasto['fecha'];
         DateTime fecha = timestamp.toDate(); // Convertir Timestamp a DateTime
 
         _registeredExpenses.add(
           Expense(
-            title: gasto['name'], // 'name' es el campo de la base de datos
-            amount:
-                gasto['cantidad'].toDouble(), // Asegúrate de convertir a double
-            date: fecha, // Usamos el objeto DateTime convertido
-            category:
-                _mapCategory(gasto['tipo']), // Mapea el tipo a tu categoría
+            title: gasto['name'],
+            amount: gasto['cantidad'].toDouble(),
+            date: fecha,
+            category: _mapCategory(gasto['tipo']),
           ),
         );
       }
@@ -71,13 +70,9 @@ class _ExpensesState extends State<Expenses> {
   Future<void> createExpense(Expense expense) async {
     await db.collection('gastos').add({
       'name': expense.title,
-      'fecha':
-          Timestamp.fromDate(expense.date), // Convertir DateTime a Timestamp
+      'fecha': Timestamp.fromDate(expense.date),
       'cantidad': expense.amount,
-      'tipo': expense.category
-          .toString()
-          .split('.')
-          .last, // Guardar solo el valor de la categoría
+      'tipo': expense.category.toString().split('.').last,
     });
   }
 
@@ -97,9 +92,7 @@ class _ExpensesState extends State<Expenses> {
       _registeredExpenses.add(expense);
     });
 
-    // Llamada para agregar el gasto a Firebase
     createExpense(expense).catchError((error) {
-      // Muestra un mensaje de error si no se puede guardar en Firebase
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al agregar gasto: $error')),
       );
@@ -107,43 +100,61 @@ class _ExpensesState extends State<Expenses> {
   }
 
   // Función para eliminar un gasto de la lista
-void _removeExpense(Expense expense) async {
-  final expenseIndex = _registeredExpenses.indexOf(expense);
-  setState(() {
-    _registeredExpenses.remove(expense);
-  });
+  void _removeExpense(Expense expense) async {
+    final expenseIndex = _registeredExpenses.indexOf(expense);
+    setState(() {
+      _registeredExpenses.remove(expense);
+    });
 
-  // Call Firestore to delete the expense from Firebase
-  await deleteExpense(expense.title, expense.date);
+    await deleteExpense(expense.title, expense.date);
 
-  ScaffoldMessenger.of(context).clearSnackBars();
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      duration: const Duration(seconds: 3),
-      content: const Text('Gasto eliminado.'),
-      action: SnackBarAction(
-        label: 'Deshacer',
-        onPressed: () {
-          setState(() {
-            _registeredExpenses.insert(expenseIndex, expense);
-          });
-          // Optionally, re-add the deleted expense to Firebase if "Undo" is pressed
-        },
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 3),
+        content: const Text('Gasto eliminado.'),
+        action: SnackBarAction(
+          label: 'Deshacer',
+          onPressed: () {
+            setState(() {
+              _registeredExpenses.insert(expenseIndex, expense);
+            });
+          },
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // Función para manejar la navegación del Drawer
   void _selectScreen(String identifier) {
     Navigator.of(context).pop(); // Cierra el Drawer al seleccionar una opción
 
-    if (identifier == 'gastos') {
-      Navigator.of(context).pushReplacementNamed('/blank');
+    if (identifier == 'filtros') {
+      Navigator.of(context).pushNamed('/filtros').then((filters) {
+        if (filters != null && filters is Map<Category, bool>) {
+          setState(() {
+            _applyFilters(filters as Map<Category, bool>); // Aplicar filtros al regresar
+          });
+        }
+      });
     } else if (identifier == 'consejos') {
       Navigator.of(context).pushReplacementNamed('/blank');
     }
   }
+
+  // Aplicar filtros a los gastos
+  void _applyFilters(Map<Category, bool> filters) {
+  setState(() {
+    _registeredExpenses.retainWhere((expense) {
+      if (filters[Category.comida] == true && expense.category == Category.comida) return true;
+      if (filters[Category.viajes] == true && expense.category == Category.viajes) return true;
+      if (filters[Category.ocio] == true && expense.category == Category.ocio) return true;
+      if (filters[Category.trabajo] == true && expense.category == Category.trabajo) return true;
+      if (filters[Category.categoria] == true && expense.category == Category.categoria) return true;
+      return false;
+    });
+  });
+}
 
   @override
   Widget build(BuildContext context) {
