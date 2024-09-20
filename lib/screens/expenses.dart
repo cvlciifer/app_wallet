@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:app_wallet/models/expense.dart'; // Importa tu modelo de Expense
-import 'package:app_wallet/services_bd/firebase_Service.dart'; // Importa la función getGastos
-import 'package:app_wallet/widgets/chart/chart.dart'; // Importa el widget del gráfico
-import 'package:app_wallet/widgets/expenses_list/expenses_list.dart'; // Importa el widget que lista los gastos
-import 'package:app_wallet/widgets/main_drawer.dart'; // Importa el widget del drawer
-import 'package:app_wallet/widgets/new_expense.dart'; // Importa el widget para añadir un nuevo gasto
-import 'package:cloud_firestore/cloud_firestore.dart'; // Importa para usar Timestamp
+import 'package:app_wallet/models/expense.dart';
+import 'package:app_wallet/services_bd/firebase_Service.dart';
+import 'package:app_wallet/widgets/chart/chart.dart';
+import 'package:app_wallet/widgets/expenses_list/expenses_list.dart';
+import 'package:app_wallet/widgets/main_drawer.dart';
+import 'package:app_wallet/widgets/new_expense.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Expenses extends StatefulWidget {
-  final Map<Category, bool>? filters; // Recibe los filtros como argumento
-
-  const Expenses({super.key, this.filters}); // Constructor actualizado
+  const Expenses({super.key});
 
   @override
   State<Expenses> createState() {
@@ -20,25 +18,32 @@ class Expenses extends StatefulWidget {
 }
 
 class _ExpensesState extends State<Expenses> {
-  final List<Expense> _registeredExpenses = [];
+  final List<Expense> _allExpenses = [];
+  List<Expense> _filteredExpenses = [];
+  Map<Category, bool> _currentFilters = {
+    Category.comida: false,
+    Category.viajes: false,
+    Category.ocio: false,
+    Category.trabajo: false,
+    Category.categoria: false,
+  };
 
   @override
   void initState() {
     super.initState();
-    _loadGastosFromFirebase(); // Cargar los datos cuando se inicializa el estado
+    _loadGastosFromFirebase();
   }
 
-  // Función para obtener los datos de Firebase
   Future<void> _loadGastosFromFirebase() async {
-    List gastosFromFirebase = await getGastos(); // Llamada a tu función para obtener gastos de Firebase
+    List gastosFromFirebase = await getGastos();
 
     setState(() {
-      _registeredExpenses.clear(); // Limpiar la lista antes de agregar nuevos gastos
+      _allExpenses.clear();
       for (var gasto in gastosFromFirebase) {
         Timestamp timestamp = gasto['fecha'];
-        DateTime fecha = timestamp.toDate(); // Convertir Timestamp a DateTime
+        DateTime fecha = timestamp.toDate();
 
-        _registeredExpenses.add(
+        _allExpenses.add(
           Expense(
             title: gasto['name'],
             amount: gasto['cantidad'].toDouble(),
@@ -47,10 +52,11 @@ class _ExpensesState extends State<Expenses> {
           ),
         );
       }
+      _filteredExpenses =
+          List.from(_allExpenses); // Inicializar los gastos filtrados
     });
   }
 
-  // Función para mapear el tipo de gasto a la categoría
   Category _mapCategory(String tipo) {
     switch (tipo) {
       case 'trabajo':
@@ -66,7 +72,6 @@ class _ExpensesState extends State<Expenses> {
     }
   }
 
-  // CRUD CREATE: función para guardar un gasto en Firebase
   Future<void> createExpense(Expense expense) async {
     await db.collection('gastos').add({
       'name': expense.title,
@@ -76,7 +81,6 @@ class _ExpensesState extends State<Expenses> {
     });
   }
 
-  // Función para abrir el modal de añadir gasto
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
       useSafeArea: true,
@@ -86,10 +90,10 @@ class _ExpensesState extends State<Expenses> {
     );
   }
 
-  // Función para añadir un gasto a la lista y a Firebase
   void _addExpense(Expense expense) {
     setState(() {
-      _registeredExpenses.add(expense);
+      _allExpenses.add(expense);
+      _filteredExpenses.add(expense); // También agregar a la lista filtrada
     });
 
     createExpense(expense).catchError((error) {
@@ -99,11 +103,10 @@ class _ExpensesState extends State<Expenses> {
     });
   }
 
-  // Función para eliminar un gasto de la lista
   void _removeExpense(Expense expense) async {
-    final expenseIndex = _registeredExpenses.indexOf(expense);
+    final expenseIndex = _filteredExpenses.indexOf(expense);
     setState(() {
-      _registeredExpenses.remove(expense);
+      _filteredExpenses.remove(expense);
     });
 
     await deleteExpense(expense.title, expense.date);
@@ -117,7 +120,7 @@ class _ExpensesState extends State<Expenses> {
           label: 'Deshacer',
           onPressed: () {
             setState(() {
-              _registeredExpenses.insert(expenseIndex, expense);
+              _filteredExpenses.insert(expenseIndex, expense);
             });
           },
         ),
@@ -125,15 +128,17 @@ class _ExpensesState extends State<Expenses> {
     );
   }
 
-  // Función para manejar la navegación del Drawer
   void _selectScreen(String identifier) {
-    Navigator.of(context).pop(); // Cierra el Drawer al seleccionar una opción
+    Navigator.of(context).pop();
 
     if (identifier == 'filtros') {
-      Navigator.of(context).pushNamed('/filtros').then((filters) {
+      Navigator.of(context)
+          .pushNamed('/filtros', arguments: _currentFilters)
+          .then((filters) {
         if (filters != null && filters is Map<Category, bool>) {
           setState(() {
-            _applyFilters(filters as Map<Category, bool>); // Aplicar filtros al regresar
+            _currentFilters = filters;
+            _applyFilters(filters);
           });
         }
       });
@@ -142,32 +147,35 @@ class _ExpensesState extends State<Expenses> {
     }
   }
 
-  // Aplicar filtros a los gastos
   void _applyFilters(Map<Category, bool> filters) {
-  setState(() {
-    _registeredExpenses.retainWhere((expense) {
-      if (filters[Category.comida] == true && expense.category == Category.comida) return true;
-      if (filters[Category.viajes] == true && expense.category == Category.viajes) return true;
-      if (filters[Category.ocio] == true && expense.category == Category.ocio) return true;
-      if (filters[Category.trabajo] == true && expense.category == Category.trabajo) return true;
-      if (filters[Category.categoria] == true && expense.category == Category.categoria) return true;
-      return false;
+    setState(() {
+      _filteredExpenses = _allExpenses.where((expense) {
+        if (filters[Category.comida] == true &&
+            expense.category == Category.comida) return true;
+        if (filters[Category.viajes] == true &&
+            expense.category == Category.viajes) return true;
+        if (filters[Category.ocio] == true && expense.category == Category.ocio)
+          return true;
+        if (filters[Category.trabajo] == true &&
+            expense.category == Category.trabajo) return true;
+        if (filters[Category.categoria] == true &&
+            expense.category == Category.categoria) return true;
+        return false;
+      }).toList();
     });
-  });
-}
+  }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
-    // Contenido principal de la lista de gastos
     Widget mainContent = const Center(
       child: Text('No se encontraron gastos. ¡Empieza a agregar algunos!'),
     );
 
-    if (_registeredExpenses.isNotEmpty) {
+    if (_filteredExpenses.isNotEmpty) {
       mainContent = ExpensesList(
-        expenses: _registeredExpenses,
+        expenses: _filteredExpenses,
         onRemoveExpense: _removeExpense,
       );
     }
@@ -186,20 +194,14 @@ class _ExpensesState extends State<Expenses> {
       body: width < 600
           ? Column(
               children: [
-                Chart(expenses: _registeredExpenses),
-                Expanded(
-                  child: mainContent,
-                ),
+                Chart(expenses: _filteredExpenses),
+                Expanded(child: mainContent),
               ],
             )
           : Row(
               children: [
-                Expanded(
-                  child: Chart(expenses: _registeredExpenses),
-                ),
-                Expanded(
-                  child: mainContent,
-                ),
+                Expanded(child: Chart(expenses: _filteredExpenses)),
+                Expanded(child: mainContent),
               ],
             ),
     );

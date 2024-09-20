@@ -1,8 +1,6 @@
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'package:app_wallet/models/expense.dart';
 
 class NewExpense extends StatefulWidget {
@@ -74,8 +72,7 @@ class _NewExpenseState extends State<NewExpense> {
   }
 
   void _submitExpenseData() {
-    final enteredAmount = double.tryParse(_amountController
-        .text); // tryParse('Hello') => null, tryParse('1.12') => 1.12
+    final enteredAmount = double.tryParse(_amountController.text);
     final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
     if (_titleController.text.trim().isEmpty ||
         amountIsInvalid ||
@@ -151,22 +148,24 @@ class _NewExpenseState extends State<NewExpense> {
                   ),
                 if (width >= 600)
                   Row(children: [
-                    DropdownButton(
+                    DropdownButton<Category>(
                       value: _selectedCategory,
                       items: Category.values
-                          .map(
-                            (category) => DropdownMenuItem(
-                              value: category,
-                              child: Text(
-                                category.name.toUpperCase(),
-                              ),
-                            ),
-                          )
+                          .map((category) => DropdownMenuItem<Category>(
+                                value: category,
+                                child: Row(
+                                  children: [
+                                    Icon(categoryIcons[category]), // Icono
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      category.name.toUpperCase(),
+                                    ),
+                                  ],
+                                ),
+                              ))
                           .toList(),
                       onChanged: (value) {
-                        if (value == null) {
-                          return;
-                        }
+                        if (value == null) return;
                         setState(() {
                           _selectedCategory = value;
                         });
@@ -246,22 +245,24 @@ class _NewExpenseState extends State<NewExpense> {
                 else
                   Row(
                     children: [
-                      DropdownButton(
+                      DropdownButton<Category>(
                         value: _selectedCategory,
                         items: Category.values
-                            .map(
-                              (category) => DropdownMenuItem(
-                                value: category,
-                                child: Text(
-                                  category.name.toUpperCase(),
-                                ),
-                              ),
-                            )
+                            .map((category) => DropdownMenuItem<Category>(
+                                  value: category,
+                                  child: Row(
+                                    children: [
+                                      Icon(categoryIcons[category]), // Icono
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        category.name.toUpperCase(),
+                                      ),
+                                    ],
+                                  ),
+                                ))
                             .toList(),
                         onChanged: (value) {
-                          if (value == null) {
-                            return;
-                          }
+                          if (value == null) return;
                           setState(() {
                             _selectedCategory = value;
                           });
