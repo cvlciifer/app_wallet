@@ -52,28 +52,25 @@ class ChartBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: FractionallySizedBox(
-          heightFactor: fill, // 0 to 1
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: barColor, // Usamos el color proporcionado
-              borderRadius: BorderRadius.circular(6),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20), // Ajuste del padding horizontal
+      child: FractionallySizedBox(
+        heightFactor: fill, // De 0 a 1
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: barColor, // Usamos el color proporcionado
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
-
