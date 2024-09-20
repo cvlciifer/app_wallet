@@ -74,8 +74,7 @@ class Chart extends StatelessWidget {
               children: [
                 // Barra lateral con valores y más espacio
                 Column(
-                  mainAxisAlignment: MainAxisAlignment
-                      .spaceAround, // Aumenta el espacio entre los números
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ...List.generate(7, (index) {
                       double value =
@@ -86,7 +85,7 @@ class Chart extends StatelessWidget {
                             color: Colors.black87, fontSize: 11),
                       );
                     }),
-                    const SizedBox(height: 0), // Espacio en blanco debajo del 0
+                    const SizedBox(height: 10), // Espacio en blanco debajo del 0
                   ],
                 ),
                 const SizedBox(width: 8),
@@ -148,7 +147,6 @@ class Chart extends StatelessWidget {
                       color: const Color.fromARGB(255, 8, 64, 110),
                     ),
               ),
-              // Aquí ya no necesitas agregar otro símbolo de dólar
               Text(
                 formatNumber(
                     totalExpenses), // El método formatNumber ya lo añade
@@ -176,12 +174,13 @@ class ChartPainter extends CustomPainter {
       ..color = Colors.grey.withOpacity(0.5)
       ..strokeWidth = 1.5;
 
-    int numLines = 6; // Número de líneas entre el valor mínimo y máximo
-    double heightStep = size.height / (numLines); // Divide la altura en segmentos iguales
+    // Determine the number of lines and their positions
+    int numLines = 7; // You can keep this as is
+    double heightStep = size.height / (numLines - 1); // Adjust to cover 0 to max
 
-    for (int i = 0; i <= numLines; i++) {
-      // Recalcula la posición para que la primera línea esté abajo y la última arriba
-      double yPosition = size.height - (i * heightStep);
+    for (int i = 0; i < numLines; i++) {
+      // Calculate the y position for each line based on the height
+      double yPosition = size.height - (i * heightStep * (maxTotalExpense > 0 ? 1 : 0));
       canvas.drawLine(Offset(0, yPosition), Offset(size.width, yPosition), paint);
     }
   }
