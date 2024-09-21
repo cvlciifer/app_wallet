@@ -20,7 +20,8 @@ class Chart extends StatelessWidget {
       ExpenseBucket.forCategory(expenses, Category.ocio),
       ExpenseBucket.forCategory(expenses, Category.viajes),
       ExpenseBucket.forCategory(expenses, Category.trabajo),
-      ExpenseBucket.forCategory(expenses, Category.categoria),
+      ExpenseBucket.forCategory(expenses, Category.salud),
+      ExpenseBucket.forCategory(expenses, Category.servicios),
     ];
   }
 
@@ -50,6 +51,8 @@ class Chart extends StatelessWidget {
         return const Color(0xFF88B0BF);
       case Category.trabajo:
         return const Color.fromARGB(255, 11, 106, 128);
+      case Category.servicios:
+        return Color.fromARGB(255, 65, 154, 159);
       default:
         return const Color.fromARGB(255, 12, 140, 187);
     }
@@ -68,6 +71,16 @@ class Chart extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // Título del gráfico
+          const Text(
+            'Categorías v/s Cantidad',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 8, 64, 110),
+            ),
+          ),
+          const SizedBox(height: 10), // Espacio entre el título y el gráfico
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -148,8 +161,7 @@ class Chart extends StatelessWidget {
                     ),
               ),
               Text(
-                formatNumber(
-                    totalExpenses), // El método formatNumber ya lo añade
+                formatNumber(totalExpenses), // El método formatNumber ya lo añade
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       fontWeight: FontWeight.bold,
                       color: const Color.fromARGB(255, 8, 64, 110),
@@ -190,4 +202,3 @@ class ChartPainter extends CustomPainter {
     return false;
   }
 }
-

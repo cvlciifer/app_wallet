@@ -24,7 +24,8 @@ class _ExpensesState extends State<Expenses> {
     Category.viajes: false,
     Category.ocio: false,
     Category.trabajo: false,
-    Category.categoria: false,
+    Category.salud: false,
+    Category.servicios: false,
   };
 
   @override
@@ -51,8 +52,7 @@ class _ExpensesState extends State<Expenses> {
           ),
         );
       }
-      _filteredExpenses =
-          List.from(_allExpenses); // Inicializar los gastos filtrados
+      _filteredExpenses = List.from(_allExpenses); // Inicializar los gastos filtrados
     });
   }
 
@@ -66,8 +66,10 @@ class _ExpensesState extends State<Expenses> {
         return Category.comida;
       case 'viajes':
         return Category.viajes;
+      case 'categoria':
+        return Category.salud;  
       default:
-        return Category.categoria;
+        return Category.servicios;  
     }
   }
 
@@ -157,8 +159,10 @@ class _ExpensesState extends State<Expenses> {
           return true;
         if (filters[Category.trabajo] == true &&
             expense.category == Category.trabajo) return true;
-        if (filters[Category.categoria] == true &&
-            expense.category == Category.categoria) return true;
+        if (filters[Category.salud] == true &&
+            expense.category == Category.salud) return true;
+        if (filters[Category.servicios] == true &&
+            expense.category == Category.servicios) return true;    
         return false;
       }).toList();
     });
@@ -189,7 +193,10 @@ class _ExpensesState extends State<Expenses> {
           ),
         ],
       ),
-      drawer: MainDrawer(onSelectScreen: _selectScreen),
+      drawer: MainDrawer(
+        onSelectScreen: _selectScreen,
+        expenses: _allExpenses, // Pasa la lista de gastos aquí
+      ),
       body: width < 600
           ? Column(
               children: [

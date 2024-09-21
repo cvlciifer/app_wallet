@@ -99,7 +99,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pop(_getActiveFilters()); // Guardar filtros (o todos activados si no hay seleccionados)
+            Navigator.of(context).pop(_getActiveFilters()); // Guardar filtros
           },
         ),
       ),
@@ -124,6 +124,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
                     color: Theme.of(context).colorScheme.onBackground,
                   ),
             ),
+            secondary: Icon(categoryIcons[category], // Ícono correspondiente
+                color: Theme.of(context).colorScheme.onBackground),
             activeColor: Theme.of(context).colorScheme.tertiary,
             contentPadding: const EdgeInsets.only(left: 34, right: 22),
           );

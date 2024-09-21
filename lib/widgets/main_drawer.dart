@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/estadisticas_screen.dart';
 import 'package:app_wallet/services_bd/firebase_Service.dart';
+import 'package:app_wallet/models/expense.dart'; // Asegúrate de importar el modelo Expense
 
 class MainDrawer extends StatelessWidget {
-  const MainDrawer({super.key, required this.onSelectScreen});
+  const MainDrawer({
+    super.key,
+    required this.onSelectScreen,
+    required this.expenses, // Añadir este parámetro
+  });
 
   final void Function(String identifier) onSelectScreen;
+  final List<Expense> expenses; // Variable para almacenar la lista de gastos
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +52,7 @@ class MainDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(
-              Icons.money_off,
+              Icons.change_circle_outlined,
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
@@ -78,7 +84,8 @@ class MainDrawer extends StatelessWidget {
               onSelectScreen('estadisticas');
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (ctx) => EstadisticasScreen(),
+                  builder: (ctx) => EstadisticasScreen(
+                      expenses: expenses), // Pasar la lista de gastos
                 ),
               );
             },
@@ -107,7 +114,7 @@ class MainDrawer extends StatelessWidget {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Tu consejo<3'),
+                      title: const Text('Tu consejo diario'),
                       content: Text(
                           consejoData['consejo'] ?? 'Consejo no disponible'),
                       actions: <Widget>[
