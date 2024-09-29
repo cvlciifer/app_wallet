@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/estadisticas_screen.dart';
+import 'package:app_wallet/screens/informe_mensual.dart'; 
 import 'package:app_wallet/services_bd/firebase_Service.dart';
-import 'package:app_wallet/models/expense.dart'; // Asegúrate de importar el modelo Expense
+import 'package:app_wallet/models/expense.dart'; 
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({
@@ -86,6 +87,31 @@ class MainDrawer extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (ctx) => EstadisticasScreen(
                       expenses: expenses), // Pasar la lista de gastos
+                ),
+              );
+            },
+          ),
+          // Nueva opción en el Drawer para Informe Mensual
+          ListTile(
+            leading: Icon(
+              Icons.insert_chart_outlined, // Icono para la nueva pantalla
+              size: 26,
+              color: Theme.of(context).colorScheme.onBackground,
+            ),
+            title: Text(
+              'Informe Mensual',
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground,
+                    fontSize: 24,
+                  ),
+            ),
+            onTap: () {
+              onSelectScreen('informe_mensual');
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (ctx) => InformeMensualScreen(
+                    expenses: expenses, // Pasar la lista de gastos a la nueva pantalla
+                  ),
                 ),
               );
             },

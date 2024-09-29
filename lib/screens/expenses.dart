@@ -210,6 +210,11 @@ class _ExpensesState extends State<Expenses> {
                 Expanded(child: mainContent),
               ],
             ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openAddExpenseOverlay,
+        child: const Icon(Icons.add),
+        tooltip: 'Agregar gasto',
+      ),
     );
   }
 }

@@ -67,7 +67,7 @@ class Chart extends StatelessWidget {
       height: 300,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: const Color(0xFFCEE4F2),
+        color: Color.fromARGB(255, 166, 208, 234),
       ),
       child: Column(
         children: [
