@@ -61,15 +61,17 @@ Future<void> deleteExpense(String name, DateTime fecha) async {
   }
 }
 
-
-Future<Map<String, dynamic>> getRandomConsejo() async {
+Future<Map<String, dynamic>> getConsejoDelDia() async {
   List<Map<String, dynamic>> consejos = [];
   CollectionReference collectionReferenceConsejos = db.collection('consejos');
+
   // Abre todos los datos de la colección
   QuerySnapshot queryConsejos = await collectionReferenceConsejos.get();
-// Mensaje de depuración
+
+  // Mensaje de depuración
   print('Número de documentos recuperados: ${queryConsejos.docs.length}');
 
+  // Agrega los documentos a la lista de consejos
   queryConsejos.docs.forEach((documento) {
     print('Documento: ${documento.data()}'); // Mensaje de depuración
     consejos.add(documento.data() as Map<String, dynamic>);
@@ -79,7 +81,16 @@ Future<Map<String, dynamic>> getRandomConsejo() async {
     return {}; // Retorna un mapa vacío si no hay consejos
   }
 
-  // Retorna un consejo aleatorio de la lista
-  final randomIndex = Random().nextInt(consejos.length);
-  return consejos[randomIndex];
+  // Obtén la fecha actual
+  DateTime now = DateTime.now();
+
+  // Convierte la fecha a un formato único (por ejemplo, YYYYMMDD)
+  String fechaKey =
+      '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+
+  // Calcula un índice usando un hash simple de la fecha
+  int index = fechaKey.hashCode % consejos.length;
+
+  // Retorna el consejo del día
+  return consejos[index];
 }

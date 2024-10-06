@@ -51,7 +51,7 @@ class BlankScreen extends StatelessWidget {
   }
 }
  */
-
+/*
 import 'package:app_wallet/services_bd/firebase_Service.dart';
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/expenses.dart'; // Importa la pantalla principal
@@ -101,3 +101,4 @@ class BlankScreen extends StatelessWidget {
     );
   }
 }
+*/

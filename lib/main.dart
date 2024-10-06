@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/expenses.dart';
 import 'package:app_wallet/screens/blank.dart';
 import 'package:app_wallet/screens/filtros.dart';
-import 'package:app_wallet/screens/informe_mensual.dart'; 
+import 'package:app_wallet/screens/informe_mensual.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -78,8 +78,8 @@ void main() async {
       home: Expenses(),
       routes: {
         '/expense': (ctx) => Expenses(),
-        '/blank': (ctx) => BlankScreen(), 
-        '/filtros':(ctx)=> FiltersScreen(),
+        //'/blank': (ctx) => BlankScreen(),
+        '/filtros': (ctx) => FiltersScreen(),
       },
     ),
   );
