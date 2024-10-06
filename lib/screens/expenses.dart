@@ -52,7 +52,8 @@ class _ExpensesState extends State<Expenses> {
           ),
         );
       }
-      _filteredExpenses = List.from(_allExpenses); // Inicializar los gastos filtrados
+      _filteredExpenses =
+          List.from(_allExpenses); // Inicializar los gastos filtrados
     });
   }
 
@@ -67,14 +68,14 @@ class _ExpensesState extends State<Expenses> {
       case 'viajes':
         return Category.viajes;
       case 'categoria':
-        return Category.salud;  
+        return Category.salud;
       default:
-        return Category.servicios;  
+        return Category.servicios;
     }
   }
 
   Future<void> createExpense(Expense expense) async {
-    await db.collection('gastos').add({
+    await db.collection('profe').add({
       'name': expense.title,
       'fecha': Timestamp.fromDate(expense.date),
       'cantidad': expense.amount,
@@ -162,7 +163,7 @@ class _ExpensesState extends State<Expenses> {
         if (filters[Category.salud] == true &&
             expense.category == Category.salud) return true;
         if (filters[Category.servicios] == true &&
-            expense.category == Category.servicios) return true;    
+            expense.category == Category.servicios) return true;
         return false;
       }).toList();
     });

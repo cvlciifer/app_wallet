@@ -7,7 +7,7 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 // CRUD READ
 Future<List> getGastos() async {
   List lisgastos = [];
-  CollectionReference collectionReferenceGastos = db.collection('gastos');
+  CollectionReference collectionReferenceGastos = db.collection('profe');
   QuerySnapshot queryGastos = await collectionReferenceGastos.get();
 
   for (var doc in queryGastos.docs) {
@@ -27,7 +27,7 @@ Future<List> getGastos() async {
 
 // CRUD CREATE: función para guardar un gasto en Firebase
 Future<void> createExpense(Expense expense) async {
-  await db.collection('gastos').add({
+  await db.collection('profe').add({
     'name': expense.title,
     'fecha': Timestamp.fromDate(expense.date), // Convertir DateTime a Timestamp
     'cantidad': expense.amount,
@@ -43,7 +43,7 @@ Future<void> deleteExpense(String name, DateTime fecha) async {
   try {
     // Search for the document with matching name and date
     QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('gastos')
+        .collection('profe')
         .where('name', isEqualTo: name)
         .where('fecha', isEqualTo: Timestamp.fromDate(fecha))
         .get();
