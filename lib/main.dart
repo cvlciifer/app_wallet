@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-
+import 'package:flutter/services.dart'; // Importar este paquete
 import 'package:app_wallet/screens/expenses.dart';
 import 'package:app_wallet/screens/blank.dart';
 import 'package:app_wallet/screens/filtros.dart';
-import 'package:app_wallet/screens/informe_mensual.dart';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -13,39 +10,20 @@ var kColorScheme = ColorScheme.fromSeed(
   seedColor: Color.fromARGB(255, 8, 115, 158),
 );
 
-var kDarkColorScheme = ColorScheme.fromSeed(
-  brightness: Brightness.dark,
-  seedColor: Color.fromARGB(255, 85, 139, 155),
-);
-
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // SystemChrome.setPreferredOrientations([
-  //   DeviceOrientation.portraitUp,
-  // ]).then((fn) {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Restringir la orientación a vertical
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation
+        .portraitUp, // Solo permitir orientación vertical hacia arriba
+  ]);
+
   runApp(
     MaterialApp(
-      darkTheme: ThemeData.dark().copyWith(
-        useMaterial3: true,
-        colorScheme: kDarkColorScheme,
-        cardTheme: const CardTheme().copyWith(
-          color: kDarkColorScheme.secondaryContainer,
-          margin: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kDarkColorScheme.primaryContainer,
-            foregroundColor: kDarkColorScheme.onPrimaryContainer,
-          ),
-        ),
-      ),
       theme: ThemeData().copyWith(
         useMaterial3: true,
         colorScheme: kColorScheme,
@@ -73,12 +51,11 @@ void main() async {
               ),
             ),
       ),
-
-      // themeMode: ThemeMode.system, // default
+      themeMode: ThemeMode.light, // Asegúrate de que el modo siempre sea claro
       home: Expenses(),
       routes: {
         '/expense': (ctx) => Expenses(),
-        //'/blank': (ctx) => BlankScreen(),
+        /* '/blank': (ctx) => BlankScreen(),  */
         '/filtros': (ctx) => FiltersScreen(),
       },
     ),
