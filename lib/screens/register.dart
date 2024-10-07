@@ -1,4 +1,6 @@
+import 'package:app_wallet/services_bd/register_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -18,7 +20,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _areEmailsMatching = true;
   bool _arePasswordsMatching = true;
   bool _isPasswordVisible = false; // Controla la visibilidad de la contraseña
-  bool _isConfirmPasswordVisible = false; // Controla la visibilidad de la confirmación
+  bool _isConfirmPasswordVisible =
+      false; // Controla la visibilidad de la confirmación
 
   @override
   Widget build(BuildContext context) {
@@ -116,9 +119,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _isPasswordLengthValid = value.length >= 8;
                       _isPasswordUppercaseValid =
                           value.contains(RegExp(r'[A-Z]'));
-                      _arePasswordsMatching =
-                          _passwordController.text ==
-                              _confirmPasswordController.text;
+                      _arePasswordsMatching = _passwordController.text ==
+                          _confirmPasswordController.text;
                     });
                   },
                 ),
@@ -151,7 +153,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                          _isConfirmPasswordVisible =
+                              !_isConfirmPasswordVisible;
                         });
                       },
                     ),
@@ -159,9 +162,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: !_isConfirmPasswordVisible,
                   onChanged: (value) {
                     setState(() {
-                      _arePasswordsMatching =
-                          _passwordController.text ==
-                              _confirmPasswordController.text;
+                      _arePasswordsMatching = _passwordController.text ==
+                          _confirmPasswordController.text;
                     });
                   },
                 ),
@@ -181,8 +183,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _areEmailsMatching &&
                           _arePasswordsMatching
                       ? () {
-                          // Lógica para registrarse
-                          print('Registro exitoso');
+                          final String email = _emailController.text.trim();
+                          final String username = _nameController.text.trim();
+                          final String password =
+                              _passwordController.text.trim();
+
+                          // Obtén una instancia de RegisterProvider
+                          final registerProvider =
+                              Provider.of<RegisterProvider>(context,
+                                  listen: false);
+
+                          // Llama a registerUser
+                          registerProvider.registerUser(
+                            email: email,
+                            username: username,
+                            password: password,
+                            token:
+                                '', // Puedes agregar un token si es necesario
+                            onSuccess: () {
+                              // Aquí puedes redirigir al usuario o mostrar un mensaje de éxito
+                              print('Registro exitoso');
+                              Navigator.pop(
+                                  context); // Regresar a la pantalla anterior
+                            },
+                            onError: (error) {
+                              // Manejo de errores
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(error)),
+                              );
+                            },
+                          );
                         }
                       : null,
                   child: Padding(

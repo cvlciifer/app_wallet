@@ -102,7 +102,7 @@ android {
     defaultConfig {
         // Cambia el applicationId a uno propio
         applicationId = "com.example.app_wallet"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()  // Versión de la aplicación
         versionName = flutterVersionName  // Nombre de la versión

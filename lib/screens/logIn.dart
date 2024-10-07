@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/forgot_passoword.dart';
 import 'package:app_wallet/screens/register.dart';
+import 'package:app_wallet/services_bd/login_provider.dart'; // Importa tu LoginProvider
+import 'package:provider/provider.dart'; // Importar el provider
 
 void main() {
   runApp(MyApp());
@@ -14,7 +16,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginScreen(),
+      home: ChangeNotifierProvider(
+        create: (context) => LoginProvider(), // Proveedor de Login
+        child: LoginScreen(),
+      ),
     );
   }
 }
@@ -28,6 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +91,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 10),
+              if (_errorMessage != null)
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.red),
+                ),
+              const SizedBox(height: 10),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -101,9 +113,28 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  // Lógica para continuar
-                  print('Continue button pressed');
+                onPressed: () async {
+                  // Lógica para iniciar sesión
+                  setState(() {
+                    _errorMessage = null; // Reiniciar el mensaje de error
+                  });
+
+                  final loginProvider =
+                      Provider.of<LoginProvider>(context, listen: false);
+                  await loginProvider.loginUser(
+                    email: _emailController.text,
+                    password: _passwordController.text,
+                    onSuccess: () {
+                      // Navegar a la pantalla principal o a donde desees
+                      Navigator.pushReplacementNamed(context, '/expense');
+                    },
+                    onError: (error) {
+                      // Mostrar el error en la UI
+                      setState(() {
+                        _errorMessage = error;
+                      });
+                    },
+                  );
                 },
                 child: const Padding(
                   padding:
