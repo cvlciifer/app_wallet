@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Importar este paquete
 import 'package:app_wallet/screens/expenses.dart';
-import 'package:app_wallet/screens/blank.dart';
+import 'package:app_wallet/screens/logIn.dart';
 import 'package:app_wallet/screens/filtros.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -24,6 +24,7 @@ void main() async {
 
   runApp(
     MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData().copyWith(
         useMaterial3: true,
         colorScheme: kColorScheme,
@@ -55,7 +56,7 @@ void main() async {
       home: Expenses(),
       routes: {
         '/expense': (ctx) => Expenses(),
-        /* '/blank': (ctx) => BlankScreen(),  */
+        '/logIn': (ctx) => LoginScreen(), 
         '/filtros': (ctx) => FiltersScreen(),
       },
     ),

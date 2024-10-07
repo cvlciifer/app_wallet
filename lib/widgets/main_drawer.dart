@@ -1,3 +1,4 @@
+import 'package:app_wallet/screens/logIn.dart';
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/estadisticas_screen.dart';
 import 'package:app_wallet/screens/informe_mensual.dart';
@@ -50,6 +51,28 @@ class MainDrawer extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.insert_chart_outlined, // Icono para la nueva pantalla
+              size: 26,
+              color: Theme.of(context).colorScheme.onBackground,
+            ),
+            title: Text(
+              'logIn',
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground,
+                    fontSize: 24,
+                  ),
+            ),
+            onTap: () {
+              onSelectScreen('logIn');
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (ctx) => LoginScreen(),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: Icon(

@@ -213,7 +213,7 @@ class _NewExpenseState extends State<NewExpense> {
                           children: [
                             Text(
                               _selectedDate == null
-                                  ? 'Seleccione Fecha'
+                                  ? 'Calendario'
                                   : formatter.format(_selectedDate!),
                             ),
                             IconButton(
