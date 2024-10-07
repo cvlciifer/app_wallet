@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/forgot_passoword.dart';
 import 'package:app_wallet/screens/register.dart';
+import 'package:app_wallet/screens/expenses.dart'; // Importa la pantalla de Expenses
 import 'package:app_wallet/services_bd/login_provider.dart'; // Importa tu LoginProvider
 import 'package:provider/provider.dart'; // Importar el provider
 
@@ -20,6 +21,9 @@ class MyApp extends StatelessWidget {
         create: (context) => LoginProvider(), // Proveedor de Login
         child: LoginScreen(),
       ),
+      routes: {
+        '/expense': (ctx) => Expenses(), // Agrega la ruta para Expenses
+      },
     );
   }
 }
@@ -125,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     email: _emailController.text,
                     password: _passwordController.text,
                     onSuccess: () {
-                      // Navegar a la pantalla principal o a donde desees
+                      // Navegar a la pantalla de Expenses
                       Navigator.pushReplacementNamed(context, '/expense');
                     },
                     onError: (error) {

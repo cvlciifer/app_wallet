@@ -20,8 +20,7 @@ void main() async {
 
   // Restringir la orientación a vertical
   await SystemChrome.setPreferredOrientations([
-    DeviceOrientation
-        .portraitUp, // Solo permitir orientación vertical hacia arriba
+    DeviceOrientation.portraitUp, // Solo permitir orientación vertical hacia arriba
   ]);
 
   runApp(
@@ -61,7 +60,7 @@ void main() async {
         ),
         themeMode:
             ThemeMode.light, // Asegúrate de que el modo siempre sea claro
-        home: Expenses(),
+        home: LoginScreen(), // Cambiar a LoginScreen
         routes: {
           '/expense': (ctx) => Expenses(),
           '/logIn': (ctx) => LoginScreen(),
