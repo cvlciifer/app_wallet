@@ -1,4 +1,7 @@
+// forgot_password_screen.dart
+import 'package:app_wallet/services_bd/reset_password.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
@@ -38,10 +41,36 @@ class ForgotPasswordScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   // Lógica para enviar correo de recuperación
-                  print('Correo de recuperación enviado a: ${_emailController.text}');
+                  String email = _emailController.text.trim();
+                  if (email.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Por favor, ingresa tu correo.')),
+                    );
+                    return;
+                  }
+
+                  // Llama al método de restablecimiento de contraseña
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .resetPassword(
+                    email,
+                    () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Se ha enviado un enlace de restablecimiento a $email.')),
+                      );
+                      Navigator.of(context).pop();
+                    },
+                    (errorMessage) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(errorMessage)),
+                      );
+                    },
+                  );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 40.0),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 40.0),
                   child: Text(
                     'Enviar',
                     style: TextStyle(fontSize: 18),

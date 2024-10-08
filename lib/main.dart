@@ -1,13 +1,15 @@
+import 'package:app_wallet/screens/forgot_passoword.dart';
+import 'package:app_wallet/services_bd/reset_password.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Importar este paquete
+import 'package:flutter/services.dart';
 import 'package:app_wallet/screens/expenses.dart';
 import 'package:app_wallet/screens/logIn.dart';
 import 'package:app_wallet/screens/filtros.dart';
-import 'package:app_wallet/services_bd/register_provider.dart'; // Importa tu provider de registro
-import 'package:app_wallet/services_bd/login_provider.dart'; // Importa tu provider de login
+import 'package:app_wallet/services_bd/register_provider.dart';
+import 'package:app_wallet/services_bd/login_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:provider/provider.dart'; // Importar el provider
+import 'package:provider/provider.dart';
 
 var kColorScheme = ColorScheme.fromSeed(
   seedColor: Color.fromARGB(255, 8, 115, 158),
@@ -32,6 +34,8 @@ void main() async {
             create: (_) => RegisterProvider()), // Agrega el RegisterProvider
         ChangeNotifierProvider(
             create: (_) => LoginProvider()), // Agrega también el LoginProvider
+        ChangeNotifierProvider(
+            create: (_) => AuthProvider()), // Agrega el AuthProvider
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -69,6 +73,8 @@ void main() async {
           '/expense': (ctx) => Expenses(),
           '/logIn': (ctx) => LoginScreen(),
           '/filtros': (ctx) => FiltersScreen(),
+          '/forgot-password': (ctx) =>
+              ForgotPasswordScreen(), // Ruta para la pantalla de recuperación de contraseña
         },
       ),
     ),
