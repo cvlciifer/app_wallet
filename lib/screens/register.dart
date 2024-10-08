@@ -182,37 +182,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _isPasswordUppercaseValid &&
                           _areEmailsMatching &&
                           _arePasswordsMatching
-                      ? () {
+                      ? () async {
                           final String email = _emailController.text.trim();
                           final String username = _nameController.text.trim();
                           final String password =
                               _passwordController.text.trim();
 
-                          // Obtén una instancia de RegisterProvider
+                          // Obtén una instancia de RegisterProvider usando context.read
                           final registerProvider =
-                              Provider.of<RegisterProvider>(context,
-                                  listen: false);
+                              context.read<RegisterProvider>();
 
-                          // Llama a registerUser
-                          registerProvider.registerUser(
-                            email: email,
-                            username: username,
-                            password: password,
-                            token:
-                                '', // Puedes agregar un token si es necesario
-                            onSuccess: () {
-                              // Aquí puedes redirigir al usuario o mostrar un mensaje de éxito
-                              print('Registro exitoso');
-                              Navigator.pop(
-                                  context); // Regresar a la pantalla anterior
-                            },
-                            onError: (error) {
-                              // Manejo de errores
+                          // Llama a registerUser con await y verifica el estado del widget
+                          try {
+                            await registerProvider.registerUser(
+                              email: email,
+                              username: username,
+                              password: password,
+                              token: '',
+                              onSuccess: () {
+                                // Verificar si el widget aún está montado antes de realizar cualquier operación
+                                if (mounted) {
+                                  print('Registro exitoso');
+                                  Navigator.pop(
+                                      context); // Regresar a la pantalla anterior
+                                }
+                              },
+                              onError: (error) {
+                                // Verificar si el widget aún está montado antes de mostrar errores
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(error)),
+                                  );
+                                }
+                              },
+                            );
+                          } catch (e) {
+                            if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(error)),
+                                SnackBar(
+                                    content: Text('Error al registrar: $e')),
                               );
-                            },
-                          );
+                            }
+                          }
                         }
                       : null,
                   child: Padding(

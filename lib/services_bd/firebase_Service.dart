@@ -2,12 +2,31 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 import 'package:app_wallet/models/expense.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:app_wallet/models/expense.dart';
+
 FirebaseFirestore db = FirebaseFirestore.instance;
 
-// CRUD READ
+// Obtener el correo del usuario autenticado
+String? getUserEmail() {
+  return FirebaseAuth.instance.currentUser?.email;
+}
+
+// CRUD READ: Leer gastos del usuario autenticado
 Future<List> getGastos() async {
   List lisgastos = [];
-  CollectionReference collectionReferenceGastos = db.collection('gastos');
+  String? userEmail = getUserEmail();
+
+  if (userEmail == null) {
+    print('Error: No se encontró el usuario autenticado');
+    return lisgastos; // Retorna lista vacía si no hay usuario autenticado
+  }
+
+  // Referenciar la subcolección 'gastos' del usuario autenticado
+  CollectionReference collectionReferenceGastos =
+      db.collection('usuarios').doc('Gastos').collection(userEmail);
+
   QuerySnapshot queryGastos = await collectionReferenceGastos.get();
 
   for (var doc in queryGastos.docs) {
@@ -25,9 +44,17 @@ Future<List> getGastos() async {
   return lisgastos;
 }
 
-// CRUD CREATE: función para guardar un gasto en Firebase
+// CRUD CREATE: Crear un nuevo gasto para el usuario autenticado
 Future<void> createExpense(Expense expense) async {
-  await db.collection('gastos').add({
+  String? userEmail = getUserEmail();
+
+  if (userEmail == null) {
+    print('Error: No se encontró el usuario autenticado');
+    return; // Salir si no hay usuario autenticado
+  }
+
+  // Referenciar la subcolección 'gastos' del usuario autenticado
+  await db.collection('usuarios').doc('Gastos').collection(userEmail).add({
     'name': expense.title,
     'fecha': Timestamp.fromDate(expense.date), // Convertir DateTime a Timestamp
     'cantidad': expense.amount,
@@ -38,12 +65,21 @@ Future<void> createExpense(Expense expense) async {
   });
 }
 
-// CRUD DELETE
+// CRUD DELETE: Eliminar un gasto del usuario autenticado
 Future<void> deleteExpense(String name, DateTime fecha) async {
+  String? userEmail = getUserEmail();
+
+  if (userEmail == null) {
+    print('Error: No se encontró el usuario autenticado');
+    return; // Salir si no hay usuario autenticado
+  }
+
   try {
-    // Search for the document with matching name and date
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('gastos')
+    // Buscar el documento que coincide con el nombre y la fecha en la subcolección del usuario autenticado
+    QuerySnapshot snapshot = await db
+        .collection('usuarios')
+        .doc('gastos')
+        .collection(userEmail)
         .where('name', isEqualTo: name)
         .where('fecha', isEqualTo: Timestamp.fromDate(fecha))
         .get();

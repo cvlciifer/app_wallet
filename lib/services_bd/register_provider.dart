@@ -52,12 +52,7 @@ class RegisterProvider extends ChangeNotifier {
           .doc('Gastos')
           .collection(emailLower) // Cambiar a emailLower
           .doc(userCredential.user?.uid)
-          .set({
-        'email': emailLower,
-        'username': username,
-        'token': token,
-        'created_at': FieldValue.serverTimestamp(),
-      });
+          .set({});
 
       // Llamar al método de éxito
       onSuccess();
