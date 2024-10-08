@@ -44,6 +44,38 @@ Future<List> getGastos() async {
   return lisgastos;
 }
 
+// CRUD CREATE: Restaurar un gasto en la base de datos
+Future<void> restoreExpense(Expense expense) async {
+  String? userEmail = getUserEmail();
+
+  if (userEmail == null) {
+    print(
+        'Error: No se encontró el usuario autenticado para restaurar el gasto');
+    return; // Salir si no hay usuario autenticado
+  }
+
+  try {
+    print(
+        'Restaurando el gasto: ${expense.title}, ${expense.date}, ${expense.amount}, ${expense.category}');
+
+    // Restaurar el gasto en la subcolección del usuario autenticado
+    await db.collection('usuarios').doc('Gastos').collection(userEmail).add({
+      'name': expense.title,
+      'fecha':
+          Timestamp.fromDate(expense.date), // Convertir DateTime a Timestamp
+      'cantidad': expense.amount,
+      'tipo': expense.category
+          .toString()
+          .split('.')
+          .last, // Guardar solo el valor de la categoría
+    });
+
+    print('Gasto restaurado correctamente.');
+  } catch (error) {
+    print('Error al restaurar el gasto: $error');
+  }
+}
+
 // CRUD CREATE: Crear un nuevo gasto para el usuario autenticado
 Future<void> createExpense(Expense expense) async {
   String? userEmail = getUserEmail();
@@ -66,7 +98,7 @@ Future<void> createExpense(Expense expense) async {
 }
 
 // CRUD DELETE: Eliminar un gasto del usuario autenticado
-Future<void> deleteExpense(String name, DateTime fecha) async {
+Future<void> deleteExpense(Expense expense) async {
   String? userEmail = getUserEmail();
 
   if (userEmail == null) {
@@ -75,16 +107,31 @@ Future<void> deleteExpense(String name, DateTime fecha) async {
   }
 
   try {
-    // Buscar el documento que coincide con el nombre y la fecha en la subcolección del usuario autenticado
+    print(
+        'Buscando el gasto para eliminar: ${expense.title}, ${expense.date}, ${expense.amount}, ${expense.category}');
+
+    // Buscar el documento que coincide con el nombre, fecha, cantidad y tipo en la subcolección del usuario autenticado
     QuerySnapshot snapshot = await db
         .collection('usuarios')
-        .doc('gastos')
+        .doc('Gastos')
         .collection(userEmail)
-        .where('name', isEqualTo: name)
-        .where('fecha', isEqualTo: Timestamp.fromDate(fecha))
+        .where('name', isEqualTo: expense.title)
+        .where('fecha',
+            isEqualTo: Timestamp.fromDate(
+                expense.date)) // Convertir `expense.date` a Timestamp
+        .where('cantidad', isEqualTo: expense.amount)
+        .where('tipo',
+            isEqualTo: expense.category
+                .toString()
+                .split('.')
+                .last) // Coincidir con el valor de la categoría
         .get();
 
+    print(
+        'Número de documentos encontrados para eliminar: ${snapshot.docs.length}');
+
     if (snapshot.docs.isNotEmpty) {
+      // Eliminar cada documento encontrado
       for (var doc in snapshot.docs) {
         await doc.reference.delete();
         print('Gasto eliminado: ${doc.id}');

@@ -124,12 +124,25 @@ class _ExpensesState extends State<Expenses> {
 
   void _removeExpense(Expense expense) async {
     final expenseIndex = _filteredExpenses.indexOf(expense);
+
+    if (expenseIndex == -1) {
+      print('Error: El gasto no se encontró en _filteredExpenses');
+      return;
+    }
+
+    // Eliminar el gasto de la vista
     setState(() {
       _filteredExpenses.remove(expense);
     });
+    print('Gasto eliminado de la vista: ${expense.title}, ${expense.date}');
 
-    await deleteExpense(expense.title, expense.date);
+    // Guardar una copia del gasto eliminado para la opción de deshacer
+    Expense deletedExpense = expense;
 
+    // Llamar a la función deleteExpense con el objeto completo
+    await deleteExpense(expense);
+
+    // Mostrar un mensaje en la aplicación para el usuario con la opción de deshacer
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -137,10 +150,16 @@ class _ExpensesState extends State<Expenses> {
         content: const Text('Gasto eliminado.'),
         action: SnackBarAction(
           label: 'Deshacer',
-          onPressed: () {
+          onPressed: () async {
+            // Restaurar el gasto en la lista
             setState(() {
-              _filteredExpenses.insert(expenseIndex, expense);
+              _filteredExpenses.insert(expenseIndex, deletedExpense);
             });
+
+            // Restaurar el gasto en la base de datos
+            await restoreExpense(deletedExpense);
+            print(
+                'Gasto restaurado: ${deletedExpense.title}, ${deletedExpense.date}');
           },
         ),
       ),
