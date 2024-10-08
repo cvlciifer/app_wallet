@@ -3,7 +3,8 @@ import 'package:flutter/services.dart'; // Importar este paquete
 import 'package:app_wallet/screens/expenses.dart';
 import 'package:app_wallet/screens/logIn.dart';
 import 'package:app_wallet/screens/filtros.dart';
-import 'package:app_wallet/services_bd/register_provider.dart'; // Importa tu provider
+import 'package:app_wallet/services_bd/register_provider.dart'; // Importa tu provider de registro
+import 'package:app_wallet/services_bd/login_provider.dart'; // Importa tu provider de login
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart'; // Importar el provider
@@ -20,7 +21,8 @@ void main() async {
 
   // Restringir la orientación a vertical
   await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp, // Solo permitir orientación vertical hacia arriba
+    DeviceOrientation
+        .portraitUp, // Solo permitir orientación vertical hacia arriba
   ]);
 
   runApp(
@@ -28,6 +30,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(
             create: (_) => RegisterProvider()), // Agrega el RegisterProvider
+        ChangeNotifierProvider(
+            create: (_) => LoginProvider()), // Agrega también el LoginProvider
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

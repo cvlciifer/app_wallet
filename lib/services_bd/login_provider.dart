@@ -25,18 +25,27 @@ class LoginProvider extends ChangeNotifier {
       );
 
       // Verificar si el correo ha sido verificado
-      if (userCredential.user != null && userCredential.user!.emailVerified) {
-        onSuccess(); // Éxito: correo verificado
+      final User? user = userCredential.user;
+      if (user != null) {
+        if (user.emailVerified) {
+          onSuccess(); // Éxito: correo verificado
+        } else {
+          // Cerrar la sesión del usuario si no está verificado
+          await _auth.signOut();
+          onError(
+              'Debe verificar su correo electrónico antes de iniciar sesión.');
+        }
       } else {
-        // Cerrar la sesión del usuario si no está verificado
-        await _auth.signOut();
-        onError(
-            'Debe verificar su correo electrónico antes de iniciar sesión.');
+        onError('Error al obtener el usuario después del inicio de sesión.');
       }
     } on FirebaseAuthException catch (e) {
       // Manejo de errores de autenticación
-      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
-        onError('Usuario o contraseña incorrecta.');
+      if (e.code == 'user-not-found') {
+        onError('No se encontró un usuario con este correo.');
+      } else if (e.code == 'wrong-password') {
+        onError('Contraseña incorrecta.');
+      } else if (e.code == 'too-many-requests') {
+        onError('Demasiados intentos fallidos. Por favor, intenta más tarde.');
       } else {
         onError(e.message ?? 'Error desconocido al iniciar sesión.');
       }
