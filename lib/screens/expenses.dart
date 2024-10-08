@@ -6,6 +6,7 @@ import 'package:app_wallet/widgets/expenses_list/expenses_list.dart';
 import 'package:app_wallet/widgets/main_drawer.dart';
 import 'package:app_wallet/widgets/new_expense.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Expenses extends StatefulWidget {
   const Expenses({super.key});
@@ -28,9 +29,13 @@ class _ExpensesState extends State<Expenses> {
     Category.servicios: false,
   };
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? userEmail;
+
   @override
   void initState() {
     super.initState();
+    userEmail = _auth.currentUser?.email; // Obtener el email del usuario actual
     _loadGastosFromFirebase();
   }
 
@@ -40,19 +45,35 @@ class _ExpensesState extends State<Expenses> {
     setState(() {
       _allExpenses.clear();
       for (var gasto in gastosFromFirebase) {
-        Timestamp timestamp = gasto['fecha'];
-        DateTime fecha = timestamp.toDate();
+        try {
+          // Verificar que el documento tenga los campos necesarios y que no sean null
+          if (gasto['fecha'] != null &&
+              gasto['fecha'] is Timestamp &&
+              gasto['name'] != null &&
+              gasto['cantidad'] != null &&
+              gasto['tipo'] != null) {
+            // Convertir el campo 'fecha' a DateTime
+            Timestamp timestamp = gasto['fecha'];
+            DateTime fecha = timestamp.toDate();
 
-        _allExpenses.add(
-          Expense(
-            title: gasto['name'],
-            amount: gasto['cantidad'].toDouble(),
-            date: fecha,
-            category: _mapCategory(gasto['tipo']),
-          ),
-        );
+            // Crear el objeto Expense y agregarlo a la lista
+            _allExpenses.add(
+              Expense(
+                title: gasto['name'],
+                amount: gasto['cantidad'].toDouble(),
+                date: fecha,
+                category: _mapCategory(gasto['tipo']),
+              ),
+            );
+          }
+        } catch (e) {
+          // Capturar cualquier excepción y continuar con el siguiente documento
+          print('Error al procesar gasto: $e');
+        }
       }
-      _filteredExpenses = List.from(_allExpenses); // Inicializar los gastos filtrados
+
+      // Inicializar la lista de gastos filtrados con los datos cargados
+      _filteredExpenses = List.from(_allExpenses);
     });
   }
 
@@ -66,20 +87,25 @@ class _ExpensesState extends State<Expenses> {
         return Category.comida;
       case 'viajes':
         return Category.viajes;
-      case 'categoria':
-        return Category.salud;  
+      case 'salud':
+        return Category.salud;
       default:
-        return Category.servicios;  
+        return Category.servicios;
     }
   }
 
   Future<void> createExpense(Expense expense) async {
-    await db.collection('gastos').add({
-      'name': expense.title,
-      'fecha': Timestamp.fromDate(expense.date),
-      'cantidad': expense.amount,
-      'tipo': expense.category.toString().split('.').last,
-    });
+    if (userEmail != null) {
+      // Asegúrate de que el email no sea nulo
+      await db.collection('usuarios').doc('Gastos').collection(userEmail!).add({
+        'name': expense.title,
+        'fecha': Timestamp.fromDate(expense.date),
+        'cantidad': expense.amount,
+        'tipo': expense.category.toString().split('.').last,
+      });
+    } else {
+      print('Error: El email del usuario no está disponible.');
+    }
   }
 
   void _openAddExpenseOverlay() {
@@ -162,7 +188,7 @@ class _ExpensesState extends State<Expenses> {
         if (filters[Category.salud] == true &&
             expense.category == Category.salud) return true;
         if (filters[Category.servicios] == true &&
-            expense.category == Category.servicios) return true;    
+            expense.category == Category.servicios) return true;
         return false;
       }).toList();
     });
