@@ -24,11 +24,11 @@ class CategoryDetailScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.info_outline, size: 50, color: Colors.blue),
-                  const SizedBox(height: 16),
+                  Icon(Icons.info_outline, size: 50, color: Colors.blue),
+                   SizedBox(height: 16),
                   Text(
                     'No hay gastos asociados a esta categoría durante este mes.',
-                    style: const TextStyle(fontSize: 18),
+                    style: TextStyle(fontSize: 18),
                     textAlign: TextAlign.center,
                   ),
                 ],

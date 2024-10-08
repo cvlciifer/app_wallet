@@ -35,7 +35,7 @@ class _ExpensesState extends State<Expenses> {
   @override
   void initState() {
     super.initState();
-    userEmail = _auth.currentUser?.email; // Obtener el email del usuario actual
+    userEmail = _auth.currentUser?.email;
     _loadGastosFromFirebase();
   }
 
@@ -46,17 +46,13 @@ class _ExpensesState extends State<Expenses> {
       _allExpenses.clear();
       for (var gasto in gastosFromFirebase) {
         try {
-          // Verificar que el documento tenga los campos necesarios y que no sean null
           if (gasto['fecha'] != null &&
               gasto['fecha'] is Timestamp &&
               gasto['name'] != null &&
               gasto['cantidad'] != null &&
               gasto['tipo'] != null) {
-            // Convertir el campo 'fecha' a DateTime
             Timestamp timestamp = gasto['fecha'];
             DateTime fecha = timestamp.toDate();
-
-            // Crear el objeto Expense y agregarlo a la lista
             _allExpenses.add(
               Expense(
                 title: gasto['name'],
@@ -67,12 +63,9 @@ class _ExpensesState extends State<Expenses> {
             );
           }
         } catch (e) {
-          // Capturar cualquier excepción y continuar con el siguiente documento
           print('Error al procesar gasto: $e');
         }
       }
-
-      // Inicializar la lista de gastos filtrados con los datos cargados
       _filteredExpenses = List.from(_allExpenses);
     });
   }
@@ -96,7 +89,6 @@ class _ExpensesState extends State<Expenses> {
 
   Future<void> createExpense(Expense expense) async {
     if (userEmail != null) {
-      // Asegúrate de que el email no sea nulo
       await db.collection('usuarios').doc('Gastos').collection(userEmail!).add({
         'name': expense.title,
         'fecha': Timestamp.fromDate(expense.date),
@@ -120,7 +112,7 @@ class _ExpensesState extends State<Expenses> {
   void _addExpense(Expense expense) {
     setState(() {
       _allExpenses.add(expense);
-      _filteredExpenses.add(expense); // También agregar a la lista filtrada
+      _filteredExpenses.add(expense);
     });
 
     createExpense(expense).catchError((error) {
@@ -221,7 +213,7 @@ class _ExpensesState extends State<Expenses> {
       ),
       drawer: MainDrawer(
         onSelectScreen: _selectScreen,
-        expenses: _allExpenses, // Pasa la lista de gastos aquí
+        expenses: _allExpenses,
       ),
       body: width < 600
           ? Column(
@@ -238,7 +230,7 @@ class _ExpensesState extends State<Expenses> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddExpenseOverlay,
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
         tooltip: 'Agregar gasto',
       ),
     );

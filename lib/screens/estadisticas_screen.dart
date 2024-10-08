@@ -14,10 +14,8 @@ class EstadisticasScreen extends StatefulWidget {
 }
 
 class _EstadisticasScreenState extends State<EstadisticasScreen> {
-  double chartAngle = 0.0; // Ángulo inicial del gráfico
-  int selectedMonth = DateTime.now().month; // Mes seleccionado
-
-  // Mapa de iconos para cada categoría
+  double chartAngle = 0.0;
+  int selectedMonth = DateTime.now().month; 
   final Map<String, IconData> categoryIcons = {
     'comida': Icons.lunch_dining,
     'viajes': Icons.flight_takeoff,
@@ -29,24 +27,21 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
 
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
-    return '\$${formatter.format(value)}'; // Añade el símbolo $
+    return '\$${formatter.format(value)}'; 
   }
 
   @override
   Widget build(BuildContext context) {
-    // Filtrar gastos por mes
+
     final filteredExpenses = widget.expenses.where((expense) {
       final expenseDate =
-          expense.date; // Suponiendo que Expense tiene un campo 'date'
+          expense.date; 
       return expenseDate.month == selectedMonth;
     }).toList();
-
-    // Agrupar gastos por categoría
     final expenseBuckets = Category.values.map((category) {
       return ExpenseBucket.forCategory(filteredExpenses, category);
     }).toList();
 
-    // Filtrar solo las categorías que tienen gastos
     final data = expenseBuckets
         .where((bucket) => bucket.totalExpenses > 0)
         .map((bucket) {

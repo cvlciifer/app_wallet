@@ -10,9 +10,10 @@ import 'package:app_wallet/services_bd/login_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
+import 'package:app_wallet/screens/inicio.dart';
 
 var kColorScheme = ColorScheme.fromSeed(
-  seedColor: Color.fromARGB(255, 8, 115, 158),
+  seedColor: const Color.fromARGB(255, 8, 115, 158),
 );
 
 void main() async {
@@ -68,7 +69,7 @@ void main() async {
         ),
         themeMode:
             ThemeMode.light, // Asegúrate de que el modo siempre sea claro
-        home: LoginScreen(), // Cambiar a LoginScreen
+        home: WelcomeScreen(), // Cambiar a LoginScreen
         routes: {
           '/expense': (ctx) => Expenses(),
           '/logIn': (ctx) => LoginScreen(),

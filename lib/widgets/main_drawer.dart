@@ -1,19 +1,20 @@
-import 'package:app_wallet/screens/logIn.dart';
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/estadisticas_screen.dart';
 import 'package:app_wallet/screens/informe_mensual.dart';
 import 'package:app_wallet/services_bd/firebase_Service.dart';
 import 'package:app_wallet/models/expense.dart';
 
+import 'package:app_wallet/components/LogOut.dart';
+
 class MainDrawer extends StatelessWidget {
   const MainDrawer({
     super.key,
     required this.onSelectScreen,
-    required this.expenses, // Añadir este parámetro
+    required this.expenses,
   });
 
   final void Function(String identifier) onSelectScreen;
-  final List<Expense> expenses; // Variable para almacenar la lista de gastos
+  final List<Expense> expenses;
 
   @override
   Widget build(BuildContext context) {
@@ -51,28 +52,6 @@ class MainDrawer extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.insert_chart_outlined, // Icono para la nueva pantalla
-              size: 26,
-              color: Theme.of(context).colorScheme.onBackground,
-            ),
-            title: Text(
-              'logIn',
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                    fontSize: 24,
-                  ),
-            ),
-            onTap: () {
-              onSelectScreen('logIn');
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (ctx) => LoginScreen(),
-                ),
-              );
-            },
           ),
           ListTile(
             leading: Icon(
@@ -185,6 +164,25 @@ class MainDrawer extends StatelessWidget {
               } catch (e) {
                 print('Error al obtener el consejo del día: $e');
               }
+            },
+          ),
+          const Spacer(),
+          // Nueva opción para cerrar sesión
+          ListTile(
+            leading: Icon(
+              Icons.logout,
+              size: 26,
+              color: Theme.of(context).colorScheme.onBackground,
+            ),
+            title: Text(
+              'Cerrar sesión',
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground,
+                    fontSize: 24,
+                  ),
+            ),
+            onTap: () {
+              LogOutDialog.showLogOutDialog(context); // Llama al diálogo de cierre de sesión
             },
           ),
         ],

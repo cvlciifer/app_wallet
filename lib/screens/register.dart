@@ -19,9 +19,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isPasswordUppercaseValid = false;
   bool _areEmailsMatching = true;
   bool _arePasswordsMatching = true;
-  bool _isPasswordVisible = false; // Controla la visibilidad de la contraseña
-  bool _isConfirmPasswordVisible =
-      false; // Controla la visibilidad de la confirmación
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,33 +28,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: Text('Registrarse'),
+        title: const Row(
+          children: [
+            Icon(Icons.wallet),
+            SizedBox(width: 20),
+            Text('AdminWallet'),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(height: 20),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Regístrate en AdminWallet',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Con esta aplicación tendrás una gestión económica más optimizada.',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _nameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Nombre o Alias',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.person),
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _emailController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
@@ -68,10 +88,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     });
                   },
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _confirmEmailController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Confirmar Email',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
@@ -85,7 +105,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 if (!_areEmailsMatching)
-                  Align(
+                  const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Los correos no coinciden',
@@ -93,13 +113,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       textAlign: TextAlign.left,
                     ),
                   ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _passwordController,
                   decoration: InputDecoration(
                     labelText: 'Contraseña',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isPasswordVisible
@@ -124,27 +144,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     });
                   },
                 ),
-                SizedBox(height: 10),
-                Row(
-                  children: [
-                    _buildValidationChip(
-                      label: 'Mínimo 8 caracteres',
-                      isValid: _isPasswordLengthValid,
-                    ),
-                    SizedBox(width: 10),
-                    _buildValidationChip(
-                      label: 'Al menos una mayúscula',
-                      isValid: _isPasswordUppercaseValid,
-                    ),
-                  ],
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Wrap(
+                    spacing: 10.0,
+                    children: [
+                      _buildValidationChip(
+                        label: 'Mínimo 8 caracteres',
+                        isValid: _isPasswordLengthValid,
+                      ),
+                      _buildValidationChip(
+                        label: 'Al menos una mayúscula',
+                        isValid: _isPasswordUppercaseValid,
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _confirmPasswordController,
                   decoration: InputDecoration(
                     labelText: 'Confirmar Contraseña',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isConfirmPasswordVisible
@@ -168,7 +191,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 if (!_arePasswordsMatching)
-                  Align(
+                  const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Las contraseñas no coinciden',
@@ -176,7 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       textAlign: TextAlign.left,
                     ),
                   ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: _isPasswordLengthValid &&
                           _isPasswordUppercaseValid &&
@@ -200,15 +223,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               password: password,
                               token: '',
                               onSuccess: () {
-                                // Verificar si el widget aún está montado antes de realizar cualquier operación
                                 if (mounted) {
-                                  print('Registro exitoso');
-                                  Navigator.pop(
-                                      context); // Regresar a la pantalla anterior
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Row(
+                                        children: [
+                                          Icon(Icons.account_balance_wallet,
+                                              color: Colors.white),
+                                          SizedBox(width: 10),
+                                          Text(
+                                              '¡Felicitaciones, ya has creado tu propia cuenta!'),
+                                        ],
+                                      ),
+                                      backgroundColor: Colors.green,
+                                      duration: Duration(seconds: 3),
+                                    ),
+                                  );
+                                  Future.delayed(const Duration(seconds: 3),
+                                      () {
+                                    Navigator.pop(context);
+                                  });
                                 }
                               },
                               onError: (error) {
-                                // Verificar si el widget aún está montado antes de mostrar errores
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text(error)),
@@ -226,9 +263,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           }
                         }
                       : null,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12.0, horizontal: 40.0),
+                  child: const Padding(
+                    padding:
+                        EdgeInsets.symmetric(vertical: 12.0, horizontal: 40.0),
                     child: Text(
                       'Registrarse',
                       style: TextStyle(fontSize: 18),
@@ -256,7 +293,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Chip(
       label: Text(
         label,
-        style: TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.white),
       ),
       backgroundColor: chipColor,
     );

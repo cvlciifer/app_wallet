@@ -1,66 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_wallet/models/expense.dart';
 
-//cuando estan todos los filtros desactivados no se muestra ninguno
-/* class FiltersScreen extends StatefulWidget {
-  const FiltersScreen({super.key});
-
-  @override
-  State<FiltersScreen> createState() => _FiltersScreenState();
-}
-
-class _FiltersScreenState extends State<FiltersScreen> {
-  late Map<Category, bool> _filters;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _filters = ModalRoute.of(context)!.settings.arguments as Map<Category, bool>;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Filtros'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop(_filters); // Guardar los filtros al regresar
-          },
-        ),
-      ),
-      body: Column(
-        children: Category.values.map((category) {
-          return SwitchListTile(
-            value: _filters[category]!,
-            onChanged: (isChecked) {
-              setState(() {
-                _filters[category] = isChecked; // Actualizar el estado del filtro
-              });
-            },
-            title: Text(
-              category.name.toUpperCase(),
-              style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                  ),
-            ),
-            subtitle: Text(
-              'Solo incluye gastos relacionados con ${category.name}.',
-              style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                  ),
-            ),
-            activeColor: Theme.of(context).colorScheme.tertiary,
-            contentPadding: const EdgeInsets.only(left: 34, right: 22),
-          );
-        }).toList(),
-      ),
-    );
-  }
-} */
-// cuando estan los filtros desactivados, se activan todos automaticamente
-
 class FiltersScreen extends StatefulWidget {
   const FiltersScreen({super.key});
 
@@ -82,7 +22,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
   }
 
   Map<Category, bool> _getActiveFilters() {
-    // Si todas las categorías están desactivadas, devolver un mapa donde todas están activadas
+
     if (_allCategoriesDeselected()) {
       return {
         for (var category in Category.values) category: true,
@@ -99,7 +39,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pop(_getActiveFilters()); // Guardar filtros
+            Navigator.of(context).pop(_getActiveFilters()); 
           },
         ),
       ),
@@ -109,7 +49,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             value: _filters[category]!,
             onChanged: (isChecked) {
               setState(() {
-                _filters[category] = isChecked; // Actualizar el estado del filtro
+                _filters[category] = isChecked; 
               });
             },
             title: Text(
@@ -124,7 +64,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                     color: Theme.of(context).colorScheme.onBackground,
                   ),
             ),
-            secondary: Icon(categoryIcons[category], // Ícono correspondiente
+            secondary: Icon(categoryIcons[category], 
                 color: Theme.of(context).colorScheme.onBackground),
             activeColor: Theme.of(context).colorScheme.tertiary,
             contentPadding: const EdgeInsets.only(left: 34, right: 22),
