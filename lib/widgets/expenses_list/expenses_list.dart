@@ -42,39 +42,63 @@ class ExpensesList extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Detalles del Gasto'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start, // Alinear al inicio (izquierda)
-          children: [
-            const SizedBox(height: 10),
-            Text(
-              'Título: ${expense.title}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-              textAlign: TextAlign.left, // Alinear a la izquierda
+        title: const Text(
+          'Detalles del Gasto',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            color:  Color.fromARGB(255, 18, 73, 132), 
+          ),
+        ),
+        content: SizedBox(
+          width: 250, 
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 5),
+                const Text(
+                  'Título:',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  expense.title,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const Divider(),
+                const SizedBox(height: 5),
+                const Text(
+                  'Categoría:',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  _getCategoryName(expense.category),
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const Divider(),
+                const SizedBox(height: 5),
+                const Text(
+                  'Monto:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  formatNumber(expense.amount),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
             ),
-            const SizedBox(height: 5),
-            Text(
-              'Categoría: ${_getCategoryName(expense.category)}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-              textAlign: TextAlign.left, // Alinear a la izquierda
-            ),
-            const SizedBox(height: 5),
-            Text(
-              'Monto: ${formatNumber(expense.amount)}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-              textAlign: TextAlign.left, // Alinear a la izquierda
-            ),
-          ],
+          ),
         ),
         actions: [
           TextButton(
@@ -94,7 +118,11 @@ class ExpensesList extends StatelessWidget {
   }
 
   String _getCategoryName(Category category) {
-    return category.toString().split('.').last.capitalize(); // Convierte a mayúscula la primera letra
+    return category
+        .toString()
+        .split('.')
+        .last
+        .capitalize(); // Convierte a mayúscula la primera letra
   }
 
   @override

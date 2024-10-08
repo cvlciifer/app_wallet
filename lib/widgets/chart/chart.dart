@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_wallet/models/expense.dart';
 import 'package:app_wallet/widgets/chart/chart_bar.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 class Chart extends StatelessWidget {
@@ -77,7 +78,7 @@ class Chart extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 8, 64, 110),
+              color: Color.fromARGB(255, 18, 73, 132),
             ),
           ),
           const SizedBox(height: 10), // Espacio entre el título y el gráfico
@@ -95,14 +96,15 @@ class Chart extends StatelessWidget {
                       return Text(
                         formatNumber(value),
                         style: const TextStyle(
-                            color: Colors.black87, fontSize: 11),
+                          fontWeight: FontWeight.bold,
+                            color: const Color.fromARGB(255, 18, 73, 132), fontSize: 10),
                       );
                     }),
-                    const SizedBox(height: 10), // Espacio en blanco debajo del 0
+                    const SizedBox(height: 10),
                   ],
                 ),
                 const SizedBox(width: 8),
-                // Gráfico principal ajustado
+
                 Expanded(
                   child: Column(
                     children: [
@@ -127,7 +129,6 @@ class Chart extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      // Ajustamos los iconos para que se alineen con las barras
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: buckets.map((bucket) {
@@ -136,8 +137,7 @@ class Chart extends StatelessWidget {
                               width: 40,
                               child: Icon(
                                 categoryIcons[bucket.category],
-                                color: const Color(0xFF03738C),
-                                size: 22,
+                                color: const Color.fromARGB(255, 18, 73, 132),
                               ),
                             ),
                           );
@@ -157,11 +157,11 @@ class Chart extends StatelessWidget {
                 'Gasto Total Acumulado:',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: const Color.fromARGB(255, 8, 64, 110),
+                      color: const Color.fromARGB(255, 18, 73, 132),
                     ),
               ),
               Text(
-                formatNumber(totalExpenses), // El método formatNumber ya lo añade
+                formatNumber(totalExpenses),
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       fontWeight: FontWeight.bold,
                       color: const Color.fromARGB(255, 8, 64, 110),
@@ -188,12 +188,15 @@ class ChartPainter extends CustomPainter {
 
     // Determine the number of lines and their positions
     int numLines = 7; // You can keep this as is
-    double heightStep = size.height / (numLines - 1); // Adjust to cover 0 to max
+    double heightStep =
+        size.height / (numLines - 1); // Adjust to cover 0 to max
 
     for (int i = 0; i < numLines; i++) {
       // Calculate the y position for each line based on the height
-      double yPosition = size.height - (i * heightStep * (maxTotalExpense > 0 ? 1 : 0));
-      canvas.drawLine(Offset(0, yPosition), Offset(size.width, yPosition), paint);
+      double yPosition =
+          size.height - (i * heightStep * (maxTotalExpense > 0 ? 1 : 0));
+      canvas.drawLine(
+          Offset(0, yPosition), Offset(size.width, yPosition), paint);
     }
   }
 

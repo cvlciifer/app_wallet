@@ -248,6 +248,7 @@ class _ExpensesState extends State<Expenses> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
+        focusColor: const Color.fromARGB(255, 18, 73, 132),
         onPressed: _openAddExpenseOverlay,
         child: Icon(Icons.add),
         tooltip: 'Agregar gasto',

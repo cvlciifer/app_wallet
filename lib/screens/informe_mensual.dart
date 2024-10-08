@@ -14,21 +14,24 @@ class InformeMensualScreen extends StatefulWidget {
 
 class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedMonth = DateTime.now().month; // Mes seleccionado
+  int selectedYear = DateTime.now().year; // Año seleccionado
 
   String formatNumber(double value) {
-    final formatter = NumberFormat('#,##0', 'es'); 
-    return '\$${formatter.format(value)}'; 
+    final formatter = NumberFormat('#,##0', 'es');
+    return '\$${formatter.format(value)}';
   }
 
   @override
   Widget build(BuildContext context) {
-    // Filtrar gastos por el mes seleccionado
+    // Filtrar gastos por el mes y año seleccionados
     final filteredExpenses = widget.expenses.where((expense) {
-      return expense.date.month == selectedMonth;
+      return expense.date.month == selectedMonth &&
+          expense.date.year == selectedYear;
     }).toList();
 
     // Calcular el total de gastos
-    final double totalExpenses = filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
+    final double totalExpenses =
+        filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
 
     // Agrupar los gastos filtrados por categoría usando ExpenseBucket
     final expenseBuckets = Category.values.map((category) {
@@ -50,45 +53,83 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.description_outlined),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: Container(
-        color: Colors.white,
         padding: const EdgeInsets.all(16.0),
+        color: Theme.of(context).colorScheme.background,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row para el monto total y el filtro de meses
+            Text(
+              'Total de Gastos: ${formatNumber(totalExpenses)}',
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                    fontSize: 22,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 20.0),
+            Text(
+              'Selecciona Año y Mes para Filtrar:',
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 10.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    'Total de Gastos: ${formatNumber(totalExpenses)}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
+                  child: DropdownButton<int>(
+                    value: selectedMonth,
+                    isExpanded: true,
+                    items: List.generate(12, (index) {
+                      return DropdownMenuItem(
+                        value: index + 1,
+                        child: Text(
+                          DateFormat('MMMM').format(DateTime(0, index + 1)),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      );
+                    }),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedMonth = value!;
+                      });
+                    },
                   ),
                 ),
-                const SizedBox(width: 16), // Espacio entre el texto y el dropdown
-                DropdownButton<int>(
-                  value: selectedMonth,
-                  items: List.generate(12, (index) {
-                    return DropdownMenuItem(
-                      value: index + 1,
-                      child: Text(DateFormat('MMMM').format(DateTime(0, index + 1))),
-                    );
-                  }),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedMonth = value!;
-                    });
-                  },
+                const SizedBox(width: 10.0),
+                Expanded(
+                  child: DropdownButton<int>(
+                    value: selectedYear,
+                    isExpanded: true,
+                    items: List.generate(5, (index) {
+                      int year = DateTime.now().year - index;
+                      return DropdownMenuItem(
+                        value: year,
+                        child: Text(
+                          year.toString(),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      );
+                    }),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedYear = value!;
+                      });
+                    },
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 16.0),
-            // Mostrar los gastos agrupados por categoría
             Expanded(
               child: ListView.builder(
                 itemCount: expenseBuckets.length,
@@ -97,28 +138,37 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                   return Card(
                     elevation: 4,
                     margin: const EdgeInsets.symmetric(vertical: 4.0),
+                    color: Theme.of(context).colorScheme.surface,
                     child: ListTile(
                       leading: Icon(
                         categoryIcons[bucket.category],
                         size: 30,
-                        color: Colors.blue,
+                        color: Theme.of(context).colorScheme.tertiary, // Uso del color terciario
                       ),
                       title: Text(
                         bucket.category.name,
-                        style: const TextStyle(fontSize: 16),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                       ),
                       subtitle: Text(
                         'Total: ${formatNumber(bucket.totalExpenses)}',
-                        style: const TextStyle(fontSize: 14, color: Colors.black54),
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.6),
+                            ),
                       ),
                       trailing: const Icon(Icons.arrow_forward),
                       onTap: () {
-                        // Filtrar los gastos de la categoría seleccionada
-                        final categoryExpenses = filteredExpenses.where((expense) {
+                        final categoryExpenses =
+                            filteredExpenses.where((expense) {
                           return expense.category == bucket.category;
                         }).toList();
-
-                        // Navegar a la pantalla de detalles
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (ctx) => CategoryDetailScreen(

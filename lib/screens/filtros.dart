@@ -14,7 +14,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _filters = ModalRoute.of(context)!.settings.arguments as Map<Category, bool>;
+    _filters =
+        ModalRoute.of(context)!.settings.arguments as Map<Category, bool>;
   }
 
   bool _allCategoriesDeselected() {
@@ -22,7 +23,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
   }
 
   Map<Category, bool> _getActiveFilters() {
-
     if (_allCategoriesDeselected()) {
       return {
         for (var category in Category.values) category: true,
@@ -39,17 +39,25 @@ class _FiltersScreenState extends State<FiltersScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pop(_getActiveFilters()); 
+            Navigator.of(context).pop(_getActiveFilters());
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.tune),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: Column(
+        
         children: Category.values.map((category) {
           return SwitchListTile(
+            
             value: _filters[category]!,
             onChanged: (isChecked) {
               setState(() {
-                _filters[category] = isChecked; 
+                _filters[category] = isChecked;
               });
             },
             title: Text(
@@ -64,7 +72,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                     color: Theme.of(context).colorScheme.onBackground,
                   ),
             ),
-            secondary: Icon(categoryIcons[category], 
+            secondary: Icon(categoryIcons[category],
                 color: Theme.of(context).colorScheme.onBackground),
             activeColor: Theme.of(context).colorScheme.tertiary,
             contentPadding: const EdgeInsets.only(left: 34, right: 22),

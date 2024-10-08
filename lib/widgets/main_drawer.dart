@@ -55,7 +55,7 @@ class MainDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(
-              Icons.change_circle_outlined,
+              Icons.tune,
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
@@ -72,7 +72,7 @@ class MainDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(
-              Icons.arrow_upward_rounded,
+              Icons.bar_chart,
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
@@ -96,7 +96,7 @@ class MainDrawer extends StatelessWidget {
           // Nueva opción en el Drawer para Informe Mensual
           ListTile(
             leading: Icon(
-              Icons.insert_chart_outlined, // Icono para la nueva pantalla
+              Icons.description, // Icono para la nueva pantalla
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),

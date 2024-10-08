@@ -15,7 +15,8 @@ class EstadisticasScreen extends StatefulWidget {
 
 class _EstadisticasScreenState extends State<EstadisticasScreen> {
   double chartAngle = 0.0;
-  int selectedMonth = DateTime.now().month; 
+  int selectedMonth = DateTime.now().month;
+  int selectedYear = DateTime.now().year;
   final Map<String, IconData> categoryIcons = {
     'comida': Icons.lunch_dining,
     'viajes': Icons.flight_takeoff,
@@ -27,17 +28,17 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
 
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
-    return '\$${formatter.format(value)}'; 
+    return '\$${formatter.format(value)}';
   }
 
   @override
   Widget build(BuildContext context) {
-
     final filteredExpenses = widget.expenses.where((expense) {
-      final expenseDate =
-          expense.date; 
-      return expenseDate.month == selectedMonth;
+      final expenseDate = expense.date;
+      return expenseDate.month == selectedMonth &&
+          expenseDate.year == selectedYear;
     }).toList();
+
     final expenseBuckets = Category.values.map((category) {
       return ExpenseBucket.forCategory(filteredExpenses, category);
     }).toList();
@@ -54,7 +55,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Resumen de estadísticas mensuales',
+          'Estadísticas',
           style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -67,61 +68,74 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
             );
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: Container(
         color: Colors.white,
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          // Envolver en SingleChildScrollView
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Card(
-                elevation: 0,
-                margin: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Resumen del mes:',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          DropdownButton<int>(
-                            value: selectedMonth,
-                            items: List.generate(12, (index) {
-                              return DropdownMenuItem(
-                                value: index + 1,
-                                child: Text(DateFormat('MMMM')
-                                    .format(DateTime(0, index + 1))),
-                              );
-                            }),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedMonth = value!;
-                              });
-                            },
-                          ),
-                          Text(
-                            'Total: ${formatNumber(data.fold(0.0, (sum, item) => sum + (item['amount'] as double)))}',
-                            style: const TextStyle(fontSize: 18),
-                          ),
-                        ],
-                      ),
-                    ],
+              // Resumen del mes y DropdownButtons fuera de la tarjeta
+              const Text(
+                'Resumen del mes:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Dropdown para seleccionar el mes
+                  DropdownButton<int>(
+                    value: selectedMonth,
+                    items: List.generate(12, (index) {
+                      return DropdownMenuItem(
+                        value: index + 1,
+                        child: Text(
+                            DateFormat('MMMM').format(DateTime(0, index + 1))),
+                      );
+                    }),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedMonth = value!;
+                      });
+                    },
                   ),
-                ),
+                  // Dropdown para seleccionar el año
+                  DropdownButton<int>(
+                    value: selectedYear,
+                    items: List.generate(5, (index) {
+                      int year = DateTime.now().year - index;
+                      return DropdownMenuItem(
+                        value: year,
+                        child: Text('$year'),
+                      );
+                    }),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedYear = value!;
+                      });
+                    },
+                  ),
+                  // Muestra el total filtrado
+                  Text(
+                    'Total: ${formatNumber(data.fold(0.0, (sum, item) => sum + (item['amount'] as double)))}',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ],
               ),
               const SizedBox(height: 16.0),
               Card(
-                elevation: 4,
+                elevation: 10,
                 margin: const EdgeInsets.symmetric(vertical: 4.0),
+                color: const Color.fromARGB(255, 242, 242,
+                    242), // Cambia el color de fondo de la tarjeta aquí
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: filteredExpenses.isEmpty
@@ -229,7 +243,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
           children: [
             Icon(
               categoryIcons[category],
-              size: 20, // Cambia el tamaño aquí
+              size: 20,
               color: _getCategoryColor(category),
             ),
             const SizedBox(width: 8),

@@ -17,44 +17,66 @@ class CategoryDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gastos asociados a ${category.name}'),
+        title: Text(
+          'Gastos asociados a ${category.name}',
+          style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
-      body: expenses.isEmpty
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.info_outline, size: 50, color: Colors.blue),
-                   SizedBox(height: 16),
-                  Text(
-                    'No hay gastos asociados a esta categoría durante este mes.',
-                    style: TextStyle(fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+      body: Container(
+        padding: const EdgeInsets.all(16.0),
+        color: Theme.of(context).colorScheme.background,
+        child: expenses.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.info_outline, size: 50, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No hay gastos asociados a esta categoría durante este mes.',
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                itemCount: expenses.length,
+                itemBuilder: (context, index) {
+                  final expense = expenses[index];
+                  return Card(
+                    elevation: 4,
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    color: Theme.of(context).colorScheme.surface,
+                    child: ListTile(
+                      leading: Icon(
+                        categoryIcons[expense.category],
+                        size: 30,
+                        color: Theme.of(context).colorScheme.tertiary, // Color terciario
+                      ),
+                      title: Text(
+                        expense.title,
+                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
+                      subtitle: Text(
+                        '${expense.formattedDate}\nMonto: ${formatNumber(expense.amount)}',
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                      ),
+                    ),
+                  );
+                },
               ),
-            )
-          : ListView.builder(
-              itemCount: expenses.length,
-              itemBuilder: (context, index) {
-                final expense = expenses[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  child: ListTile(
-                    leading: Icon(
-                      categoryIcons[expense.category],
-                      size: 30,
-                      color: Colors.blue,
-                    ),
-                    title: Text(expense.title),
-                    subtitle: Text(
-                      '${expense.formattedDate}\nMonto: ${formatNumber(expense.amount)}',
-                      style: const TextStyle(color: Colors.black54),
-                    ),
-                  ),
-                );
-              },
-            ),
+      ),
     );
   }
 }
