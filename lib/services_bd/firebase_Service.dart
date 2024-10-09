@@ -145,34 +145,20 @@ Future<void> deleteExpense(Expense expense) async {
 }
 
 Future<Map<String, dynamic>> getConsejoDelDia() async {
-  List<Map<String, dynamic>> consejos = [];
-  CollectionReference collectionReferenceConsejos = db.collection('consejos');
+  // Recupera todos los documentos de la colección 'consejos'
+  QuerySnapshot queryConsejos = await db.collection('consejos').get();
 
-  // Abre todos los datos de la colección
-  QuerySnapshot queryConsejos = await collectionReferenceConsejos.get();
+  // Si no hay documentos, retorna un mapa vacío
+  if (queryConsejos.docs.isEmpty) return {};
 
-  // Mensaje de depuración
-  print('Número de documentos recuperados: ${queryConsejos.docs.length}');
+  // Convierte los documentos a una lista de mapas
+  List<Map<String, dynamic>> consejos = queryConsejos.docs
+      .map((doc) => doc.data() as Map<String, dynamic>)
+      .toList();
 
-  // Agrega los documentos a la lista de consejos
-  queryConsejos.docs.forEach((documento) {
-    print('Documento: ${documento.data()}'); // Mensaje de depuración
-    consejos.add(documento.data() as Map<String, dynamic>);
-  });
-
-  if (consejos.isEmpty) {
-    return {}; // Retorna un mapa vacío si no hay consejos
-  }
-
-  // Obtén la fecha actual
-  DateTime now = DateTime.now();
-
-  // Convierte la fecha a un formato único (por ejemplo, YYYYMMDD)
-  String fechaKey =
-      '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-
-  // Calcula un índice usando un hash simple de la fecha
-  int index = fechaKey.hashCode % consejos.length;
+  // Genera una clave de fecha única (YYYYMMDD) y calcula un índice basado en el hash
+  int index = DateTime.now().toIso8601String().substring(0, 10).hashCode %
+      consejos.length;
 
   // Retorna el consejo del día
   return consejos[index];
