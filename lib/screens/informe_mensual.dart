@@ -53,12 +53,6 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
             Navigator.pop(context);
           },
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.description_outlined),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),

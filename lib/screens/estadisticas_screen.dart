@@ -68,12 +68,6 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
             );
           },
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Container(
         color: Colors.white,

@@ -42,12 +42,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
             Navigator.of(context).pop(_getActiveFilters());
           },
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.tune),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         
