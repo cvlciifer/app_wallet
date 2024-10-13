@@ -7,6 +7,7 @@ import 'package:app_wallet/widgets/main_drawer.dart';
 import 'package:app_wallet/widgets/new_expense.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:app_wallet/components/empy_state.dart';
 
 class Expenses extends StatefulWidget {
   const Expenses({super.key});
@@ -186,9 +187,7 @@ class _ExpensesState extends State<Expenses> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
-    Widget mainContent = const Center(
-      child: Text('No se encontraron gastos. ¡Empieza a agregar algunos!'),
-    );
+    Widget mainContent = const EmptyState(); // Usamos el nuevo widget
 
     if (_filteredExpenses.isNotEmpty) {
       mainContent = ExpensesList(
@@ -227,7 +226,7 @@ class _ExpensesState extends State<Expenses> {
       floatingActionButton: FloatingActionButton(
         focusColor: const Color.fromARGB(255, 18, 73, 132),
         onPressed: _openAddExpenseOverlay,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
         tooltip: 'Agregar gasto',
       ),
     );
