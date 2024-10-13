@@ -14,37 +14,61 @@ class WelcomeScreen extends StatelessWidget {
       );
     });
 
-    return const Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Ícono de billetera
-            FaIcon(
-              FontAwesomeIcons.wallet,
-              size: 100, 
-              color: Colors.black, 
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Imagen de fondo
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/fondo.png',
+              fit: BoxFit.cover,
             ),
-            SizedBox(height: 30),
-            Text(
-              'Bienvenido a AdminWallet',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+          ),
+          // Contenido centrado en un contenedor
+          Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width *
+                  0.8, // Ajusta el ancho del contenedor
+              padding: const EdgeInsets.all(
+                  20.0), // Espaciado interno del contenedor
+              decoration: BoxDecoration(
+                color: Colors.white
+                    .withOpacity(0.9), // Fondo blanco con transparencia
+                borderRadius: BorderRadius.circular(20.0), // Bordes redondeados
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10.0,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  SizedBox(height: 30),
+                  Text(
+                    'Bienvenido a AdminWallet',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 50),
+                  CircularProgressIndicator(),
+                  SizedBox(height: 50),
+                  Text(
+                    'Cargando la App de AdminWallet...',
+                    style: TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 50), 
-            CircularProgressIndicator(),
-            SizedBox(height: 50),
-            Text(
-              'Cargando la App de AdminWallet...',
-              style: TextStyle(
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
