@@ -68,7 +68,7 @@ void main() async {
               ),
         ),
         themeMode:
-            ThemeMode.light, // Asegúrate de que el modo siempre sea claro
+            ThemeMode.light, 
         home: WelcomeScreen(), // Cambiar a LoginScreen
         routes: {
           '/expense': (ctx) => Expenses(),

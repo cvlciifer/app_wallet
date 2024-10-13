@@ -136,34 +136,11 @@ class _ExpensesState extends State<Expenses> {
     });
     print('Gasto eliminado de la vista: ${expense.title}, ${expense.date}');
 
-    // Guardar una copia del gasto eliminado para la opción de deshacer
-    Expense deletedExpense = expense;
-
     // Llamar a la función deleteExpense con el objeto completo
     await deleteExpense(expense);
 
-    // Mostrar un mensaje en la aplicación para el usuario con la opción de deshacer
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 3),
-        content: const Text('Gasto eliminado.'),
-        action: SnackBarAction(
-          label: 'Deshacer',
-          onPressed: () async {
-            // Restaurar el gasto en la lista
-            setState(() {
-              _filteredExpenses.insert(expenseIndex, deletedExpense);
-            });
-
-            // Restaurar el gasto en la base de datos
-            await restoreExpense(deletedExpense);
-            print(
-                'Gasto restaurado: ${deletedExpense.title}, ${deletedExpense.date}');
-          },
-        ),
-      ),
-    );
+    // Recargar los gastos desde Firebase
+    await _loadGastosFromFirebase();
   }
 
   void _selectScreen(String identifier) {

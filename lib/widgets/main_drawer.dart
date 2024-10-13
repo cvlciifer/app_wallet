@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:app_wallet/screens/estadisticas_screen.dart';
 import 'package:app_wallet/screens/informe_mensual.dart';
-import 'package:app_wallet/services_bd/firebase_Service.dart';
 import 'package:app_wallet/models/expense.dart';
-
+import 'package:app_wallet/components/getConsejo.dart';
 import 'package:app_wallet/components/LogOut.dart';
 
 class MainDrawer extends StatelessWidget {
@@ -93,10 +92,9 @@ class MainDrawer extends StatelessWidget {
               );
             },
           ),
-          // Nueva opción en el Drawer para Informe Mensual
           ListTile(
             leading: Icon(
-              Icons.description, // Icono para la nueva pantalla
+              Icons.description,
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
@@ -112,8 +110,7 @@ class MainDrawer extends StatelessWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (ctx) => InformeMensualScreen(
-                    expenses:
-                        expenses, // Pasar la lista de gastos a la nueva pantalla
+                    expenses: expenses,
                   ),
                 ),
               );
@@ -133,41 +130,11 @@ class MainDrawer extends StatelessWidget {
                   ),
             ),
             onTap: () async {
-              // Cierra el Drawer
               Navigator.of(context).pop();
-
-              try {
-                // Obtén el consejo del día y muestra el Dialog en el contexto correcto
-                var consejoDelDia = await getConsejoDelDia();
-
-                // Asegúrate de que el contexto sigue siendo válido antes de mostrar el diálogo
-                if (!context.mounted) return;
-
-                // Muestra el diálogo con el consejo del día
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Tu consejo diario'),
-                    content: Text(
-                      consejoDelDia['consejo'] ?? 'Consejo no disponible',
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Cierra el Dialog
-                        },
-                        child: const Text('Cerrar'),
-                      ),
-                    ],
-                  ),
-                );
-              } catch (e) {
-                print('Error al obtener el consejo del día: $e');
-              }
+              await ConsejoProvider.mostrarConsejoDialog(context);
             },
           ),
           const Spacer(),
-          // Nueva opción para cerrar sesión
           ListTile(
             leading: Icon(
               Icons.logout,
@@ -182,7 +149,7 @@ class MainDrawer extends StatelessWidget {
                   ),
             ),
             onTap: () {
-              LogOutDialog.showLogOutDialog(context); // Llama al diálogo de cierre de sesión
+              LogOutDialog.showLogOutDialog(context);
             },
           ),
         ],
