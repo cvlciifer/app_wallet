@@ -47,7 +47,7 @@ void main() async {
             backgroundColor: kColorScheme.onPrimaryContainer,
             foregroundColor: kColorScheme.primaryContainer,
           ),
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             color: kColorScheme.secondaryContainer,
             margin: const EdgeInsets.symmetric(
               horizontal: 16,
