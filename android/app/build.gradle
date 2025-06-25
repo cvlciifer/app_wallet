@@ -119,3 +119,9 @@ android {
 flutter {
     source = "../.." // La ubicación del código fuente de Flutter
 }
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
