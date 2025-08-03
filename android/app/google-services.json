@@ -1,8 +1,9 @@
 {
   "project_info": {
     "project_number": "104741833617",
+    "firebase_url": "https://base-flutter-f5463-default-rtdb.firebaseio.com",
     "project_id": "base-flutter-f5463",
-    "storage_bucket": "base-flutter-f5463.appspot.com"
+     "storage_bucket": "base-flutter-f5463.appspot.com"
   },
   "client": [
     {
@@ -12,7 +13,12 @@
           "package_name": "com.example.app_wallet"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "104741833617-hdgslg4osefjnf75j2enlcegu8p4fk80.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDhM8whqU3YRaRnZqEQG1OcLTxGUuZ3Zcc"
@@ -20,7 +26,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "104741833617-hdgslg4osefjnf75j2enlcegu8p4fk80.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "104741833617-13r1qks7k32h9fpsncgvgtdl4bocoko7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appWallet"
+              }
+            }
+          ]
         }
       }
     }
