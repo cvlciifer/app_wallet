@@ -1,74 +1,81 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:app_wallet/screens/logIn.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    Future.delayed(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-      );
-    });
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
 
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _rotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Configurar la animación de rotación
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+    
+    _rotationAnimation = Tween<double>(
+      begin: 0.0,
+      end: 0.5, // 0.5 = 180 grados (180/360)
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    // Iniciar la animación en loop
+    _animationController.repeat(reverse: true);
+    
+    // Navegar después de 3 segundos
+    Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Imagen de fondo
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/fondo.png',
-              fit: BoxFit.cover,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Icono de billetera animado
+            AnimatedBuilder(
+              animation: _rotationAnimation,
+              builder: (context, child) {
+                return Transform.rotate(
+                  angle: _rotationAnimation.value * 3.14159, // Convertir a radianes
+                  child: const Icon(
+                    Icons.account_balance_wallet,
+                    size: 60,
+                    color: Colors.blue,
+                  ),
+                );
+              },
             ),
-          ),
-          // Contenido centrado en un contenedor
-          Center(
-            child: Container(
-              width: MediaQuery.of(context).size.width *
-                  0.8, // Ajusta el ancho del contenedor
-              padding: const EdgeInsets.all(
-                  20.0), // Espaciado interno del contenedor
-              decoration: BoxDecoration(
-                color: Colors.white
-                    .withOpacity(0.9), // Fondo blanco con transparencia
-                borderRadius: BorderRadius.circular(20.0), // Bordes redondeados
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10.0,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  SizedBox(height: 30),
-                  Text(
-                    'Bienvenido a AdminWallet',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 50),
-                  CircularProgressIndicator(),
-                  SizedBox(height: 50),
-                  Text(
-                    'Cargando la App de AdminWallet...',
-                    style: TextStyle(
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+            const SizedBox(height: 50),
+          ],
+        ),
       ),
     );
   }
