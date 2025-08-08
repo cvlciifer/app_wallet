@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:app_wallet/models/expense.dart';
-import 'package:intl/intl.dart';
-import 'package:app_wallet/screens/CategoryDetailScreen.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 class InformeMensualScreen extends StatefulWidget {
   final List<Expense> expenses;

@@ -1,0 +1,40 @@
+export 'package:flutter/material.dart';
+export 'package:flutter/services.dart';
+export 'package:flutter/widgets.dart';
+export 'package:flutter/foundation.dart' hide Category;
+export 'package:flutter/cupertino.dart' hide RefreshCallback;
+export 'package:firebase_core/firebase_core.dart';
+export 'package:cloud_firestore/cloud_firestore.dart' hide kIsWasm;
+export 'package:uuid/uuid.dart';
+export 'package:fl_chart/fl_chart.dart';
+export 'package:font_awesome_flutter/font_awesome_flutter.dart';
+export 'package:intl/intl.dart' hide TextDirection;
+
+// Archivos locales del proyecto o rutas
+export 'package:app_wallet/models/expense.dart';
+export 'package:app_wallet/screens/expenses.dart';
+export 'package:app_wallet/screens/log_in.dart';
+export 'package:app_wallet/screens/inicio.dart';
+export 'package:app_wallet/screens/estadisticas_screen.dart';
+export 'package:app_wallet/screens/forgot_passoword.dart';
+export 'package:app_wallet/components/widgets/new_expense.dart';
+export 'package:app_wallet/components/widgets/card_expense.dart';
+export 'package:app_wallet/components/widgets/chart/chart.dart';
+export 'package:app_wallet/components/widgets/expenses_list/expense_item.dart';
+export 'package:app_wallet/components/widgets/expenses_list/expenses_list.dart';
+export 'package:app_wallet/components/gradient_button.dart';
+export 'package:app_wallet/services_bd/firebase_Service.dart';
+export 'package:app_wallet/services_bd/login_provider.dart';
+export 'package:app_wallet/firebase_options.dart';
+export 'package:app_wallet/services_bd/register_provider.dart';
+export 'package:app_wallet/screens/filtros.dart';
+export 'package:app_wallet/components/empty_state.dart';
+export 'package:app_wallet/components/widgets/main_drawer.dart';
+export 'package:app_wallet/screens/category_detail_screen.dart';
+export 'package:app_wallet/screens/register.dart';
+export 'package:app_wallet/components/widgets/chart/chart_bar.dart';
+export 'package:app_wallet/screens/informe_mensual.dart';
+export 'package:app_wallet/components/get_consejo.dart';
+export 'package:app_wallet/components/log_out.dart';
+export 'package:app_wallet/components/detail_expense.dart';
+

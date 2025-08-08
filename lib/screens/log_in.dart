@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:app_wallet/screens/forgot_passoword.dart';
-import 'package:app_wallet/screens/register.dart';
-import 'package:app_wallet/screens/expenses.dart';
-import 'package:app_wallet/services_bd/login_provider.dart';
+import 'package:app_wallet/library/main_library.dart';
 import 'package:provider/provider.dart';
 
 void main() {

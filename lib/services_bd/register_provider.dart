@@ -1,5 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:app_wallet/library/main_library.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterProvider extends ChangeNotifier {

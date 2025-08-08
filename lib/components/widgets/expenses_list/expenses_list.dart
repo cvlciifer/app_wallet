@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:app_wallet/models/expense.dart';
-import 'package:app_wallet/widgets/expenses_list/expense_item.dart';
-import 'package:app_wallet/components/detail_expense.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 class ExpensesList extends StatelessWidget {
   const ExpensesList({
