@@ -4,6 +4,7 @@ import 'package:app_wallet/screens/register.dart';
 import 'package:app_wallet/screens/expenses.dart';
 import 'package:app_wallet/services_bd/login_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 void main() {
   runApp(MyApp());
@@ -216,6 +217,71 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Text(
                                 'Ingresar',
                                 style: TextStyle(fontSize: 18),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Separador "O"
+                        Row(
+                          children: [
+                            Expanded(child: Divider(thickness: 1)),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'O',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ),
+                            Expanded(child: Divider(thickness: 1)),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        // Botón de Google Sign-In
+                        Center(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final loginProvider = Provider.of<LoginProvider>(
+                                  context,
+                                  listen: false);
+                              await loginProvider.signInWithGoogle(
+                                onSuccess: () {
+                                  Navigator.pushReplacementNamed(
+                                      context, '/expense');
+                                },
+                                onError: (error) {
+                                  setState(() {
+                                    _errorMessage = error;
+                                  });
+                                },
+                              );
+                            },
+                            icon: FaIcon(
+                              FontAwesomeIcons.google,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            label: const Text(
+                              'Continuar con Google',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.black87,
+                              side: BorderSide(color: Colors.grey.shade300),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12.0,
+                                horizontal: 24.0,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
                           ),
