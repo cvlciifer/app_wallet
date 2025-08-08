@@ -95,7 +95,7 @@ if (flutterVersionName == null) {
 android {
     namespace = "com.example.app_wallet"  // Debes reemplazarlo con tu Application ID único
     compileSdk = 34
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = '25.1.8937393'
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
