@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:app_wallet/models/expense.dart';
-import 'package:intl/intl.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 class CategoryDetailScreen extends StatelessWidget {
   final Category category;

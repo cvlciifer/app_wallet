@@ -1,16 +1,6 @@
-import 'package:app_wallet/screens/forgot_passoword.dart';
 import 'package:app_wallet/services_bd/reset_password.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:app_wallet/screens/expenses.dart';
-import 'package:app_wallet/screens/logIn.dart';
-import 'package:app_wallet/screens/filtros.dart';
-import 'package:app_wallet/services_bd/register_provider.dart';
-import 'package:app_wallet/services_bd/login_provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'package:provider/provider.dart';
-import 'package:app_wallet/screens/inicio.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 var kColorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromARGB(255, 8, 115, 158),

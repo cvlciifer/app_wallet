@@ -1,6 +1,5 @@
-// auth_provider.dart
+import 'package:app_wallet/library/main_library.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;

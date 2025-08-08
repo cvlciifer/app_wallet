@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:app_wallet/screens/logIn.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 class LogOutDialog extends StatelessWidget {
   @override
