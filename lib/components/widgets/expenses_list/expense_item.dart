@@ -1,7 +1,5 @@
-import 'package:app_wallet/models/category.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Importa el paquete intl
-import 'package:app_wallet/models/expense.dart';
+import 'package:app_wallet/library/main_library.dart';
+
 
 class ExpenseItem extends StatelessWidget {
   const ExpenseItem(this.expense, {super.key});

@@ -4,14 +4,18 @@ export 'package:flutter/widgets.dart';
 export 'package:flutter/foundation.dart' hide Category;
 export 'package:flutter/cupertino.dart' hide RefreshCallback;
 export 'package:firebase_core/firebase_core.dart';
+export 'package:firebase_auth/firebase_auth.dart';
 export 'package:cloud_firestore/cloud_firestore.dart' hide kIsWasm;
-export 'package:uuid/uuid.dart';
 export 'package:fl_chart/fl_chart.dart';
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
 export 'package:intl/intl.dart' hide TextDirection;
+export 'package:uuid/uuid.dart';
+export 'dart:io';
 
 // Archivos locales del proyecto o rutas
 export 'package:app_wallet/models/expense.dart';
+export 'package:app_wallet/models/category.dart';
+export 'package:app_wallet/models/expense_bucket.dart';
 export 'package:app_wallet/screens/expenses.dart';
 export 'package:app_wallet/screens/log_in.dart';
 export 'package:app_wallet/screens/inicio.dart';
@@ -37,4 +41,5 @@ export 'package:app_wallet/screens/informe_mensual.dart';
 export 'package:app_wallet/components/get_consejo.dart';
 export 'package:app_wallet/components/log_out.dart';
 export 'package:app_wallet/components/detail_expense.dart';
+
 

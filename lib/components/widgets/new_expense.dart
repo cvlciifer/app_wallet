@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:app_wallet/library/main_library.dart';
-import 'package:app_wallet/models/category.dart';
 
 // Formateador de entrada personalizado
 class CustomLengthTextInputFormatter extends TextInputFormatter {
