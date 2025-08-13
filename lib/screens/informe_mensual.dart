@@ -1,4 +1,6 @@
 import 'package:app_wallet/library/main_library.dart';
+import 'package:app_wallet/models/category.dart';
+import 'package:app_wallet/models/expense_bucket.dart';
 
 class InformeMensualScreen extends StatefulWidget {
   final List<Expense> expenses;

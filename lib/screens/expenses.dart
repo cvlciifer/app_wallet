@@ -1,4 +1,5 @@
 import 'package:app_wallet/library/main_library.dart';
+import 'package:app_wallet/models/category.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Expenses extends StatefulWidget {

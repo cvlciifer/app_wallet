@@ -1,4 +1,5 @@
 import 'package:app_wallet/library/main_library.dart';
+import 'package:app_wallet/models/category.dart';
 
 class CategoryDetailScreen extends StatelessWidget {
   final Category category;

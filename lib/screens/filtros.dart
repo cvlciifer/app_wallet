@@ -1,4 +1,5 @@
 import 'package:app_wallet/library/main_library.dart';
+import 'package:app_wallet/models/category.dart';
 
 class FiltersScreen extends StatefulWidget {
   const FiltersScreen({super.key});
