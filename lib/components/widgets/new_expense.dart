@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:app_wallet/library/main_library.dart';
 
 // Formateador de entrada personalizado
