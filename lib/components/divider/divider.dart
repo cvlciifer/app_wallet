@@ -6,7 +6,7 @@ class AwDivider extends StatelessWidget {
 
   const AwDivider({
     Key? key,
-    this.color = const Color(0xFFEAEAEA),
+    this.color =  AwColors.greyLight,
     this.margin = const EdgeInsets.only(top: 18, bottom: 18),
   }) : super(key: key);
 
