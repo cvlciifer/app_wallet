@@ -1,4 +1,4 @@
-import 'package:app_wallet/services_bd/reset_password.dart';
+import 'package:app_wallet/services_bd/reset_password.dart' as local_auth;
 import 'package:provider/provider.dart';
 import 'package:app_wallet/library/main_library.dart';
 
@@ -26,7 +26,7 @@ void main() async {
         ChangeNotifierProvider(
             create: (_) => LoginProvider()), // Agrega también el LoginProvider
         ChangeNotifierProvider(
-            create: (_) => AuthProvider()), // Agrega el AuthProvider
+            create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -59,11 +59,11 @@ void main() async {
         ),
         themeMode:
             ThemeMode.light, 
-        home: WelcomeScreen(), // Cambiar a LoginScreen
+        home: const WelcomeScreen(), // Cambiar a LoginScreen
         routes: {
-          '/expense': (ctx) => Expenses(),
-          '/logIn': (ctx) => LoginScreen(),
-          '/filtros': (ctx) => FiltersScreen(),
+          '/expense': (ctx) => const Expenses(),
+          '/logIn': (ctx) =>  LoginScreen(),
+          '/filtros': (ctx) => const FiltersScreen(),
           '/forgot-password': (ctx) =>
               ForgotPasswordScreen(), // Ruta para la pantalla de recuperación de contraseña
         },

@@ -1,4 +1,4 @@
-import 'package:app_wallet/Library/main_library.dart';
+import 'package:app_wallet/library/main_library.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
