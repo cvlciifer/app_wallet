@@ -1,6 +1,5 @@
 import 'package:app_wallet/library/main_library.dart';
 
-
 class Expenses extends StatefulWidget {
   const Expenses({super.key});
 
@@ -190,7 +189,7 @@ class _ExpensesState extends State<Expenses> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi Billetera'),
+        title: const Text('Admin Wallet'),
         actions: [
           IconButton(
             onPressed: _openAddExpenseOverlay,
@@ -206,6 +205,7 @@ class _ExpensesState extends State<Expenses> {
           ? Column(
               children: [
                 Chart(expenses: _filteredExpenses),
+                const AwDivider(), 
                 Expanded(child: mainContent),
               ],
             )

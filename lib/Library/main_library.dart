@@ -44,3 +44,5 @@ export 'package:app_wallet/components/detail_expense.dart';
 export 'package:app_wallet/components/styles/text.dart';
 export 'package:app_wallet/components/styles/sizes.dart';
 export 'package:app_wallet/components/styles/colors.dart';
+export 'package:app_wallet/components/divider/divider.dart';
+export 'package:app_wallet/components/styles/spacing.dart';
