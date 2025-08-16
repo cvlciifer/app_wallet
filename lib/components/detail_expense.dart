@@ -1,19 +1,14 @@
 import 'package:app_wallet/library/main_library.dart';
 
-
-
 class DetailExpenseDialog {
   static void show(BuildContext context, Expense expense) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(
-          'Detalles del Gasto',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-            color: Color.fromARGB(255, 18, 73, 132),
-          ),
+        title: const AwText.bold(
+          'Detalles del Gasto', 
+          color: AwColors.blue,
+          size: AwSize.s24,
         ),
         content: SizedBox(
           width: 300,
@@ -39,7 +34,7 @@ class DetailExpenseDialog {
               Navigator.of(ctx).pop();
             },
             style: TextButton.styleFrom(
-              foregroundColor: Color.fromARGB(255, 18, 73, 132), 
+              foregroundColor: AwColors.blue, 
             ),
             child: const Text('Cerrar'),
           ),
@@ -54,12 +49,9 @@ class DetailExpenseDialog {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
+          AwText.bold(
             title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+           size: AwSize.s16,
           ),
           Flexible(
             child: Text(

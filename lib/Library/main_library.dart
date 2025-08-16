@@ -41,5 +41,6 @@ export 'package:app_wallet/screens/informe_mensual.dart';
 export 'package:app_wallet/components/get_consejo.dart';
 export 'package:app_wallet/components/log_out.dart';
 export 'package:app_wallet/components/detail_expense.dart';
-
-
+export 'package:app_wallet/components/styles/text.dart';
+export 'package:app_wallet/components/styles/sizes.dart';
+export 'package:app_wallet/components/styles/colors.dart';
