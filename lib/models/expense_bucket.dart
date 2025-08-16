@@ -1,4 +1,4 @@
-import 'package:app_wallet/models/expense.dart' hide Category;
+import 'package:app_wallet/models/expense.dart';
 import 'package:app_wallet/models/category.dart';
 
 class ExpenseBucket {
