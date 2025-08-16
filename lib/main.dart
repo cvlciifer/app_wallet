@@ -1,16 +1,6 @@
-import 'package:app_wallet/screens/forgot_passoword.dart';
-import 'package:app_wallet/services_bd/reset_password.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:app_wallet/screens/expenses.dart';
-import 'package:app_wallet/screens/logIn.dart';
-import 'package:app_wallet/screens/filtros.dart';
-import 'package:app_wallet/services_bd/register_provider.dart';
-import 'package:app_wallet/services_bd/login_provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:app_wallet/services_bd/reset_password.dart' as local_auth;
 import 'package:provider/provider.dart';
-import 'package:app_wallet/screens/inicio.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 var kColorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromARGB(255, 8, 115, 158),
@@ -36,7 +26,7 @@ void main() async {
         ChangeNotifierProvider(
             create: (_) => LoginProvider()), // Agrega también el LoginProvider
         ChangeNotifierProvider(
-            create: (_) => AuthProvider()), // Agrega el AuthProvider
+            create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -69,11 +59,11 @@ void main() async {
         ),
         themeMode:
             ThemeMode.light, 
-        home: WelcomeScreen(), // Cambiar a LoginScreen
+        home: const WelcomeScreen(), // Cambiar a LoginScreen
         routes: {
-          '/expense': (ctx) => Expenses(),
-          '/logIn': (ctx) => LoginScreen(),
-          '/filtros': (ctx) => FiltersScreen(),
+          '/expense': (ctx) => const Expenses(),
+          '/logIn': (ctx) =>  LoginScreen(),
+          '/filtros': (ctx) => const FiltersScreen(),
           '/forgot-password': (ctx) =>
               ForgotPasswordScreen(), // Ruta para la pantalla de recuperación de contraseña
         },

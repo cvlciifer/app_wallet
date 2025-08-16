@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:app_wallet/screens/expenses.dart';
-import 'package:app_wallet/models/expense.dart';
-import 'package:intl/intl.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 class EstadisticasScreen extends StatefulWidget {
   final List<Expense> expenses;

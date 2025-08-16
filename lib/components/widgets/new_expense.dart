@@ -1,8 +1,4 @@
-import 'dart:io';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Import necesario para TextInputFormatter
-import 'package:app_wallet/models/expense.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 // Formateador de entrada personalizado
 class CustomLengthTextInputFormatter extends TextInputFormatter {

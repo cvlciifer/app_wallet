@@ -1,7 +1,4 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:app_wallet/screens/logIn.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({Key? key}) : super(key: key);

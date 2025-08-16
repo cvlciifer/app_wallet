@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 class ChartBar extends StatelessWidget {
   const ChartBar({

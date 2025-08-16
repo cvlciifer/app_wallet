@@ -1,13 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:app_wallet/models/expense.dart';
-import 'package:app_wallet/services_bd/firebase_Service.dart';
-import 'package:app_wallet/widgets/chart/chart.dart';
-import 'package:app_wallet/widgets/expenses_list/expenses_list.dart';
-import 'package:app_wallet/widgets/main_drawer.dart';
-import 'package:app_wallet/widgets/new_expense.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:app_wallet/components/empy_state.dart';
+import 'package:app_wallet/library/main_library.dart';
+
 
 class Expenses extends StatefulWidget {
   const Expenses({super.key});

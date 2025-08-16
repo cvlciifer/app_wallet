@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:app_wallet/models/expense.dart';
+import 'package:app_wallet/library/main_library.dart';
+
 
 class FiltersScreen extends StatefulWidget {
   const FiltersScreen({super.key});

@@ -1,9 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:app_wallet/screens/estadisticas_screen.dart';
-import 'package:app_wallet/screens/informe_mensual.dart';
-import 'package:app_wallet/models/expense.dart';
-import 'package:app_wallet/components/getConsejo.dart';
-import 'package:app_wallet/components/LogOut.dart';
+import 'package:app_wallet/library/main_library.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({
