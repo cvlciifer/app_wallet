@@ -9,6 +9,9 @@ class AwSpacing {
   /// Size: 8 px
   static const SizedBox s = SizedBox(height: 8);
 
+  /// Size: 10 px
+  static const SizedBox s10 = SizedBox(height: 10);
+
   /// Size: 16 px
   static const SizedBox m = SizedBox(height: 16);
 

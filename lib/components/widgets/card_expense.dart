@@ -26,14 +26,14 @@ class TotalExpensesCard extends StatelessWidget {
               'Gasto Total Acumulado:',
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(255, 8, 64, 110),
+                    color: AwColors.blue,
                   ),
             ),
             Text(
               '\$${formatNumber(totalExpenses)}',
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(255, 8, 64, 110),
+                    color: AwColors.blue,
                   ),
             ),
           ],

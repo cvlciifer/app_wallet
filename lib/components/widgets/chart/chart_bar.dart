@@ -13,7 +13,8 @@ class ChartBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16), // Ajuste del padding horizontal
+      padding: const EdgeInsets.symmetric(
+          horizontal: 16), // Ajuste del padding horizontal
       child: FractionallySizedBox(
         heightFactor: fill, // De 0 a 1
         child: DecoratedBox(
@@ -22,7 +23,8 @@ class ChartBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(6),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                // ignore: deprecated_member_use
+                color: AwColors.black.withOpacity(0.1),
                 spreadRadius: 1,
                 blurRadius: 3,
                 offset: const Offset(0, 5),

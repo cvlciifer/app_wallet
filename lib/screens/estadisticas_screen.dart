@@ -45,7 +45,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         .map((bucket) {
       return {
         'category': bucket.category.name,
-        'amount': bucket.totalExpenses as double,
+        'amount': bucket.totalExpenses,
       };
     }).toList();
 
