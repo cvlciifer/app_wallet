@@ -62,10 +62,11 @@ void main() async {
         home: const WelcomeScreen(), // Cambiar a LoginScreen
         routes: {
           '/expense': (ctx) => const Expenses(),
+          '/new-expense': (ctx) => const NewExpenseScreen(),
           '/logIn': (ctx) =>  LoginScreen(),
           '/filtros': (ctx) => const FiltersScreen(),
           '/forgot-password': (ctx) =>
-              ForgotPasswordScreen(), // Ruta para la pantalla de recuperación de contraseña
+              ForgotPasswordScreen(), 
         },
       ),
     ),
