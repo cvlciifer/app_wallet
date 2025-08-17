@@ -6,81 +6,25 @@ class DetailExpenseDialog {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const AwText.bold(
-          'Detalles del Gasto', 
+          'Detalles del Gasto',
           color: AwColors.blue,
           size: AwSize.s24,
         ),
-        content: SizedBox(
-          width: 300,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildDetailRow('Título:', expense.title),
-                _buildDetailRow('Categoría:', _getCategoryName(expense.category)),
-                _buildDetailRow('Monto:', formatNumber(expense.amount)),
-              ],
-            ),
-          ),
+        content: AwSpacing.box300(
+          child:
+              DetailExpenseContent(expense: expense), // Usa el widget separado
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: AwColors.blue, 
-            ),
-            child: const Text('Cerrar'),
+          AwButton(
+            label: 'Cerrar',
+            onPressed: () => Navigator.of(ctx).pop(),
+            bold: true,
           ),
         ],
       ),
     );
-  }
-
-  static Widget _buildDetailRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          AwText.bold(
-            title,
-           size: AwSize.s16,
-          ),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String formatNumber(double value) {
-    final formatter = NumberFormat('#,##0', 'es');
-    return '\$${formatter.format(value)}'; 
-  }
-
-  static String _getCategoryName(Category category) {
-    return category.toString().split('.').last.capitalize(); 
-  }
-}
-
-// Extensión para capitalizar la primera letra
-extension StringCapitalizationExtension on String {
-  String capitalize() {
-    if (this.isEmpty) {
-      return this;
-    }
-    return '${this[0].toUpperCase()}${this.substring(1)}';
   }
 }

@@ -86,6 +86,9 @@ class AwSize {
   /// Size: 160 px
   static const s160 = 160.0;
 
+  /// Size: 300 px
+  static const s300 = 300.0;
+
   /// Size: 10%
   static const p10 = 0.1;
 

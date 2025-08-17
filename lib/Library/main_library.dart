@@ -46,3 +46,7 @@ export 'package:app_wallet/components/styles/sizes.dart';
 export 'package:app_wallet/components/styles/colors.dart';
 export 'package:app_wallet/components/divider/divider.dart';
 export 'package:app_wallet/components/styles/spacing.dart';
+export 'package:app_wallet/components/buttons/aw_button.dart';
+export 'package:app_wallet/components/detail_expense_content.dart';
+export 'package:app_wallet/utils/extensions.dart';
+export 'package:app_wallet/components/loaders/wallet_loader.dart';

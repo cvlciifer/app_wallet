@@ -3,7 +3,8 @@ import 'package:app_wallet/library/main_library.dart';
 class EstadisticasScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  EstadisticasScreen({Key? key, required this.expenses}) : super(key: key);
+  const EstadisticasScreen({Key? key, required this.expenses})
+      : super(key: key);
 
   @override
   _EstadisticasScreenState createState() => _EstadisticasScreenState();
@@ -44,7 +45,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         .map((bucket) {
       return {
         'category': bucket.category.name,
-        'amount': bucket.totalExpenses as double,
+        'amount': bucket.totalExpenses,
       };
     }).toList();
 

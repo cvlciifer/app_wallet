@@ -7,7 +7,8 @@ class CustomLengthTextInputFormatter extends TextInputFormatter {
   CustomLengthTextInputFormatter(this.maxLength);
 
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     // Comprueba la longitud del nuevo valor
     if (newValue.text.length > maxLength) {
       // Si es mayor que el límite, devuelve el valor antiguo
@@ -59,7 +60,8 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
     final dialogContent = Platform.isIOS
         ? CupertinoAlertDialog(
             title: const Text('Entrada no válida'),
-            content: const Text('Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
+            content: const Text(
+                'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -71,7 +73,8 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
           )
         : AlertDialog(
             title: const Text('Entrada no válida'),
-            content: const Text('Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
+            content: const Text(
+                'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -100,9 +103,13 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
 
   void _submitExpenseData() async {
     final enteredAmount = int.tryParse(_amountController.text.trim());
-    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0 || enteredAmount > 999999999;
+    final amountIsInvalid = enteredAmount == null ||
+        enteredAmount <= 0 ||
+        enteredAmount > 999999999;
 
-    if (_titleController.text.trim().isEmpty || amountIsInvalid || _selectedDate == null) {
+    if (_titleController.text.trim().isEmpty ||
+        amountIsInvalid ||
+        _selectedDate == null) {
       _showDialog();
       return;
     }
@@ -133,7 +140,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al agregar gasto: $error'),
-            backgroundColor: Colors.red,
+            backgroundColor: AwColors.red,
           ),
         );
       }
@@ -227,7 +234,9 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      _selectedDate == null ? 'Seleccione fecha' : formatter.format(_selectedDate!),
+                      _selectedDate == null
+                          ? 'Seleccione fecha'
+                          : formatter.format(_selectedDate!),
                     ),
                     IconButton(
                       onPressed: _presentDatePicker,
@@ -270,7 +279,9 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          _selectedDate == null ? 'Seleccione fecha' : formatter.format(_selectedDate!),
+                          _selectedDate == null
+                              ? 'Seleccione fecha'
+                              : formatter.format(_selectedDate!),
                         ),
                         IconButton(
                           onPressed: _presentDatePicker,

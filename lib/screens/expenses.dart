@@ -195,7 +195,7 @@ class _ExpensesState extends State<Expenses> {
           ? Column(
               children: [
                 Chart(expenses: _filteredExpenses),
-                const AwDivider(), 
+                const AwDivider(),
                 Expanded(child: mainContent),
               ],
             )
@@ -206,10 +206,10 @@ class _ExpensesState extends State<Expenses> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
-        focusColor: const Color.fromARGB(255, 18, 73, 132),
+        focusColor: AwColors.darkBlue,
         onPressed: _openAddExpenseOverlay,
-        child: const Icon(Icons.add),
         tooltip: 'Agregar gasto',
+        child: const Icon(Icons.add),
       ),
     );
   }
