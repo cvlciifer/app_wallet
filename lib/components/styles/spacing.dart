@@ -24,6 +24,11 @@ class AwSpacing {
   /// Size: 256 px
   static const SizedBox xxxl = SizedBox(height: 256);
 
+  /// SizedBox de ancho 300 que acepta un child
+  static Widget box300({required Widget child}) {
+    return SizedBox(width: 300, child: child);
+  }
+
   /// symmetric : horizontal = 16,
   static const EdgeInsetsGeometry paddingPage = EdgeInsets.symmetric(
     horizontal: AwSize.s16,
