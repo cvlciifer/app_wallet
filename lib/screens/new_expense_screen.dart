@@ -7,8 +7,7 @@ class CustomLengthTextInputFormatter extends TextInputFormatter {
   CustomLengthTextInputFormatter(this.maxLength);
 
   @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     // Comprueba la longitud del nuevo valor
     if (newValue.text.length > maxLength) {
       // Si es mayor que el límite, devuelve el valor antiguo
@@ -18,22 +17,29 @@ class CustomLengthTextInputFormatter extends TextInputFormatter {
   }
 }
 
-class NewExpense extends StatefulWidget {
-  const NewExpense({super.key, required this.onAddExpense});
-
-  final void Function(Expense expense) onAddExpense;
+class NewExpenseScreen extends StatefulWidget {
+  const NewExpenseScreen({super.key});
 
   @override
-  State<NewExpense> createState() {
-    return _NewExpenseState();
+  State<NewExpenseScreen> createState() {
+    return _NewExpenseScreenState();
   }
 }
 
-class _NewExpenseState extends State<NewExpense> {
+class _NewExpenseScreenState extends State<NewExpenseScreen> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime? _selectedDate;
   Category _selectedCategory = Category.ocio;
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? userEmail;
+
+  @override
+  void initState() {
+    super.initState();
+    userEmail = _auth.currentUser?.email;
+  }
 
   void _presentDatePicker() async {
     final now = DateTime.now();
@@ -53,8 +59,7 @@ class _NewExpenseState extends State<NewExpense> {
     final dialogContent = Platform.isIOS
         ? CupertinoAlertDialog(
             title: const Text('Entrada no válida'),
-            content: const Text(
-                'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
+            content: const Text('Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -66,8 +71,7 @@ class _NewExpenseState extends State<NewExpense> {
           )
         : AlertDialog(
             title: const Text('Entrada no válida'),
-            content: const Text(
-                'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
+            content: const Text('Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -81,37 +85,59 @@ class _NewExpenseState extends State<NewExpense> {
     showDialog(context: context, builder: (ctx) => dialogContent);
   }
 
-  void _submitExpenseData() {
-    final enteredAmount = int.tryParse(_amountController.text.trim());
-    final amountIsInvalid = enteredAmount == null ||
-        enteredAmount <= 0 ||
-        enteredAmount > 999999999; // Cambiado a enteros
+  Future<void> createExpense(Expense expense) async {
+    if (userEmail != null) {
+      await db.collection('usuarios').doc('Gastos').collection(userEmail!).add({
+        'name': expense.title,
+        'fecha': Timestamp.fromDate(expense.date),
+        'cantidad': expense.amount,
+        'tipo': expense.category.toString().split('.').last,
+      });
+    } else {
+      print('Error: El email del usuario no está disponible.');
+    }
+  }
 
-    if (_titleController.text.trim().isEmpty ||
-        amountIsInvalid ||
-        _selectedDate == null) {
+  void _submitExpenseData() async {
+    final enteredAmount = int.tryParse(_amountController.text.trim());
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0 || enteredAmount > 999999999;
+
+    if (_titleController.text.trim().isEmpty || amountIsInvalid || _selectedDate == null) {
       _showDialog();
       return;
     }
 
-    widget.onAddExpense(
-      Expense(
-        title: _titleController.text.trim(),
-        amount: enteredAmount.toDouble(), // Convertir a double si es necesario
-        date: _selectedDate!,
-        category: _selectedCategory,
-      ),
+    final expense = Expense(
+      title: _titleController.text.trim(),
+      amount: enteredAmount.toDouble(),
+      date: _selectedDate!,
+      category: _selectedCategory,
     );
 
-    // Reset fields after submission
-    setState(() {
-      _titleController.clear();
-      _amountController.clear();
-      _selectedDate = null;
-      _selectedCategory = Category.ocio;
-    });
+    try {
+      await createExpense(expense);
 
-    Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gasto agregado exitosamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navegar de vuelta y pasar el expense como resultado
+        Navigator.pop(context, expense);
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al agregar gasto: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildTitleAmountInputs(double width) {
@@ -134,7 +160,7 @@ class _NewExpenseState extends State<NewExpense> {
                   controller: _amountController,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
-                    CustomLengthTextInputFormatter(9), // Máximo 9 cifras
+                    CustomLengthTextInputFormatter(9),
                   ],
                   decoration: const InputDecoration(
                     prefixText: '\$ ',
@@ -158,7 +184,7 @@ class _NewExpenseState extends State<NewExpense> {
                 controller: _amountController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [
-                  CustomLengthTextInputFormatter(9), // Máximo 9 cifras
+                  CustomLengthTextInputFormatter(9),
                 ],
                 decoration: const InputDecoration(
                   prefixText: '\$ ',
@@ -180,7 +206,7 @@ class _NewExpenseState extends State<NewExpense> {
                           value: category,
                           child: Row(
                             children: [
-                              Icon(categoryIcons[category]), // Icon
+                              Icon(categoryIcons[category]),
                               const SizedBox(width: 8),
                               Text(category.name.toUpperCase()),
                             ],
@@ -201,9 +227,7 @@ class _NewExpenseState extends State<NewExpense> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      _selectedDate == null
-                          ? 'Seleccione fecha'
-                          : formatter.format(_selectedDate!),
+                      _selectedDate == null ? 'Seleccione fecha' : formatter.format(_selectedDate!),
                     ),
                     IconButton(
                       onPressed: _presentDatePicker,
@@ -246,9 +270,7 @@ class _NewExpenseState extends State<NewExpense> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          _selectedDate == null
-                              ? 'Seleccione fecha'
-                              : formatter.format(_selectedDate!),
+                          _selectedDate == null ? 'Seleccione fecha' : formatter.format(_selectedDate!),
                         ),
                         IconButton(
                           onPressed: _presentDatePicker,
@@ -265,17 +287,22 @@ class _NewExpenseState extends State<NewExpense> {
 
   Widget _buildActionButtons() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Cancelar'),
+        Expanded(
+          child: TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancelar'),
+          ),
         ),
-        ElevatedButton(
-          onPressed: _submitExpenseData,
-          child: const Text('Ingresar'),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: _submitExpenseData,
+            child: const Text('Guardar Gasto'),
+          ),
         ),
       ],
     );
@@ -291,26 +318,34 @@ class _NewExpenseState extends State<NewExpense> {
   @override
   Widget build(BuildContext context) {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
-    return LayoutBuilder(
-      builder: (ctx, constraints) {
-        final width = constraints.maxWidth;
 
-        return SizedBox(
-          height: double.infinity,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, keyboardSpace + 16),
+    return Scaffold(
+      appBar: AppBar(
+        title: const AwText.normal(
+          'Nuevo Gasto',
+          color: AwColors.white,
+        ),
+        backgroundColor: AwColors.blue,
+        elevation: 0,
+      ),
+      body: LayoutBuilder(
+        builder: (ctx, constraints) {
+          final width = constraints.maxWidth;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(16, 24, 16, keyboardSpace + 16),
             child: Column(
               children: [
                 _buildTitleAmountInputs(width),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 _buildCategoryAndDatePicker(width),
-                const SizedBox(height: 16),
+                const SizedBox(height: 32),
                 _buildActionButtons(),
               ],
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:app_wallet/library/main_library.dart';
 
 class Expenses extends StatefulWidget {
@@ -88,30 +89,19 @@ class _ExpensesState extends State<Expenses> {
         'tipo': expense.category.toString().split('.').last,
       });
     } else {
-      print('Error: El email del usuario no está disponible.');
+      log('Error: El email del usuario no está disponible.');
     }
   }
 
-  void _openAddExpenseOverlay() {
-    showModalBottomSheet(
-      useSafeArea: true,
-      isScrollControlled: true,
-      context: context,
-      builder: (ctx) => NewExpense(onAddExpense: _addExpense),
-    );
-  }
-
-  void _addExpense(Expense expense) {
-    setState(() {
-      _allExpenses.add(expense);
-      _filteredExpenses.add(expense);
-    });
-
-    createExpense(expense).catchError((error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al agregar gasto: $error')),
-      );
-    });
+  void _openAddExpenseOverlay() async {
+    final result = await Navigator.pushNamed(context, '/new-expense');
+    if (result != null && result is Expense) {
+      setState(() {
+        _allExpenses.add(result);
+        _filteredExpenses.add(result);
+      });
+      await _loadGastosFromFirebase(); // Recargar desde Firebase
+    }
   }
 
   void _removeExpense(Expense expense) async {
@@ -126,7 +116,7 @@ class _ExpensesState extends State<Expenses> {
     setState(() {
       _filteredExpenses.remove(expense);
     });
-    print('Gasto eliminado de la vista: ${expense.title}, ${expense.date}');
+    log('Gasto eliminado de la vista: ${expense.title}, ${expense.date}');
 
     // Llamar a la función deleteExpense con el objeto completo
     await deleteExpense(expense);
