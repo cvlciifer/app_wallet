@@ -14,14 +14,6 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Imagen de fondo
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/fondo.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Contenido centrado en un contenedor
           Center(
             child: Container(
               width: MediaQuery.of(context).size.width *

@@ -51,3 +51,4 @@ export 'package:app_wallet/components/detail_expense_content.dart';
 export 'package:app_wallet/utils/extensions.dart';
 export 'package:app_wallet/components/loaders/wallet_loader.dart';
 export 'package:google_sign_in/google_sign_in.dart';
+export 'package:app_wallet/components/appbar/appbar.dart';
