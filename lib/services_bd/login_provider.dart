@@ -103,14 +103,19 @@ class LoginProvider extends ChangeNotifier {
   // Método privado para crear el perfil del usuario en Firestore
   Future<void> _createUserProfile(User user) async {
     try {
-      await _firestore.collection('users').doc(user.uid).set({
-        'uid': user.uid,
+      await _firestore.collection('Registros').doc(user.email).set({
         'email': user.email,
-        'name': user.displayName ?? '',
-        'photoURL': user.photoURL ?? '',
-        'createdAt': FieldValue.serverTimestamp(),
+        'username': user.displayName ?? '',
+        'token':user.uid,
         'provider': 'google',
+        'created_at': FieldValue.serverTimestamp(),
       });
+      await _firestore
+          .collection('usuarios')
+          .doc('Gastos')
+          .collection(user.email!.toLowerCase())
+          .doc(user.uid)
+          .set({});
     } catch (e) {
       print('Error al crear el perfil del usuario: $e');
     }
