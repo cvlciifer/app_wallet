@@ -38,35 +38,37 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const WalletAppBar(
+        title: AwText.bold(
+          'ADMIN WALLET',
+          color: AwColors.white,
+        ),
+      ),
       body: Stack(
         children: [
           Center(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(10.0),
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(10.0),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'ADMIN WALLET',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      const AwText.bold(
+                        'Accede a tu cuenta',
+                        size: AwSize.s20,
+                        color: AwColors.boldBlack,
                       ),
-                      const SizedBox(height: 10),
-                      const AwText.bold('Accede a tu cuenta',
-                      size: AwSize.s20,),
                       const Text(
                         'Introduce tu email y contraseña para acceder a tu cuenta',
                         style: TextStyle(fontSize: 16),
                       ),
                       const SizedBox(height: 30),
-                      const Text(
+                      const AwText.bold(
                         'Ingresa tu Email',
-                        style: TextStyle(fontSize: 16),
+                        size: AwSize.s16,
+                        color: AwColors.boldBlack,
                       ),
                       const SizedBox(height: 10),
                       TextField(
@@ -80,9 +82,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 30),
-                      const Text(
+                      const AwText.bold(
                         'Tu contraseña',
-                        style: TextStyle(fontSize: 16),
+                        size: AwSize.s16,
+                        color: AwColors.boldBlack,
                       ),
                       const SizedBox(height: 10),
                       TextField(
@@ -152,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               });
                               return;
                             }
-              
+
                             final loginProvider = Provider.of<LoginProvider>(context, listen: false);
                             await loginProvider.loginUser(
                               email: _emailController.text.trim(),
@@ -168,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 } else {
                                   translatedError = error;
                                 }
-              
+
                                 setState(() {
                                   _errorMessage = translatedError;
                                 });
@@ -219,9 +222,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             setState(() {
                               _errorMessage = null;
                             });
-              
+
                             final loginProvider = Provider.of<LoginProvider>(context, listen: false);
-              
+
                             await loginProvider.signInWithGoogle(
                               onSuccess: () {
                                 Navigator.pushReplacementNamed(context, '/expense');

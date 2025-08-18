@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 
 class AwColors {
+  static const Color appBarColor = Color(0xFF62597C);
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF595B5A);
   static const Color blue = Color(0xFF006FB9);
@@ -45,6 +46,7 @@ class AwColors {
     'modalBlue': AwColors.modalBlue,
     'modalGrey': AwColors.modalGrey,
     'modalPurple': AwColors.modalPurple,
+    'blueAppBar': AwColors.appBarColor,
   };
 
   // final Map<String, Color> colorMapWithOpacity = {

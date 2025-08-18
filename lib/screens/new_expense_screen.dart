@@ -331,13 +331,12 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const AwText.normal(
+      appBar: const WalletAppBar(
+        title: AwText.bold(
           'Nuevo Gasto',
           color: AwColors.white,
         ),
-        backgroundColor: AwColors.blue,
-        elevation: 0,
+        showBackArrow: true,
       ),
       body: LayoutBuilder(
         builder: (ctx, constraints) {

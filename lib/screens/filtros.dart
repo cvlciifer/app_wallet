@@ -34,10 +34,10 @@ class _FiltersScreenState extends State<FiltersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Filtros'),
+      appBar: WalletAppBar(
+        title: const AwText.bold('Filtros', color: AwColors.white,),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () {
             Navigator.of(context).pop(_getActiveFilters());
           },
