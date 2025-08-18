@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:app_wallet/library/main_library.dart';
 
 class LoginProvider extends ChangeNotifier {
@@ -5,7 +6,6 @@ class LoginProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // Método para iniciar sesión, verificando si el correo está verificado
   Future<void> loginUser({
     required String email,
     required String password,
@@ -13,23 +13,18 @@ class LoginProvider extends ChangeNotifier {
     required Function(String) onError,
   }) async {
     try {
-      // Convertir el email a minúsculas
       final String emailLower = email.toLowerCase();
-
-      // Intentar iniciar sesión
       final UserCredential userCredential =
           await _auth.signInWithEmailAndPassword(
         email: emailLower,
         password: password,
       );
 
-      // Verificar si el correo ha sido verificado
       final User? user = userCredential.user;
       if (user != null) {
         if (user.emailVerified) {
-          onSuccess(); // Éxito: correo verificado
+          onSuccess(); 
         } else {
-          // Cerrar la sesión del usuario si no está verificado
           await _auth.signOut();
           onError(
               'Debe verificar su correo electrónico antes de iniciar sesión.');
@@ -38,7 +33,6 @@ class LoginProvider extends ChangeNotifier {
         onError('Error al obtener el usuario después del inicio de sesión.');
       }
     } on FirebaseAuthException catch (e) {
-      // Manejo de errores de autenticación
       if (e.code == 'user-not-found') {
         onError('No se encontró un usuario con este correo.');
       } else if (e.code == 'wrong-password') {
@@ -49,7 +43,6 @@ class LoginProvider extends ChangeNotifier {
         onError(e.message ?? 'Error desconocido al iniciar sesión.');
       }
     } catch (e) {
-      // Manejo de errores genéricos
       onError('Error al iniciar sesión: $e');
     }
   }
@@ -60,32 +53,28 @@ class LoginProvider extends ChangeNotifier {
     required Function(String) onError,
   }) async {
     try {
-      // Iniciar el proceso de autenticación con Google
+      await _googleSignIn.signOut();
+      
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       
       if (googleUser == null) {
-        // El usuario canceló el inicio de sesión
         onError('Inicio de sesión cancelado');
         return;
       }
 
-      // Obtener los detalles de autenticación
       final GoogleSignInAuthentication googleAuth = 
           await googleUser.authentication;
 
-      // Crear las credenciales para Firebase
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Iniciar sesión en Firebase con las credenciales de Google
       final UserCredential userCredential = 
           await _auth.signInWithCredential(credential);
 
       final User? user = userCredential.user;
       if (user != null) {
-        // Verificar si es un nuevo usuario y guardarlo en Firestore
         if (userCredential.additionalUserInfo?.isNewUser == true) {
           await _createUserProfile(user);
         }
@@ -117,7 +106,7 @@ class LoginProvider extends ChangeNotifier {
           .doc(user.uid)
           .set({});
     } catch (e) {
-      print('Error al crear el perfil del usuario: $e');
+      log('Error al crear el perfil del usuario: $e');
     }
   }
 
@@ -127,7 +116,7 @@ class LoginProvider extends ChangeNotifier {
       await _googleSignIn.signOut();
       await _auth.signOut();
     } catch (e) {
-      print('Error al cerrar sesión: $e');
+      log('Error al cerrar sesión: $e');
     }
   }
 }
