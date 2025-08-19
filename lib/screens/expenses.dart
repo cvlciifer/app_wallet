@@ -1,5 +1,5 @@
+import 'dart:developer';
 import 'package:app_wallet/library/main_library.dart';
-
 
 class Expenses extends StatefulWidget {
   const Expenses({super.key});
@@ -89,30 +89,19 @@ class _ExpensesState extends State<Expenses> {
         'tipo': expense.category.toString().split('.').last,
       });
     } else {
-      print('Error: El email del usuario no está disponible.');
+      log('Error: El email del usuario no está disponible.');
     }
   }
 
-  void _openAddExpenseOverlay() {
-    showModalBottomSheet(
-      useSafeArea: true,
-      isScrollControlled: true,
-      context: context,
-      builder: (ctx) => NewExpense(onAddExpense: _addExpense),
-    );
-  }
-
-  void _addExpense(Expense expense) {
-    setState(() {
-      _allExpenses.add(expense);
-      _filteredExpenses.add(expense);
-    });
-
-    createExpense(expense).catchError((error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al agregar gasto: $error')),
-      );
-    });
+  void _openAddExpenseOverlay() async {
+    final result = await Navigator.pushNamed(context, '/new-expense');
+    if (result != null && result is Expense) {
+      setState(() {
+        _allExpenses.add(result);
+        _filteredExpenses.add(result);
+      });
+      await _loadGastosFromFirebase(); // Recargar desde Firebase
+    }
   }
 
   void _removeExpense(Expense expense) async {
@@ -127,7 +116,7 @@ class _ExpensesState extends State<Expenses> {
     setState(() {
       _filteredExpenses.remove(expense);
     });
-    print('Gasto eliminado de la vista: ${expense.title}, ${expense.date}');
+    log('Gasto eliminado de la vista: ${expense.title}, ${expense.date}');
 
     // Llamar a la función deleteExpense con el objeto completo
     await deleteExpense(expense);
@@ -190,7 +179,7 @@ class _ExpensesState extends State<Expenses> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi Billetera'),
+        title: const Text('Admin Wallet'),
         actions: [
           IconButton(
             onPressed: _openAddExpenseOverlay,
@@ -206,6 +195,7 @@ class _ExpensesState extends State<Expenses> {
           ? Column(
               children: [
                 Chart(expenses: _filteredExpenses),
+                const AwDivider(),
                 Expanded(child: mainContent),
               ],
             )
@@ -216,10 +206,10 @@ class _ExpensesState extends State<Expenses> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
-        focusColor: const Color.fromARGB(255, 18, 73, 132),
+        focusColor: AwColors.darkBlue,
         onPressed: _openAddExpenseOverlay,
-        child: const Icon(Icons.add),
         tooltip: 'Agregar gasto',
+        child: const Icon(Icons.add),
       ),
     );
   }

@@ -20,7 +20,6 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Filtrar gastos por el mes y año seleccionados
     final filteredExpenses = widget.expenses.where((expense) {
       return expense.date.month == selectedMonth &&
           expense.date.year == selectedYear;
@@ -36,13 +35,11 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
+      appBar: WalletAppBar(
+        title: const AwText.bold(
           'Informe Mensual',
-          style: TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.bold,
-          ),
+          size: AwSize.s18,
+          color: AwColors.white,
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

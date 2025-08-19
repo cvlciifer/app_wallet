@@ -14,14 +14,6 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Imagen de fondo
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/fondo.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Contenido centrado en un contenedor
           Center(
             child: Container(
               width: MediaQuery.of(context).size.width *
@@ -30,20 +22,22 @@ class WelcomeScreen extends StatelessWidget {
                   20.0), // Espaciado interno del contenedor
               decoration: BoxDecoration(
                 color: Colors.white
+                    // ignore: deprecated_member_use
                     .withOpacity(0.9), // Fondo blanco con transparencia
                 borderRadius: BorderRadius.circular(20.0), // Bordes redondeados
                 boxShadow: [
                   BoxShadow(
+                    // ignore: deprecated_member_use
                     color: Colors.black.withOpacity(0.2),
                     blurRadius: 10.0,
                     offset: const Offset(0, 5),
                   ),
                 ],
               ),
-              child: Column(
+              child: const Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   SizedBox(height: 30),
                   Text(
                     'Bienvenido a AdminWallet',
@@ -53,7 +47,7 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 50),
-                  CircularProgressIndicator(),
+                  WalletLoader(),
                   SizedBox(height: 50),
                   Text(
                     'Cargando la App de AdminWallet...',

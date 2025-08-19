@@ -41,17 +41,17 @@ class Chart extends StatelessWidget {
   Color getColorForCategory(Category category) {
     switch (category) {
       case Category.comida:
-        return const Color.fromARGB(255, 54, 118, 158);
+        return AwColors.darkBlue;
       case Category.ocio:
-        return const Color.fromARGB(255, 5, 71, 95);
+        return AwColors.darkBlue;
       case Category.viajes:
-        return const Color(0xFF88B0BF);
+        return AwColors.darkBlue;
       case Category.trabajo:
-        return const Color.fromARGB(255, 11, 106, 128);
+        return AwColors.darkBlue;
       case Category.servicios:
-        return Color.fromARGB(255, 65, 154, 159);
+        return AwColors.darkBlue;
       default:
-        return const Color.fromARGB(255, 12, 140, 187);
+        return AwColors.darkBlue;
     }
   }
 
@@ -61,10 +61,11 @@ class Chart extends StatelessWidget {
       margin: const EdgeInsets.all(15),
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
       width: double.maxFinite,
-      height: 300,
+      height: AwSize.s300,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Color.fromARGB(255, 166, 208, 234),
+        // ignore: deprecated_member_use
+        color: AwColors.cyan.withOpacity(0.2),
       ),
       child: Column(
         children: [
@@ -74,10 +75,10 @@ class Chart extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 18, 73, 132),
+              color: AwColors.darkBlue,
             ),
           ),
-          const SizedBox(height: 10), // Espacio entre el título y el gráfico
+          AwSpacing.s10, // Espacio entre el título y el gráfico
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -92,14 +93,15 @@ class Chart extends StatelessWidget {
                       return Text(
                         formatNumber(value),
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                            color: const Color.fromARGB(255, 18, 73, 132), fontSize: 10),
+                            fontWeight: FontWeight.bold,
+                            color: AwColors.darkBlue,
+                            fontSize: AwSize.s10),
                       );
                     }),
-                    const SizedBox(height: 10),
+                    AwSpacing.s10,
                   ],
                 ),
-                const SizedBox(width: 8),
+                AwSpacing.s,
 
                 Expanded(
                   child: Column(
@@ -124,7 +126,7 @@ class Chart extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      AwSpacing.s10,
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: buckets.map((bucket) {
@@ -133,7 +135,7 @@ class Chart extends StatelessWidget {
                               width: 40,
                               child: Icon(
                                 categoryIcons[bucket.category],
-                                color: const Color.fromARGB(255, 18, 73, 132),
+                                color: AwColors.blue,
                               ),
                             ),
                           );
@@ -153,14 +155,14 @@ class Chart extends StatelessWidget {
                 'Gasto Total Acumulado:',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: const Color.fromARGB(255, 18, 73, 132),
+                      color: AwColors.darkBlue,
                     ),
               ),
               Text(
                 formatNumber(totalExpenses),
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: const Color.fromARGB(255, 8, 64, 110),
+                      color: AwColors.darkBlue,
                     ),
               ),
             ],
@@ -179,7 +181,8 @@ class ChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
-      ..color = Colors.grey.withOpacity(0.5)
+      // ignore: deprecated_member_use
+      ..color = AwColors.grey.withOpacity(0.5)
       ..strokeWidth = 1.5;
 
     // Determine the number of lines and their positions

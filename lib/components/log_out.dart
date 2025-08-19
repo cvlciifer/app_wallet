@@ -1,6 +1,8 @@
 import 'package:app_wallet/library/main_library.dart';
 
 class LogOutDialog extends StatelessWidget {
+  const LogOutDialog({super.key});
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -10,16 +12,16 @@ class LogOutDialog extends StatelessWidget {
       ),
       content: const Row(
         children: [
-           Icon(
+          Icon(
             Icons.warning,
-            color: Colors.orange,
-            size: 24.0,
+            color: AwColors.orange,
+            size: AwSize.s24,
           ),
-           SizedBox(width: 10),
-           Expanded(
+          AwSpacing.s10,
+          Expanded(
             child: Text(
               '¿Estás seguro?',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: AwSize.s16, color: AwColors.black),
             ),
           ),
         ],
@@ -42,14 +44,15 @@ class LogOutDialog extends StatelessWidget {
             // Redirigir al usuario a la pantalla de inicio de sesión
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => LoginScreen()),
-              (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
+              (Route<dynamic> route) =>
+                  false, // Elimina todas las rutas anteriores
             );
           },
-          child:const Text('Cerrar sesión'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red, // Color de fondo del botón
-            foregroundColor: Colors.white, // Color del texto
+            backgroundColor: AwColors.red, // Color de fondo del botón
+            foregroundColor: AwColors.white, // Color del texto
           ),
+          child: const Text('Cerrar sesión'),
         ),
       ],
     );
@@ -60,7 +63,7 @@ class LogOutDialog extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return LogOutDialog();
+        return const LogOutDialog();
       },
     );
   }

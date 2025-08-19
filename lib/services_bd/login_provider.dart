@@ -1,11 +1,11 @@
+import 'dart:developer';
 import 'package:app_wallet/library/main_library.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // Método para iniciar sesión, verificando si el correo está verificado
   Future<void> loginUser({
     required String email,
     required String password,
@@ -13,23 +13,18 @@ class LoginProvider extends ChangeNotifier {
     required Function(String) onError,
   }) async {
     try {
-      // Convertir el email a minúsculas
       final String emailLower = email.toLowerCase();
-
-      // Intentar iniciar sesión
       final UserCredential userCredential =
           await _auth.signInWithEmailAndPassword(
         email: emailLower,
         password: password,
       );
 
-      // Verificar si el correo ha sido verificado
       final User? user = userCredential.user;
       if (user != null) {
         if (user.emailVerified) {
-          onSuccess(); // Éxito: correo verificado
+          onSuccess(); 
         } else {
-          // Cerrar la sesión del usuario si no está verificado
           await _auth.signOut();
           onError(
               'Debe verificar su correo electrónico antes de iniciar sesión.');
@@ -38,7 +33,6 @@ class LoginProvider extends ChangeNotifier {
         onError('Error al obtener el usuario después del inicio de sesión.');
       }
     } on FirebaseAuthException catch (e) {
-      // Manejo de errores de autenticación
       if (e.code == 'user-not-found') {
         onError('No se encontró un usuario con este correo.');
       } else if (e.code == 'wrong-password') {
@@ -49,8 +43,80 @@ class LoginProvider extends ChangeNotifier {
         onError(e.message ?? 'Error desconocido al iniciar sesión.');
       }
     } catch (e) {
-      // Manejo de errores genéricos
       onError('Error al iniciar sesión: $e');
+    }
+  }
+
+  // Método para iniciar sesión con Google
+  Future<void> signInWithGoogle({
+    required Function onSuccess,
+    required Function(String) onError,
+  }) async {
+    try {
+      await _googleSignIn.signOut();
+      
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      
+      if (googleUser == null) {
+        onError('Inicio de sesión cancelado');
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = 
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = 
+          await _auth.signInWithCredential(credential);
+
+      final User? user = userCredential.user;
+      if (user != null) {
+        if (userCredential.additionalUserInfo?.isNewUser == true) {
+          await _createUserProfile(user);
+        }
+        onSuccess();
+      } else {
+        onError('Error al obtener el usuario después del inicio de sesión con Google.');
+      }
+    } on FirebaseAuthException catch (e) {
+      onError('Error de autenticación: ${e.message}');
+    } catch (e) {
+      onError('Error al iniciar sesión con Google: $e');
+    }
+  }
+
+  // Método privado para crear el perfil del usuario en Firestore
+  Future<void> _createUserProfile(User user) async {
+    try {
+      await _firestore.collection('Registros').doc(user.email).set({
+        'email': user.email,
+        'username': user.displayName ?? '',
+        'token':user.uid,
+        'provider': 'google',
+        'created_at': FieldValue.serverTimestamp(),
+      });
+      await _firestore
+          .collection('usuarios')
+          .doc('Gastos')
+          .collection(user.email!.toLowerCase())
+          .doc(user.uid)
+          .set({});
+    } catch (e) {
+      log('Error al crear el perfil del usuario: $e');
+    }
+  }
+
+  // Método para cerrar sesión
+  Future<void> signOut() async {
+    try {
+      await _googleSignIn.signOut();
+      await _auth.signOut();
+    } catch (e) {
+      log('Error al cerrar sesión: $e');
     }
   }
 }

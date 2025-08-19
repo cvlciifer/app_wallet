@@ -3,7 +3,7 @@ import 'package:app_wallet/library/main_library.dart';
 class EstadisticasScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  EstadisticasScreen({Key? key, required this.expenses}) : super(key: key);
+  const EstadisticasScreen({Key? key, required this.expenses}) : super(key: key);
 
   @override
   _EstadisticasScreenState createState() => _EstadisticasScreenState();
@@ -31,39 +31,28 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   Widget build(BuildContext context) {
     final filteredExpenses = widget.expenses.where((expense) {
       final expenseDate = expense.date;
-      return expenseDate.month == selectedMonth &&
-          expenseDate.year == selectedYear;
+      return expenseDate.month == selectedMonth && expenseDate.year == selectedYear;
     }).toList();
 
     final expenseBuckets = Category.values.map((category) {
       return ExpenseBucket.forCategory(filteredExpenses, category);
     }).toList();
 
-    final data = expenseBuckets
-        .where((bucket) => bucket.totalExpenses > 0)
-        .map((bucket) {
+    final data = expenseBuckets.where((bucket) => bucket.totalExpenses > 0).map((bucket) {
       return {
         'category': bucket.category.name,
-        'amount': bucket.totalExpenses as double,
+        'amount': bucket.totalExpenses,
       };
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
+      appBar: const WalletAppBar(
+        title: AwText.bold(
           'Estadísticas',
-          style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+          size: AwSize.s18,
+          color: AwColors.white,
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => Expenses()),
-              (Route<dynamic> route) => false,
-            );
-          },
-        ),
+        showBackArrow: true,
       ),
       body: Container(
         color: Colors.white,
@@ -87,8 +76,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                     items: List.generate(12, (index) {
                       return DropdownMenuItem(
                         value: index + 1,
-                        child: Text(
-                            DateFormat('MMMM').format(DateTime(0, index + 1))),
+                        child: Text(DateFormat('MMMM').format(DateTime(0, index + 1))),
                       );
                     }),
                     onChanged: (value) {
@@ -124,16 +112,14 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
               Card(
                 elevation: 10,
                 margin: const EdgeInsets.symmetric(vertical: 4.0),
-                color: const Color.fromARGB(255, 242, 242,
-                    242), // Cambia el color de fondo de la tarjeta aquí
+                color: const Color.fromARGB(255, 242, 242, 242), // Cambia el color de fondo de la tarjeta aquí
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: filteredExpenses.isEmpty
                       ? const Center(
                           child: Text(
                             'No hubo gastos registrados durante este mes.',
-                            style:
-                                TextStyle(fontSize: 18, color: Colors.black54),
+                            style: TextStyle(fontSize: 18, color: Colors.black54),
                           ),
                         )
                       : Column(
@@ -141,8 +127,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                           children: [
                             const Text(
                               'Gráfico porcentual:',
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 16.0),
                             GestureDetector(
@@ -179,10 +164,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
     );
   }
 
-  List<PieChartSectionData> _getPieChartSections(
-      List<Map<String, dynamic>> data) {
-    final total =
-        data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
+  List<PieChartSectionData> _getPieChartSections(List<Map<String, dynamic>> data) {
+    final total = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
     return data.map((item) {
       final category = item['category'] as String;
