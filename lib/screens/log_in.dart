@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
         child: LoginScreen(),
       ),
       routes: {
-        '/home-page': (ctx) => const WalletHomePage(),
+        '/expense': (ctx) => Expenses(),
       },
     );
   }
@@ -161,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               email: _emailController.text.trim(),
                               password: _passwordController.text.trim(),
                               onSuccess: () {
-                                Navigator.pushReplacementNamed(context, '/home-page');
+                                Navigator.pushReplacementNamed(context, '/expense');
                               },
                               onError: (error) {
                                 String translatedError;
@@ -227,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             await loginProvider.signInWithGoogle(
                               onSuccess: () {
-                                Navigator.pushReplacementNamed(context, '/home-page');
+                                Navigator.pushReplacementNamed(context, '/expense');
                               },
                               onError: (error) {
                                 setState(() {

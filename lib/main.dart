@@ -61,7 +61,7 @@ void main() async {
             ThemeMode.light, 
         home: const WelcomeScreen(), // Cambiar a LoginScreen
         routes: {
-          '/home-page': (ctx) => const WalletHomePage(),
+          '/expense': (ctx) => const Expenses(),
           '/new-expense': (ctx) => const NewExpenseScreen(),
           '/logIn': (ctx) =>  LoginScreen(),
           '/filtros': (ctx) => const FiltersScreen(),

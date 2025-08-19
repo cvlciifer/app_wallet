@@ -11,14 +11,14 @@ class Chart extends StatelessWidget {
     return '\$${formatter.format(value)}'; // Añade el símbolo $
   }
 
-  List<WalletExpenseBucket> get buckets {
+  List<ExpenseBucket> get buckets {
     return [
-      WalletExpenseBucket.forCategory(expenses, Category.comida),
-      WalletExpenseBucket.forCategory(expenses, Category.ocio),
-      WalletExpenseBucket.forCategory(expenses, Category.viajes),
-      WalletExpenseBucket.forCategory(expenses, Category.trabajo),
-      WalletExpenseBucket.forCategory(expenses, Category.salud),
-      WalletExpenseBucket.forCategory(expenses, Category.servicios),
+      ExpenseBucket.forCategory(expenses, Category.comida),
+      ExpenseBucket.forCategory(expenses, Category.ocio),
+      ExpenseBucket.forCategory(expenses, Category.viajes),
+      ExpenseBucket.forCategory(expenses, Category.trabajo),
+      ExpenseBucket.forCategory(expenses, Category.salud),
+      ExpenseBucket.forCategory(expenses, Category.servicios),
     ];
   }
 

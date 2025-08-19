@@ -1,5 +1,6 @@
 import 'package:app_wallet/library/main_library.dart';
 
+
 class FiltersScreen extends StatefulWidget {
   const FiltersScreen({super.key});
 
@@ -9,7 +10,6 @@ class FiltersScreen extends StatefulWidget {
 
 class _FiltersScreenState extends State<FiltersScreen> {
   late Map<Category, bool> _filters;
-  int _currentBottomNavIndex = 0; // Filtros está en el índice 0
 
   @override
   void didChangeDependencies() {
@@ -31,38 +31,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
     return _filters;
   }
 
-  void _handleBottomNavTap(int index) {
-    setState(() {
-      _currentBottomNavIndex = index;
-    });
-    
-    switch (index) {
-      case 0: // Filtros (ya estamos aquí)
-        break;
-      case 1: // Estadísticas
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (ctx) => EstadisticasScreen(
-              expenses: [], // Necesitarás pasar los expenses desde donde sea apropiado
-            ),
-          ),
-        );
-        break;
-      case 2: // Informes
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (ctx) => InformeMensualScreen(
-              expenses: [], // Necesitarás pasar los expenses desde donde sea apropiado
-            ),
-          ),
-        );
-        break;
-      case 3: // MiWallet
-        // Navigator.of(context).pushNamed('/mi-wallet');
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,8 +44,10 @@ class _FiltersScreenState extends State<FiltersScreen> {
         ),
       ),
       body: Column(
+        
         children: Category.values.map((category) {
           return SwitchListTile(
+            
             value: _filters[category]!,
             onChanged: (isChecked) {
               setState(() {
@@ -103,19 +73,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
           );
         }).toList(),
       ),
-      bottomNavigationBar: WalletBottomAppBar(
-        currentIndex: _currentBottomNavIndex,
-        onTap: _handleBottomNavTap,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Acción para agregar nuevo gasto
-          Navigator.of(context).pushNamed('/add-expense');
-        },
-        backgroundColor: AwColors.appBarColor,
-        child: const Icon(Icons.add, color: AwColors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

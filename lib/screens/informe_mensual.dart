@@ -12,100 +12,11 @@ class InformeMensualScreen extends StatefulWidget {
 class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedMonth = DateTime.now().month; // Mes seleccionado
   int selectedYear = DateTime.now().year; // Año seleccionado
-  int _currentBottomNavIndex = 2; // Informes está en el índice 2
 
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
     return '\$${formatter.format(value)}';
   }
-
-  void _handleBottomNavTap(int index) {
-    setState(() {
-      _currentBottomNavIndex = index;
-    });
-    
-    switch (index) {
-      case 0: // Home
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (ctx) => const WalletHomePage(),
-          ),
-          (route) => false,
-        );
-        break;
-      case 1: // Estadísticas
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (ctx) => EstadisticasScreen(
-              expenses: widget.expenses,
-            ),
-          ),
-        );
-        break;
-      case 2: // Informes (ya estamos aquí)
-        break;
-      case 3: // MiWallet
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (ctx) => const WalletProfilePage(),
-          ),
-        );
-        break;
-    }
-  }
-
-  // void _showUserInfo() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Text('Mi Wallet'),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Text('Total de gastos: ${widget.expenses.length}'),
-  //             const SizedBox(height: 8),
-  //             Text('Mes actual: ${_getMonthName(selectedMonth)} $selectedYear'),
-  //             const SizedBox(height: 8),
-  //             Text('Total del mes: ${formatNumber(_getTotalForMonth())}'),
-  //           ],
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.of(context).pop(),
-  //             child: const Text('Cerrar'),
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //               // Navegación a configuración si la tienes
-  //               // Navigator.of(context).pushNamed('/settings');
-  //             },
-  //             child: const Text('Configuración'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
-  // String _getMonthName(int month) {
-  //   const months = [
-  //     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  //     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  //   ];
-  //   return months[month - 1];
-  // }
-
-  // double _getTotalForMonth() {
-  //   final filteredExpenses = widget.expenses.where((expense) {
-  //     return expense.date.month == selectedMonth &&
-  //         expense.date.year == selectedYear;
-  //   }).toList();
-    
-  //   return filteredExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -120,17 +31,22 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
 
     // Agrupar los gastos filtrados por categoría usando ExpenseBucket
     final expenseBuckets = Category.values.map((category) {
-      return WalletExpenseBucket.forCategory(filteredExpenses, category);
+      return ExpenseBucket.forCategory(filteredExpenses, category);
     }).toList();
 
     return Scaffold(
-      appBar: const WalletAppBar(
-        title: AwText.bold(
+      appBar: WalletAppBar(
+        title: const AwText.bold(
           'Informe Mensual',
           size: AwSize.s18,
           color: AwColors.white,
         ),
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
@@ -215,7 +131,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                       leading: Icon(
                         categoryIcons[bucket.category],
                         size: 30,
-                        color: Theme.of(context).colorScheme.tertiary,
+                        color: Theme.of(context).colorScheme.tertiary, // Uso del color terciario
                       ),
                       title: Text(
                         bucket.category.name,
@@ -258,19 +174,6 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: WalletBottomAppBar(
-        currentIndex: _currentBottomNavIndex,
-        onTap: _handleBottomNavTap,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Acción para agregar nuevo gasto
-          Navigator.of(context).pushNamed('/add-expense');
-        },
-        backgroundColor: AwColors.appBarColor,
-        child: const Icon(Icons.add, color: AwColors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
