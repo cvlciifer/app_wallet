@@ -1,13 +1,13 @@
 import 'package:app_wallet/models/expense.dart';
 import 'package:app_wallet/models/category.dart';
 
-class ExpenseBucket {
-  const ExpenseBucket({
+class WalletExpenseBucket {
+  const WalletExpenseBucket({
     required this.category,
     required this.expenses,
   });
 
-  ExpenseBucket.forCategory(List<Expense> allExpenses, this.category)
+  WalletExpenseBucket.forCategory(List<Expense> allExpenses, this.category)
       : expenses = allExpenses
             .where((expense) => expense.category == category)
             .toList();
