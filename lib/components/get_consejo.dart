@@ -5,19 +5,15 @@ class ConsejoProvider {
   static String? _consejoDelDiaCache;
   static DateTime? _fechaUltimoConsejo;
 
-  // Función que obtiene el consejo del día, solo una vez al día
   static Future<String> obtenerConsejoDelDia() async {
     final hoy = DateTime.now();
 
-    // Si ya obtuvimos el consejo hoy, lo devolvemos desde el caché
     if (_fechaUltimoConsejo != null &&
         _fechaUltimoConsejo!.day == hoy.day &&
         _fechaUltimoConsejo!.month == hoy.month &&
         _fechaUltimoConsejo!.year == hoy.year) {
       return _consejoDelDiaCache!;
     }
-
-    // Intentamos obtener el consejo desde Firebase
     try {
       var consejoDelDia = await getConsejoDelDia();
       _consejoDelDiaCache = consejoDelDia['consejo'] ?? 'Consejo no disponible';
@@ -28,12 +24,10 @@ class ConsejoProvider {
     }
   }
 
-  // Función para mostrar el diálogo del consejo
   static Future<void> mostrarConsejoDialog(BuildContext context) async {
     await _mostrarDialogConConsejo(context, null);
   }
 
-  // Función para mostrar el diálogo con manejo de errores y reintentar
   static Future<void> _mostrarDialogConConsejo(
       BuildContext context, String? error) async {
     try {
@@ -57,7 +51,6 @@ class ConsejoProvider {
       );
     } catch (e) {
       if (!context.mounted) return;
-      // Si hay un error, mostramos un diálogo con la opción de reintentar
       showDialog(
         context: context,
         builder: (context) => AlertDialog(

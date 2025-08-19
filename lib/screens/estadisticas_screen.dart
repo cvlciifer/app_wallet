@@ -10,40 +10,72 @@ class EstadisticasScreen extends StatefulWidget {
 }
 
 class _EstadisticasScreenState extends State<EstadisticasScreen> {
-  double chartAngle = 0.0;
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
-  final Map<String, IconData> categoryIcons = {
-    'comida': Icons.lunch_dining,
-    'viajes': Icons.flight_takeoff,
-    'ocio': Icons.movie,
-    'trabajo': Icons.work,
-    'salud': Icons.health_and_safety,
-    'servicios': Icons.design_services,
-  };
+  int _currentBottomNavIndex = 1; // Estadísticas está en el índice 1
 
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
     return '\$${formatter.format(value)}';
   }
 
-  @override
-  Widget build(BuildContext context) {
+  List<Map<String, dynamic>> _getFilteredData() {
     final filteredExpenses = widget.expenses.where((expense) {
       final expenseDate = expense.date;
       return expenseDate.month == selectedMonth && expenseDate.year == selectedYear;
     }).toList();
 
-    final expenseBuckets = Category.values.map((category) {
-      return ExpenseBucket.forCategory(filteredExpenses, category);
+    final walletExpenseBuckets = Category.values.map((category) {
+      return WalletExpenseBucket.forCategory(filteredExpenses, category);
     }).toList();
 
-    final data = expenseBuckets.where((bucket) => bucket.totalExpenses > 0).map((bucket) {
+    return walletExpenseBuckets.where((bucket) => bucket.totalExpenses > 0).map((bucket) {
       return {
         'category': bucket.category.name,
         'amount': bucket.totalExpenses,
       };
     }).toList();
+  }
+
+  void _handleBottomNavTap(int index) {
+    setState(() {
+      _currentBottomNavIndex = index;
+    });
+    
+    switch (index) {
+      case 0: // Home
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (ctx) => const WalletHomePage(),
+          ),
+          (route) => false,
+        );
+        break;
+      case 1: // Estadísticas (ya estamos aquí)
+        break;
+      case 2: // Informes
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (ctx) => InformeMensualScreen(
+              expenses: widget.expenses,
+            ),
+          ),
+        );
+        break;
+      case 3: // MiWallet
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) => const WalletProfilePage(),
+          ),
+        );
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = _getFilteredData();
+    final totalAmount = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
     return Scaffold(
       appBar: const WalletAppBar(
@@ -52,7 +84,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
           size: AwSize.s18,
           color: AwColors.white,
         ),
-        showBackArrow: true,
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         color: Colors.white,
@@ -61,61 +93,27 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Resumen del mes y DropdownButtons fuera de la tarjeta
               const Text(
                 'Resumen del mes:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Dropdown para seleccionar el mes
-                  DropdownButton<int>(
-                    value: selectedMonth,
-                    items: List.generate(12, (index) {
-                      return DropdownMenuItem(
-                        value: index + 1,
-                        child: Text(DateFormat('MMMM').format(DateTime(0, index + 1))),
-                      );
-                    }),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedMonth = value!;
-                      });
-                    },
-                  ),
-                  // Dropdown para seleccionar el año
-                  DropdownButton<int>(
-                    value: selectedYear,
-                    items: List.generate(5, (index) {
-                      int year = DateTime.now().year - index;
-                      return DropdownMenuItem(
-                        value: year,
-                        child: Text('$year'),
-                      );
-                    }),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedYear = value!;
-                      });
-                    },
-                  ),
-                  // Muestra el total filtrado
-                  Text(
-                    'Total: ${formatNumber(data.fold(0.0, (sum, item) => sum + (item['amount'] as double)))}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                ],
+              WalletMonthYearSelector(
+                selectedMonth: selectedMonth,
+                selectedYear: selectedYear,
+                onMonthChanged: (month) => setState(() => selectedMonth = month),
+                onYearChanged: (year) => setState(() => selectedYear = year),
+                totalAmount: totalAmount,
+                formatNumber: formatNumber,
               ),
               const SizedBox(height: 16.0),
               Card(
                 elevation: 10,
                 margin: const EdgeInsets.symmetric(vertical: 4.0),
-                color: const Color.fromARGB(255, 242, 242, 242), // Cambia el color de fondo de la tarjeta aquí
+                color: const Color.fromARGB(255, 242, 242, 242),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: filteredExpenses.isEmpty
+                  child: data.isEmpty
                       ? const Center(
                           child: Text(
                             'No hubo gastos registrados durante este mes.',
@@ -130,29 +128,9 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 16.0),
-                            GestureDetector(
-                              onPanUpdate: (details) {
-                                setState(() {
-                                  chartAngle += details.delta.dx * 0.01;
-                                });
-                              },
-                              child: Transform.rotate(
-                                angle: chartAngle,
-                                child: SizedBox(
-                                  height: 300,
-                                  child: PieChart(
-                                    PieChartData(
-                                      sections: _getPieChartSections(data),
-                                      borderData: FlBorderData(show: false),
-                                      sectionsSpace: 0,
-                                      centerSpaceRadius: 40,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            WalletPieChart(data: data),
                             const SizedBox(height: 16.0),
-                            ..._getCategoryTexts(data),
+                            WalletCategoryList(data: data, formatNumber: formatNumber),
                           ],
                         ),
                 ),
@@ -161,72 +139,19 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: WalletBottomAppBar(
+        currentIndex: _currentBottomNavIndex,
+        onTap: _handleBottomNavTap,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Acción para agregar nuevo gasto
+          Navigator.of(context).pushNamed('/add-expense');
+        },
+        backgroundColor: AwColors.appBarColor,
+        child: const Icon(Icons.add, color: AwColors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
-  }
-
-  List<PieChartSectionData> _getPieChartSections(List<Map<String, dynamic>> data) {
-    final total = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
-
-    return data.map((item) {
-      final category = item['category'] as String;
-      final amount = item['amount'] as double;
-      final percentage = (amount / total) * 100;
-
-      return PieChartSectionData(
-        color: _getCategoryColor(category),
-        value: percentage,
-        title: '${percentage.toStringAsFixed(1)}%',
-        radius: 100,
-        titleStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      );
-    }).toList();
-  }
-
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'comida':
-        return Colors.blue;
-      case 'viajes':
-        return Colors.red;
-      case 'ocio':
-        return Colors.green;
-      case 'trabajo':
-        return Colors.orange;
-      case 'salud':
-        return Colors.purple;
-      case 'servicios':
-        return Colors.amber;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  List<Widget> _getCategoryTexts(List<Map<String, dynamic>> data) {
-    return data.map((item) {
-      final category = item['category'] as String;
-      final amount = item['amount'] as double;
-
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Row(
-          children: [
-            Icon(
-              categoryIcons[category],
-              size: 20,
-              color: _getCategoryColor(category),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '$category: ${formatNumber(amount)}',
-              style: const TextStyle(fontSize: 16),
-            ),
-          ],
-        ),
-      );
-    }).toList();
   }
 }
