@@ -1,4 +1,5 @@
 import 'package:app_wallet/library/main_library.dart';
+import 'package:provider/provider.dart';
 
 class LogOutDialog extends StatelessWidget {
   const LogOutDialog({super.key});
@@ -37,16 +38,19 @@ class LogOutDialog extends StatelessWidget {
           child: const Text('Cancelar'),
         ),
         ElevatedButton(
-          onPressed: () {
-            // Aquí podrías agregar cualquier acción para limpiar los datos de sesión si es necesario
-            // Por ejemplo, limpiar el token o las preferencias del usuario.
+          onPressed: () async {
+            // Usar el LoginProvider para cerrar sesión correctamente
+            final loginProvider = Provider.of<LoginProvider>(context, listen: false);
+            await loginProvider.signOut();
 
             // Redirigir al usuario a la pantalla de inicio de sesión
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => LoginScreen()),
-              (Route<dynamic> route) =>
-                  false, // Elimina todas las rutas anteriores
-            );
+            if (context.mounted) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+                (Route<dynamic> route) =>
+                    false, // Elimina todas las rutas anteriores
+              );
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AwColors.red, // Color de fondo del botón

@@ -20,6 +20,7 @@ export 'package:app_wallet/screens/wallet_home_page.dart';
 export 'package:app_wallet/screens/new_expense_screen.dart';
 export 'package:app_wallet/screens/log_in.dart';
 export 'package:app_wallet/screens/inicio.dart';
+export 'package:app_wallet/screens/auth_wrapper.dart';
 export 'package:app_wallet/screens/estadisticas_screen.dart';
 export 'package:app_wallet/screens/forgot_passoword.dart';
 export 'package:app_wallet/components/widgets/card_expense.dart';
