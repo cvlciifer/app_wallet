@@ -1,10 +1,12 @@
 import 'dart:developer';
 import 'package:app_wallet/library/main_library.dart';
+import 'package:app_wallet/services_bd/auth_service.dart';
 
 class LoginProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final AuthService _authService = AuthService();
 
   Future<void> loginUser({
     required String email,
@@ -23,6 +25,8 @@ class LoginProvider extends ChangeNotifier {
       final User? user = userCredential.user;
       if (user != null) {
         if (user.emailVerified) {
+          // Guardar estado de login
+          await _authService.saveLoginState(emailLower);
           onSuccess(); 
         } else {
           await _auth.signOut();
@@ -78,6 +82,8 @@ class LoginProvider extends ChangeNotifier {
         if (userCredential.additionalUserInfo?.isNewUser == true) {
           await _createUserProfile(user);
         }
+        // Guardar estado de login para Google
+        await _authService.saveLoginState(user.email ?? '');
         onSuccess();
       } else {
         onError('Error al obtener el usuario después del inicio de sesión con Google.');
@@ -115,6 +121,8 @@ class LoginProvider extends ChangeNotifier {
     try {
       await _googleSignIn.signOut();
       await _auth.signOut();
+      // Limpiar estado de login
+      await _authService.clearLoginState();
     } catch (e) {
       log('Error al cerrar sesión: $e');
     }

@@ -59,7 +59,7 @@ void main() async {
         ),
         themeMode:
             ThemeMode.light, 
-        home: const WelcomeScreen(), // Cambiar a LoginScreen
+        home: const AuthWrapper(), 
         routes: {
           '/home-page': (ctx) => const WalletHomePage(),
           '/new-expense': (ctx) => const NewExpenseScreen(),
