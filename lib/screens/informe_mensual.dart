@@ -23,7 +23,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
     setState(() {
       _currentBottomNavIndex = index;
     });
-    
+
     switch (index) {
       case 0: // Home
         Navigator.of(context).pushAndRemoveUntil(
@@ -103,20 +103,18 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   //     return expense.date.month == selectedMonth &&
   //         expense.date.year == selectedYear;
   //   }).toList();
-    
+
   //   return filteredExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
   // }
 
   @override
   Widget build(BuildContext context) {
     final filteredExpenses = widget.expenses.where((expense) {
-      return expense.date.month == selectedMonth &&
-          expense.date.year == selectedYear;
+      return expense.date.month == selectedMonth && expense.date.year == selectedYear;
     }).toList();
 
     // Calcular el total de gastos
-    final double totalExpenses =
-        filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
+    final double totalExpenses = filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
 
     // Agrupar los gastos filtrados por categoría usando ExpenseBucket
     final expenseBuckets = Category.values.map((category) {
@@ -219,26 +217,19 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                       ),
                       title: Text(
                         bucket.category.name,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium!
-                            .copyWith(
+                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                       ),
                       subtitle: Text(
                         'Total: ${formatNumber(bucket.totalExpenses)}',
                         style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                             ),
                       ),
                       trailing: const Icon(Icons.arrow_forward),
                       onTap: () {
-                        final categoryExpenses =
-                            filteredExpenses.where((expense) {
+                        final categoryExpenses = filteredExpenses.where((expense) {
                           return expense.category == bucket.category;
                         }).toList();
                         Navigator.of(context).push(
@@ -262,15 +253,6 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
         currentIndex: _currentBottomNavIndex,
         onTap: _handleBottomNavTap,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Acción para agregar nuevo gasto
-          Navigator.of(context).pushNamed('/add-expense');
-        },
-        backgroundColor: AwColors.appBarColor,
-        child: const Icon(Icons.add, color: AwColors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

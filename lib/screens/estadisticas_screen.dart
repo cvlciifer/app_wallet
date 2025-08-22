@@ -41,7 +41,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
     setState(() {
       _currentBottomNavIndex = index;
     });
-    
+
     switch (index) {
       case 0: // Home
         Navigator.of(context).pushAndRemoveUntil(
@@ -143,15 +143,6 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         currentIndex: _currentBottomNavIndex,
         onTap: _handleBottomNavTap,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Acción para agregar nuevo gasto
-          Navigator.of(context).pushNamed('/add-expense');
-        },
-        backgroundColor: AwColors.appBarColor,
-        child: const Icon(Icons.add, color: AwColors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
