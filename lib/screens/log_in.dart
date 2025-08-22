@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ADMIN WALLET',
       theme: ThemeData(
-        primarySwatch: Colors.indigo, 
+        primarySwatch: Colors.indigo,
       ),
       home: ChangeNotifierProvider(
         create: (context) => LoginProvider(),
@@ -49,24 +49,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AwSpacing.xl,
-                   Padding(
-                    padding:const  EdgeInsets.only(top: 24.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 24.0),
                     child: Center(
                       child: Container(
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: Offset(0, 4),
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        ],
-                      ),
-                      child:const  AwText.bold(
-                        'ADMIN WALLET',
-                        size: AwSize.s30,
-                        color: AwColors.appBarColor,
-                      ),
+                        child: const AwText.bold(
+                          'ADMIN WALLET',
+                          size: AwSize.s30,
+                          color: AwColors.appBarColor,
+                        ),
                       ),
                     ),
                   ),
@@ -82,8 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: const InputDecoration(
                       fillColor: AwColors.greyLight,
                       labelText: 'Email',
-                      border:  OutlineInputBorder(),
-                      prefixIcon:  Icon(Icons.email),
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.email),
                     ),
                     keyboardType: TextInputType.emailAddress,
                   ),
@@ -98,7 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                         ),
                         onPressed: () {
                           setState(() {
@@ -120,7 +122,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => ForgotPasswordScreen()),
                       );
                     },
                   ),
@@ -132,37 +135,45 @@ class _LoginScreenState extends State<LoginScreen> {
                         setState(() {
                           _errorMessage = null;
                         });
-                        if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+                        if (_emailController.text.trim().isEmpty ||
+                            _passwordController.text.trim().isEmpty) {
                           setState(() {
-                            _errorMessage = 'Por favor, ingresa tu email y contraseña.';
+                            _errorMessage =
+                                'Por favor, ingresa tu email y contraseña.';
                           });
                           return;
                         }
-                        String emailPattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+                        String emailPattern =
+                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
                         RegExp regex = RegExp(emailPattern);
                         if (!regex.hasMatch(_emailController.text.trim())) {
                           setState(() {
-                            _errorMessage = 'Por favor, ingresa un email válido.';
+                            _errorMessage =
+                                'Por favor, ingresa un email válido.';
                           });
                           return;
                         }
                         if (_passwordController.text.trim().length < 6) {
                           setState(() {
-                            _errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
+                            _errorMessage =
+                                'La contraseña debe tener al menos 6 caracteres.';
                           });
                           return;
                         }
 
-                        final loginProvider = Provider.of<LoginProvider>(context, listen: false);
+                        final loginProvider =
+                            Provider.of<LoginProvider>(context, listen: false);
                         await loginProvider.loginUser(
                           email: _emailController.text.trim(),
                           password: _passwordController.text.trim(),
                           onSuccess: () {
-                            Navigator.pushReplacementNamed(context, '/home-page');
+                            Navigator.pushReplacementNamed(
+                                context, '/home-page');
                           },
                           onError: (error) {
                             String translatedError;
-                            if (error == 'The supplied auth credential is incorrect, malformed or has expired.') {
+                            if (error ==
+                                'The supplied auth credential is incorrect, malformed or has expired.') {
                               translatedError =
                                   'Las credenciales de autenticación proporcionadas son incorrectas, están mal formadas o han expirado.';
                             } else {
@@ -186,7 +197,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         _errorMessage = null;
                       });
 
-                      final loginProvider = Provider.of<LoginProvider>(context, listen: false);
+                      final loginProvider =
+                          Provider.of<LoginProvider>(context, listen: false);
 
                       await loginProvider.signInWithGoogle(
                         onSuccess: () {
@@ -210,7 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => RegisterScreen()),
+                            MaterialPageRoute(
+                                builder: (context) => RegisterScreen()),
                           );
                         },
                       ),
