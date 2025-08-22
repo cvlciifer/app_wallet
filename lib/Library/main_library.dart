@@ -62,3 +62,4 @@ export 'package:app_wallet/wallet_controllers/wallet_expenses_controller.dart';
 export 'package:app_wallet/navigation_service/wallet_navigation_service.dart';
 export 'package:app_wallet/components/appbar/wallet_expenses_appbar.dart';
 export 'package:app_wallet/components/filters/wallet_filters_button.dart';
+export 'package:app_wallet/components/widgets/buttons.dart';

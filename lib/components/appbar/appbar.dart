@@ -3,23 +3,23 @@ import 'package:app_wallet/library/main_library.dart';
 class WalletAppBar extends StatefulWidget implements PreferredSizeWidget {
   final bool zoomLogo;
   final dynamic title;
-  final bool? iconToRight;
   final bool? automaticallyImplyLeading;
   final bool? showCloseIcon;
   final bool? showBackArrow;
   final Widget? leading;
   final Color? barColor;
+  final bool centerTitle;
 
   const WalletAppBar({
     super.key,
     this.zoomLogo = false,
     this.title = '',
-    this.iconToRight = false,
     this.automaticallyImplyLeading = true,
     this.showCloseIcon = false,
     this.showBackArrow = false,
     this.leading,
     this.barColor = AwColors.appBarColor,
+    this.centerTitle = false,
   });
 
   @override
@@ -42,12 +42,14 @@ class _WalletAppBarState extends State<WalletAppBar> {
   }
 
   Widget _buildTitle() {
+    final textAlign = widget.centerTitle ? TextAlign.center : TextAlign.left;
+    
     if (widget.title is String) {
-      return AwText.bold(widget.title, textAlign: TextAlign.left);
+      return AwText.bold(widget.title, textAlign: textAlign);
     } else if (widget.title is AwText) {
       return widget.title;
     } else {
-      return AwText.bold(widget.title.toString(), textAlign: TextAlign.left);
+      return AwText.bold(widget.title.toString(), textAlign: textAlign);
     }
   }
 
@@ -68,15 +70,13 @@ class _WalletAppBarState extends State<WalletAppBar> {
           : widget.automaticallyImplyLeading! ? null : const SizedBox.shrink()),
       title: widget.title is Text
           ? widget.title
-          : !widget.iconToRight!
-              ? _shouldShowLogo()
-                  ? Icon(
-                      Icons.account_balance_wallet,
-                      size: widget.zoomLogo ? AwSize.s32 : AwSize.s24,
-                    )
-                  : _buildTitle()
-              : const SizedBox.shrink(),
-      centerTitle: false,
+          : _shouldShowLogo()
+              ? Icon(
+                  Icons.account_balance_wallet,
+                  size: widget.zoomLogo ? AwSize.s32 : AwSize.s24,
+                )
+              : _buildTitle(),
+      centerTitle: widget.centerTitle,
       automaticallyImplyLeading: widget.automaticallyImplyLeading!,
       actions: [
         if (widget.showCloseIcon!)
@@ -86,10 +86,11 @@ class _WalletAppBarState extends State<WalletAppBar> {
               Navigator.pop(context);
             },
           ),
-        Icon(
-          Icons.account_balance_wallet,
-          size: widget.zoomLogo ? AwSize.s32 : AwSize.s24,
-        ),
+        if (widget.zoomLogo)
+          Icon(
+            Icons.account_balance_wallet,
+            size: widget.zoomLogo ? AwSize.s32 : AwSize.s24,
+          ),
         const SizedBox(width: AwSize.s16),
       ],
     );
