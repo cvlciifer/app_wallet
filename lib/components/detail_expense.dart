@@ -11,17 +11,15 @@ class DetailExpenseDialog {
           size: AwSize.s24,
         ),
         content: AwSpacing.box300(
-          child:
-              DetailExpenseContent(expense: expense), // Usa el widget separado
+          child: DetailExpenseContent(expense: expense),
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
         actions: [
-          AwButton(
-            label: 'Cerrar',
+          WalletButton.textButton(
+            buttonText: 'Cerrar',
             onPressed: () => Navigator.of(ctx).pop(),
-            bold: true,
           ),
         ],
       ),

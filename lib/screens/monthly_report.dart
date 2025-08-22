@@ -3,8 +3,7 @@ import 'package:app_wallet/library/main_library.dart';
 class InformeMensualScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  const InformeMensualScreen({Key? key, required this.expenses})
-      : super(key: key);
+  const InformeMensualScreen({Key? key, required this.expenses}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -12,9 +11,9 @@ class InformeMensualScreen extends StatefulWidget {
 }
 
 class _InformeMensualScreenState extends State<InformeMensualScreen> {
-  int selectedMonth = DateTime.now().month; // Mes seleccionado
-  int selectedYear = DateTime.now().year; // Año seleccionado
-  int _currentBottomNavIndex = 2; // Informes está en el índice 2
+  int selectedMonth = DateTime.now().month;
+  int selectedYear = DateTime.now().year;
+  int _currentBottomNavIndex = 2;
 
   void _handleBottomNavTap(int index) {
     setState(() {
@@ -22,7 +21,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
     });
 
     switch (index) {
-      case 0: // Home
+      case 0:
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (ctx) => const WalletHomePage(),
@@ -30,7 +29,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
           (route) => false,
         );
         break;
-      case 1: // Estadísticas
+      case 1:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (ctx) => EstadisticasScreen(
@@ -39,9 +38,9 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
           ),
         );
         break;
-      case 2: // Informes (ya estamos aquí)
+      case 2:
         break;
-      case 3: // MiWallet
+      case 3:
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (ctx) => const WalletProfilePage(),
@@ -51,69 +50,13 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
     }
   }
 
-  // void _showUserInfo() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Text('Mi Wallet'),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Text('Total de gastos: ${widget.expenses.length}'),
-  //             const SizedBox(height: 8),
-  //             Text('Mes actual: ${_getMonthName(selectedMonth)} $selectedYear'),
-  //             const SizedBox(height: 8),
-  //             Text('Total del mes: ${formatNumber(_getTotalForMonth())}'),
-  //           ],
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.of(context).pop(),
-  //             child: const Text('Cerrar'),
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //               // Navegación a configuración si la tienes
-  //               // Navigator.of(context).pushNamed('/settings');
-  //             },
-  //             child: const Text('Configuración'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
-  // String _getMonthName(int month) {
-  //   const months = [
-  //     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  //     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  //   ];
-  //   return months[month - 1];
-  // }
-
-  // double _getTotalForMonth() {
-  //   final filteredExpenses = widget.expenses.where((expense) {
-  //     return expense.date.month == selectedMonth &&
-  //         expense.date.year == selectedYear;
-  //   }).toList();
-
-  //   return filteredExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
-  // }
-
   @override
   Widget build(BuildContext context) {
     final filteredExpenses = widget.expenses.where((expense) {
       return expense.date.month == selectedMonth && expense.date.year == selectedYear;
     }).toList();
 
-    // Calcular el total de gastos
     final double totalExpenses = filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
-
-    // Agrupar los gastos filtrados por categoría usando ExpenseBucket
     final expenseBuckets = Category.values.map((category) {
       return WalletExpenseBucket.forCategory(filteredExpenses, category);
     }).toList();
