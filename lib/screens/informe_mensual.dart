@@ -3,9 +3,11 @@ import 'package:app_wallet/library/main_library.dart';
 class InformeMensualScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  InformeMensualScreen({Key? key, required this.expenses}) : super(key: key);
+  const InformeMensualScreen({Key? key, required this.expenses})
+      : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _InformeMensualScreenState createState() => _InformeMensualScreenState();
 }
 
@@ -13,11 +15,6 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedMonth = DateTime.now().month; // Mes seleccionado
   int selectedYear = DateTime.now().year; // Año seleccionado
   int _currentBottomNavIndex = 2; // Informes está en el índice 2
-
-  String formatNumber(double value) {
-    final formatter = NumberFormat('#,##0', 'es');
-    return '\$${formatter.format(value)}';
-  }
 
   void _handleBottomNavTap(int index) {
     setState(() {

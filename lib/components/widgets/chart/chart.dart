@@ -5,12 +5,6 @@ class Chart extends StatelessWidget {
 
   final List<Expense> expenses;
 
-  // Formateador para los números con '.' cada tres dígitos
-  String formatNumber(double value) {
-    final formatter = NumberFormat('#,##0', 'es');
-    return '\$${formatter.format(value)}'; // Añade el símbolo $
-  }
-
   List<WalletExpenseBucket> get buckets {
     return [
       WalletExpenseBucket.forCategory(expenses, Category.comida),

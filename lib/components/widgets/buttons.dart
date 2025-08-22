@@ -71,34 +71,34 @@ class WalletButton {
     return Row(
       mainAxisAlignment: alignment ?? MainAxisAlignment.end,
       children: [
-      Container(
-        decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-          color: Colors.grey.withOpacity(0.2),
-          blurRadius: 8,
-          offset: Offset(0, 4),
+        Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-        ),
-        child: Text.rich(
-        TextSpan(
-          style: TextStyle(
-          fontSize: AwSize.s14,
-          fontWeight: FontWeight.bold,
-          color: colorText,
-          decorationColor: colorText,
-          decorationThickness: 1,
+          child: Text.rich(
+            TextSpan(
+              style: TextStyle(
+                fontSize: AwSize.s14,
+                fontWeight: FontWeight.bold,
+                color: colorText,
+                decorationColor: colorText,
+                decorationThickness: 1,
+              ),
+              children: <TextSpan>[
+                TextSpan(
+                  text: buttonText,
+                  recognizer: TapGestureRecognizer()..onTap = onPressed,
+                ),
+              ],
+            ),
           ),
-          children: <TextSpan>[
-          TextSpan(
-            text: buttonText,
-            recognizer: TapGestureRecognizer()..onTap = onPressed,
-          ),
-          ],
         ),
-        ),
-      ),
       ],
     );
   }
@@ -108,18 +108,20 @@ class WalletButton {
     required Function() onPressed,
     double? height = AwSize.s48,
     IconData? icon,
+    Color backgroundColor = AwColors.blueGrey,
     Color iconColor = AwColors.white,
     double iconSize = 24.0,
     double fontSize = AwSize.s14,
     FontWeight fontWeight = FontWeight.bold,
-    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    EdgeInsetsGeometry padding =
+        const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
   }) {
     return SizedBox(
       height: height,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AwColors.blueGrey,
+          backgroundColor: backgroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               AwSize.s16,
