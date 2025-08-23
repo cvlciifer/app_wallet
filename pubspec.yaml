@@ -48,6 +48,8 @@ dependencies:
   google_sign_in: ^6.1.5
   shared_preferences: ^2.2.2 
 
+  sqflite: ^2.3.3
+
   
 dev_dependencies:
   flutter_test:
