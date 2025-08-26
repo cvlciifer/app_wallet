@@ -121,6 +121,37 @@ class DBHelper {
     return rows.first;
   }
 
+  // Obtener usuario por email
+  Future<Map<String, dynamic>?> getUsuarioPorEmail(String email) async {
+    final db = await database;
+    final rows = await db.query(
+      'usuarios',
+      where: 'correo = ?',
+      whereArgs: [email.toLowerCase()],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return rows.first;
+  }
+
+  // Verificar si un usuario existe por UID
+  Future<bool> existeUsuarioPorUid(String uid) async {
+    final usuario = await getUsuarioPorUid(uid);
+    return usuario != null;
+  }
+
+  // Verificar si un usuario existe por email
+  Future<bool> existeUsuarioPorEmail(String email) async {
+    final usuario = await getUsuarioPorEmail(email);
+    return usuario != null;
+  }
+
+  // Obtener todos los usuarios (para debug)
+  Future<List<Map<String, dynamic>>> getTodosLosUsuarios() async {
+    final db = await database;
+    return await db.query('usuarios', orderBy: 'correo');
+  }
+
 
   /// Cierra la base de datos
   Future close() async {

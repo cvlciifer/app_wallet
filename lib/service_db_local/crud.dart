@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:app_wallet/service_db_local/create_db.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app_wallet/library/main_library.dart';
@@ -22,7 +24,7 @@ String _categoryToString(dynamic category) => category.toString().split('.').las
 Future<List<Map<String, dynamic>>> getGastosLocal() async {
   final email = getUserEmail();
   if (email == null) {
-    print('Error: No se encontró el usuario autenticado');
+    log('Error: No se encontró el usuario autenticado');
     return [];
   }
   final db = await _db();
@@ -56,7 +58,7 @@ Future<void> createExpenseLocal(Expense expense) async {
 Future<void> _insertExpense(Expense expense) async {
   final email = getUserEmail();
   if (email == null) {
-    print('Error: No se encontró el usuario autenticado');
+    log('Error: No se encontró el usuario autenticado');
     return;
   }
   final db = await _db();
@@ -78,7 +80,7 @@ Future<void> _insertExpense(Expense expense) async {
 Future<void> deleteExpenseLocal(Expense expense) async {
   final email = getUserEmail();
   if (email == null) {
-    print('Error: No se encontró el usuario autenticado');
+    log('Error: No se encontró el usuario autenticado');
     return;
   }
   final db = await _db();
@@ -98,14 +100,14 @@ Future<void> deleteExpenseLocal(Expense expense) async {
   );
 
   if (rows.isEmpty) {
-    print('No se encontró ningún gasto para eliminar.');
+    log('No se encontró ningún gasto para eliminar.');
     return;
   }
 
   for (final r in rows) {
     final id = r['uid_gasto'] as int;
     await db.delete('gastos', where: 'uid_gasto = ?', whereArgs: [id]);
-    print('Gasto eliminado: $id');
+    log('Gasto eliminado: $id');
   }
 }
 

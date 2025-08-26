@@ -15,15 +15,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 🔍 DEBUG: Imprimir la ubicación de la base de datos
+  // DEBUG: Imprimir la ubicación de la base de datos
   try {
     final databasesPath = await getDatabasesPath();
     final dbPath = join(databasesPath, 'adminwallet.db');
-    log('🔍 UBICACIÓN DE LA BASE DE DATOS:');
-    log('📍 $dbPath');
-    log('🔍 UBICACIÓN DE LA BASE DE DATOS: $dbPath');
+    log('UBICACIÓN DE LA BASE DE DATOS: $dbPath');
   } catch (e) {
-    log('❌ Error obteniendo ruta de BD: $e');
     log('❌ Error obteniendo ruta de BD: $e');
   }
 

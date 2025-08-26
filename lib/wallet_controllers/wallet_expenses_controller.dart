@@ -44,8 +44,7 @@ class WalletExpensesController extends ChangeNotifier {
           );
         }
       } catch (e) {
-        print('Error al procesar gasto: $e');
-        log('Error: $e');
+        log('Error al procesar gasto: $e');
       }
     }
     _filteredExpenses = List.from(_allExpenses);
@@ -80,7 +79,7 @@ class WalletExpensesController extends ChangeNotifier {
     final expenseIndex = _filteredExpenses.indexOf(expense);
 
     if (expenseIndex == -1) {
-      print('Error: El gasto no se encontró en _filteredExpenses');
+      log('Error: El gasto no se encontró en _filteredExpenses');
       return;
     }
 

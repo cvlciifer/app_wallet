@@ -38,8 +38,22 @@ class LoginProvider extends ChangeNotifier {
           try {
             // Fuerza inicialización/creación de la BD
             await DBHelper.instance.database;
-            // Guarda el uid + correo en la tabla usuarios (upsert)
-            await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+            
+            // Verificar si el usuario ya existe en la BD local
+            final existingUser = await DBHelper.instance.getUsuarioPorUid(user.uid);
+            
+            if (existingUser != null) {
+              log('Usuario encontrado en BD local: ${existingUser['correo']}');
+              // El usuario ya existe, verificar si el email cambió
+              if (existingUser['correo'] != emailLower) {
+                log('Email actualizado de ${existingUser['correo']} a $emailLower');
+                await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+              }
+            } else {
+              log('Usuario nuevo, guardando en BD local: $emailLower');
+              // Usuario nuevo, guardarlo
+              await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+            }
           } catch (dbErr) {
             log('Error creando/verificando DB local: $dbErr');
             // opcional: enviar onError si quieres detener el login por errores locales
@@ -109,7 +123,21 @@ class LoginProvider extends ChangeNotifier {
         // Asegurar DB local y upsert usuario
         try {
           await DBHelper.instance.database;
-          await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+          
+          // Verificar si el usuario ya existe en la BD local
+          final existingUser = await DBHelper.instance.getUsuarioPorUid(user.uid);
+          
+          if (existingUser != null) {
+            log('Usuario Google encontrado en BD local: ${existingUser['correo']}');
+            // Verificar si el email cambió
+            if (existingUser['correo'] != emailLower) {
+              log('Email Google actualizado de ${existingUser['correo']} a $emailLower');
+              await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+            }
+          } else {
+            log('Usuario Google nuevo, guardando en BD local: $emailLower');
+            await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+          }
         } catch (dbErr) {
           log('Error creando/verificando DB local (Google): $dbErr');
         }

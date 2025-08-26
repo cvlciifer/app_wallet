@@ -9,8 +9,7 @@ class DBDebugHelper {
   static Future<void> printDatabasePath() async {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'adminwallet.db');
-    log('📍 Ubicación de la BD: $path');
-    print('📍 Ubicación de la BD: $path');
+    log('Ubicación de la BD: $path');
   }
 
   /// Muestra todos los usuarios en la base de datos
@@ -18,19 +17,15 @@ class DBDebugHelper {
     try {
       final db = await DBHelper.instance.database;
       final users = await db.query('usuarios');
-      log('👥 Usuarios en la BD:');
-      print('👥 Usuarios en la BD:');
+      log('Usuarios en la BD:');
       for (var user in users) {
         log('   - UID: ${user['uid']}, Email: ${user['correo']}');
-        print('   - UID: ${user['uid']}, Email: ${user['correo']}');
       }
       if (users.isEmpty) {
-        log('   ⚠️ No hay usuarios registrados');
-        print('   ⚠️ No hay usuarios registrados');
+        log('No hay usuarios registrados');
       }
     } catch (e) {
-      log('❌ Error al consultar usuarios: $e');
-      print('❌ Error al consultar usuarios: $e');
+      log('Error al consultar usuarios: $e');
     }
   }
 
@@ -39,34 +34,26 @@ class DBDebugHelper {
     try {
       final db = await DBHelper.instance.database;
       final expenses = await db.query('gastos', orderBy: 'fecha DESC');
-      log('💰 Gastos en la BD:');
-      print('💰 Gastos en la BD:');
+      log('Gastos en la BD:');
       for (var expense in expenses) {
         final fecha = DateTime.fromMillisecondsSinceEpoch(expense['fecha'] as int);
-        log('   - ID: ${expense['uid_gasto']}, Usuario: ${expense['uid_correo']}, Nombre: ${expense['nombre']}, Cantidad: ${expense['cantidad']}, Categoría: ${expense['categoria']}, Fecha: $fecha');
-        print('   - ID: ${expense['uid_gasto']}, Usuario: ${expense['uid_correo']}, Nombre: ${expense['nombre']}, Cantidad: ${expense['cantidad']}, Categoría: ${expense['categoria']}, Fecha: $fecha');
+        log('${expense['uid_gasto']}, Usuario: ${expense['uid_correo']}, Nombre: ${expense['nombre']}, Cantidad: ${expense['cantidad']}, Categoría: ${expense['categoria']}, Fecha: $fecha');
       }
       if (expenses.isEmpty) {
-        log('   ⚠️ No hay gastos registrados');
-        print('   ⚠️ No hay gastos registrados');
+        log('No hay gastos registrados');
       }
     } catch (e) {
-      log('❌ Error al consultar gastos: $e');
-      print('❌ Error al consultar gastos: $e');
+      log('Error al consultar gastos: $e');
     }
   }
 
   /// Función completa de debug - muestra todo
   static Future<void> debugDatabase() async {
-    log('🔍 === DEBUG DE BASE DE DATOS ===');
-    print('🔍 === DEBUG DE BASE DE DATOS ===');
-    
+    log('=== DEBUG DE BASE DE DATOS ===');
     await printDatabasePath();
     await showAllUsers();
     await showAllExpenses();
-    
-    log('🔍 === FIN DEBUG ===');
-    print('🔍 === FIN DEBUG ===');
+    log('=== FIN DEBUG ===');
   }
 
   /// Cuenta los registros en cada tabla
@@ -78,18 +65,12 @@ class DBDebugHelper {
       final expenseCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM gastos')) ?? 0;
       final pendingCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM pending_ops')) ?? 0;
       
-      log('📊 Conteo de registros:');
+      log('Conteo de registros:');
       log('   - Usuarios: $userCount');
       log('   - Gastos: $expenseCount');
       log('   - Operaciones pendientes: $pendingCount');
-      
-      print('📊 Conteo de registros:');
-      print('   - Usuarios: $userCount');
-      print('   - Gastos: $expenseCount');
-      print('   - Operaciones pendientes: $pendingCount');
     } catch (e) {
-      log('❌ Error al contar registros: $e');
-      print('❌ Error al contar registros: $e');
+      log('Error al contar registros: $e');
     }
   }
 }
