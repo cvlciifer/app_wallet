@@ -10,23 +10,35 @@ class ExpensesList extends StatelessWidget {
   final List<Expense> expenses;
   final void Function(Expense expense) onRemoveExpense;
 
+// transformar esto a un componente independiente y que se pueda llamar el dialog y sea customizable desde la llamada
   void _showDeleteConfirmationDialog(BuildContext context, Expense expense) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar Gasto'),
-        content: const Text('Estás a punto de borrar un gasto. ¿Estás seguro?'),
+        title: const AwText.bold(
+          'Eliminar Gasto',
+          color: AwColors.red,
+        ),
+        content: const AwText(text: 'Estás a punto de borrar un gasto. ¿Estás seguro?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(), // Cerrar el diálogo
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop(); // Cerrar el diálogo
-              onRemoveExpense(expense); // Eliminar el gasto
-            },
-            child: const Text('Continuar'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              WalletButton.primaryButton(
+                buttonText: 'Cancelar',
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+              const SizedBox(width: 8),
+              WalletButton.primaryButton(
+                buttonText: 'Continuar',
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  onRemoveExpense(expense);
+                  WalletPopup.showNotificationSuccess(context: context, title: 'Gasto eliminado correctamente');
+                },
+                backgroundColor: AwColors.red,
+              ),
+            ],
           ),
         ],
       ),
@@ -34,8 +46,7 @@ class ExpensesList extends StatelessWidget {
   }
 
   void _onExpenseTap(BuildContext context, Expense expense) {
-    DetailExpenseDialog.show(
-        context, expense); // Llama a la clase DetailExpenseDialog
+    DetailExpenseDialog.show(context, expense);
   }
 
   @override
@@ -68,7 +79,7 @@ class ExpensesList extends StatelessWidget {
           ),
           confirmDismiss: (direction) async {
             _showDeleteConfirmationDialog(context, expenses[index]);
-            return false; // No eliminar hasta que se confirme en el diálogo
+            return false;
           },
           child: InkWell(
             onTap: () => _onExpenseTap(context, expenses[index]),

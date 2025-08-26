@@ -14,7 +14,10 @@ class CurrencyPickerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const AwText(text: 'Seleccionar Moneda'),
+      title: const AwText(
+        text: 'Seleccionar Moneda',
+        color: AwColors.boldBlack,
+      ),
       content: SizedBox(
         width: double.maxFinite,
         child: ListView.builder(
@@ -31,26 +34,20 @@ class CurrencyPickerDialog extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
-                  child: Text(
+                  child: AwText.bold(
                     currency.symbol,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: selectedCurrency == currency ? AwColors.appBarColor : Colors.grey.shade600,
-                    ),
+                    size: AwSize.s18,
+                    color: selectedCurrency == currency ? AwColors.appBarColor : Colors.grey.shade600,
                   ),
                 ),
               ),
-              title: Text(
+              title: AwText.bold(
                 currency.code,
-                style: TextStyle(
-                  fontWeight: selectedCurrency == currency ? FontWeight.bold : FontWeight.normal,
-                  color: selectedCurrency == currency ? AwColors.appBarColor : Colors.black,
-                ),
+                color: selectedCurrency == currency ? AwColors.appBarColor : Colors.black,
               ),
               subtitle: AwText(
                 text: currency.name,
-                color: AwColors.greyLight,
+                color: AwColors.black,
                 size: AwSize.s12,
               ),
               trailing: selectedCurrency == currency ? Icon(Icons.check, color: AwColors.appBarColor) : null,

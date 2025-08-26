@@ -26,12 +26,9 @@ class CategoryPickerDialog extends StatelessWidget {
                 categoryIcons[category],
                 color: selectedCategory == category ? AwColors.appBarColor : Colors.grey,
               ),
-              title: Text(
+              title: AwText.bold(
                 category.name.toUpperCase(),
-                style: TextStyle(
-                  fontWeight: selectedCategory == category ? FontWeight.bold : FontWeight.normal,
-                  color: selectedCategory == category ? AwColors.appBarColor : Colors.black,
-                ),
+                color: selectedCategory == category ? AwColors.appBarColor : Colors.black,
               ),
               trailing: selectedCategory == category ? Icon(Icons.check, color: AwColors.appBarColor) : null,
               onTap: () {

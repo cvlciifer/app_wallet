@@ -25,19 +25,10 @@ class DateSelector extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              selectedDate == null 
-                  ? 'Seleccione fecha' 
-                  : formatter.format(selectedDate!),
-              style: TextStyle(
-                fontSize: 16,
-                color: selectedDate == null 
-                    ? Colors.grey.shade600 
-                    : Colors.black,
-                fontWeight: selectedDate == null 
-                    ? FontWeight.normal 
-                    : FontWeight.w500,
-              ),
+            AwText(
+              text: selectedDate == null ? 'Seleccione fecha' : formatter.format(selectedDate!),
+              size: AwSize.s16,
+              color: selectedDate == null ? Colors.grey.shade600 : Colors.black,
             ),
             const Icon(
               Icons.calendar_month,

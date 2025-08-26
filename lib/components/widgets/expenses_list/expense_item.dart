@@ -1,6 +1,5 @@
 import 'package:app_wallet/library/main_library.dart';
 
-
 class ExpenseItem extends StatelessWidget {
   const ExpenseItem(this.expense, {super.key});
 
@@ -23,24 +22,23 @@ class ExpenseItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            AwText.bold(
               expense.title,
-              style: Theme.of(context).textTheme.titleLarge,
+              color: AwColors.boldBlack,
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                // Utiliza el formateador para mostrar el número formateado
-                Text(
-                  '\$${formatNumber(expense.amount)}',
-                  style: const TextStyle(fontSize: 16),
+                AwText(
+                  text: '\$${formatNumber(expense.amount)}',
+                  size: AwSize.s16,
                 ),
                 const Spacer(),
                 Row(
                   children: [
                     Icon(categoryIcons[expense.category]),
                     const SizedBox(width: 8),
-                    Text(expense.formattedDate),
+                    AwText.bold(expense.formattedDate),
                   ],
                 ),
               ],

@@ -27,13 +27,10 @@ class CurrencySelector extends StatelessWidget {
           child: Stack(
             children: [
               Center(
-                child: Text(
+                child: AwText.bold(
                   selectedCurrency.code,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black54,
-                    fontSize: 14,
-                  ),
+                  color: AwColors.black,
+                  size: AwSize.s14,
                 ),
               ),
               Positioned(
