@@ -74,3 +74,4 @@ export 'package:app_wallet/components/widgets/expense_form/currency_selector.dar
 export 'package:app_wallet/components/widgets/expense_form/currency_picker_dialog.dart';
 export 'package:app_wallet/components/widgets/expense_form/custom_text_field.dart';
 export 'package:app_wallet/components/widgets/expense_form/date_selector.dart';
+export 'package:app_wallet/service_db_local/create_db.dart';

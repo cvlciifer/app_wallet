@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:app_wallet/service_db_local/create_db.dart';
+import 'package:sqflite/sqflite.dart';
 
 
 class LoginProvider extends ChangeNotifier {
@@ -74,6 +75,8 @@ class LoginProvider extends ChangeNotifier {
   }) async {
     try {
       await _googleSignIn.signOut();
+      final dbPath = await getDatabasesPath();
+      log('Ruta de la base de datos: $dbPath/adminwallet.db');
       
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       
