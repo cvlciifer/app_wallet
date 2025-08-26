@@ -6,13 +6,15 @@ class WalletButton {
     required String buttonText,
     required Function() onPressed,
     double? height = AwSize.s48,
+    Color? backgroundColor = AwColors.appBarColor,
+    Color? buttonTextColor = AwColors.white,
   }) {
     return SizedBox(
       height: height,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AwColors.appBarColor,
+          backgroundColor: backgroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               AwSize.s16,
@@ -22,7 +24,7 @@ class WalletButton {
         child: Center(
           child: AwText.bold(
             buttonText,
-            color: AwColors.white,
+            color: buttonTextColor,
             size: AwSize.s14,
           ),
         ),

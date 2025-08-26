@@ -33,7 +33,7 @@ class CustomTextField extends StatelessWidget {
         inputFormatters: inputFormatters,
         onChanged: onChanged,
         decoration: InputDecoration(
-          label: Text(label),
+          label: AwText(text: label, color: AwColors.black,),
           prefixText: prefixText,
           counterText: hideCounter ? '' : null,
           border: OutlineInputBorder(

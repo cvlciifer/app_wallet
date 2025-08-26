@@ -6,7 +6,7 @@ class WalletHomeAppbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const AwText(text: 'Admin Wallet'),
+      title: const AwText.bold('Admin Wallet', color: AwColors.white,),
       actions: [
         IconButton(
           icon: const Icon(Icons.question_answer),

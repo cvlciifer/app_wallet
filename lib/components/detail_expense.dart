@@ -17,7 +17,7 @@ class DetailExpenseDialog {
           borderRadius: BorderRadius.circular(15),
         ),
         actions: [
-          WalletButton.textButton(
+          WalletButton.primaryButton(
             buttonText: 'Cerrar',
             onPressed: () => Navigator.of(ctx).pop(),
           ),

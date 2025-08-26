@@ -35,7 +35,7 @@ class ConsejoProvider {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const AwText(text: 'Tu consejo diario'),
+          title: const AwText.bold('Tu consejo diario', color: AwColors.boldBlack,),
           content: AwText(text: consejo),
           actions: <Widget>[
             WalletButton.primaryButton(

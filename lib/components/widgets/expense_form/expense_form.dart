@@ -1,12 +1,5 @@
 import 'package:app_wallet/library/main_library.dart';
 import 'package:app_wallet/models/currency.dart' as currency_model;
-import 'package:app_wallet/components/widgets/expense_form/category_selector.dart';
-import 'package:app_wallet/components/widgets/expense_form/category_picker_dialog.dart';
-import 'package:app_wallet/components/widgets/expense_form/currency_selector.dart';
-import 'package:app_wallet/components/widgets/expense_form/currency_picker_dialog.dart';
-import 'package:app_wallet/components/widgets/expense_form/custom_text_field.dart';
-import 'package:app_wallet/components/widgets/expense_form/date_selector.dart';
-import 'package:app_wallet/utils/number_format_helper.dart';
 
 class ExpenseForm extends StatefulWidget {
   final Function(Expense) onSubmit;
@@ -108,22 +101,25 @@ class _ExpenseFormState extends State<ExpenseForm> {
   void _showValidationDialog() {
     final dialogContent = Platform.isIOS
         ? CupertinoAlertDialog(
-            title: const Text('Entrada no válida'),
-            content: const Text('Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
+            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
+            content: const AwText(text: 'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
             actions: [
-              TextButton(
+              WalletButton.primaryButton(
+                buttonText: 'Cerrar.',
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Ok'),
               ),
             ],
           )
         : AlertDialog(
-            title: const Text('Entrada no válida'),
-            content: const Text('Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
+            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
+            content: const AwText(
+              text: 'Asegúrese de ingresar un título, monto, fecha y categoría válidos.',
+              color: AwColors.black,
+            ),
             actions: [
-              TextButton(
+              WalletButton.primaryButton(
+                buttonText: 'Cerrar.',
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Ok'),
               ),
             ],
           );
