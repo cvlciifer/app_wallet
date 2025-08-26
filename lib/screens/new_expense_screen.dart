@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:app_wallet/library/main_library.dart';
 import 'package:app_wallet/components/widgets/expense_form/expense_form.dart';
+import 'package:app_wallet/service_db_local/local_crud.dart';
 
 class NewExpenseScreen extends StatefulWidget {
   const NewExpenseScreen({super.key});
@@ -11,31 +14,14 @@ class NewExpenseScreen extends StatefulWidget {
 }
 
 class _NewExpenseScreenState extends State<NewExpenseScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  String? userEmail;
-
   @override
   void initState() {
     super.initState();
-    userEmail = _auth.currentUser?.email;
-  }
-
-  Future<void> createExpense(Expense expense) async {
-    if (userEmail != null) {
-      await db.collection('usuarios').doc('Gastos').collection(userEmail!).add({
-        'name': expense.title,
-        'fecha': Timestamp.fromDate(expense.date),
-        'cantidad': expense.amount,
-        'tipo': expense.category.toString().split('.').last,
-      });
-    } else {
-      print('Error: El email del usuario no está disponible.');
-    }
   }
 
   void _handleExpenseSubmit(Expense expense) async {
     try {
-      await createExpense(expense);
+      await createExpenseLocal(expense);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -55,8 +41,11 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
             content: Text('Error al agregar gasto: $error'),
             backgroundColor: AwColors.red,
           ),
+          
         );
+        
       }
+      log('Error al agregar gasto: $error');
     }
   }
 
