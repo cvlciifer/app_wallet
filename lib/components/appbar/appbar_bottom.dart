@@ -15,7 +15,7 @@ class WalletBottomAppBar extends StatelessWidget {
     return BottomAppBar(
       elevation: 8.0,
       shape: const CircularNotchedRectangle(),
-      child:  SizedBox(
+      child: SizedBox(
         height: 70.0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -30,7 +30,7 @@ class WalletBottomAppBar extends StatelessWidget {
               label: 'Estadísticas',
               index: 1,
             ),
-            const SizedBox(width: 48), 
+            const SizedBox(width: 48),
             _buildBottomAppBarItem(
               icon: Icons.assessment,
               label: 'Informes',
@@ -53,27 +53,24 @@ class WalletBottomAppBar extends StatelessWidget {
     required int index,
   }) {
     final bool isSelected = currentIndex == index;
-    
+
     return InkWell(
       onTap: () => onTap(index),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6.0), 
+        padding: const EdgeInsets.symmetric(vertical: 6.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               color: isSelected ? AwColors.appBarColor : AwColors.modalGrey,
-              size: AwSize.s22, 
+              size: AwSize.s22,
             ),
-            const SizedBox(height: 2.0), 
-            Text(
+            const SizedBox(height: 2.0),
+            AwText.bold(
               label,
-              style: TextStyle(
-                fontSize: AwSize.s10, 
-                color: isSelected ? AwColors.appBarColor : AwColors.modalGrey,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
+              size: AwSize.s10,
+              color: isSelected ? AwColors.appBarColor : AwColors.modalGrey,
             ),
           ],
         ),

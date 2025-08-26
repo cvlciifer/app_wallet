@@ -12,9 +12,11 @@ class DetailExpenseContent extends StatelessWidget {
         children: [
           AwText.bold(title, size: AwSize.s16),
           Flexible(
-            child: Text(value,
-                textAlign: TextAlign.end, style: const TextStyle(fontSize: 16)),
-          ),
+              child: AwText(
+            text: value,
+            size: AwSize.s16,
+            textAlign: TextAlign.end,
+          )),
         ],
       ),
     );

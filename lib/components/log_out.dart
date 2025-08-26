@@ -7,9 +7,8 @@ class LogOutDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text(
+      title: const AwText.bold(
         'Vas a cerrar sesión',
-        style: TextStyle(fontWeight: FontWeight.bold),
       ),
       content: const Row(
         children: [
@@ -20,9 +19,10 @@ class LogOutDialog extends StatelessWidget {
           ),
           AwSpacing.s10,
           Expanded(
-            child: Text(
-              '¿Estás seguro?',
-              style: TextStyle(fontSize: AwSize.s16, color: AwColors.black),
+            child: AwText(
+              text: '¿Estás seguro?',
+              color: AwColors.black,
+              size: AwSize.s16,
             ),
           ),
         ],
@@ -31,15 +31,15 @@ class LogOutDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(15.0), // Bordes redondeados
       ),
       actions: [
-        TextButton(
+        WalletButton.textButton(
+          buttonText: 'Cancelar',
           onPressed: () {
             Navigator.of(context).pop(); // Cerrar el diálogo
           },
-          child: const Text('Cancelar'),
         ),
+        // hacer componente ElevatedButton
         ElevatedButton(
           onPressed: () async {
-            // Usar el LoginProvider para cerrar sesión correctamente
             final loginProvider = Provider.of<LoginProvider>(context, listen: false);
             await loginProvider.signOut();
 
@@ -47,8 +47,7 @@ class LogOutDialog extends StatelessWidget {
             if (context.mounted) {
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => LoginScreen()),
-                (Route<dynamic> route) =>
-                    false, // Elimina todas las rutas anteriores
+                (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
               );
             }
           },
@@ -56,7 +55,7 @@ class LogOutDialog extends StatelessWidget {
             backgroundColor: AwColors.red, // Color de fondo del botón
             foregroundColor: AwColors.white, // Color del texto
           ),
-          child: const Text('Cerrar sesión'),
+          child: const AwText(text: 'Cerrar sesión'),
         ),
       ],
     );

@@ -64,13 +64,10 @@ class Chart extends StatelessWidget {
       child: Column(
         children: [
           // Título del gráfico
-          const Text(
+          const AwText.bold(
             'Categorías v/s Cantidad',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AwColors.darkBlue,
-            ),
+            color: AwColors.darkBlue,
+           size: AwSize.s18,
           ),
           AwSpacing.s10, // Espacio entre el título y el gráfico
           Expanded(
@@ -84,12 +81,9 @@ class Chart extends StatelessWidget {
                     ...List.generate(7, (index) {
                       double value =
                           maxTotalExpense - (index * (maxTotalExpense / 6));
-                      return Text(
+                      return AwText.bold(
                         formatNumber(value),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AwColors.darkBlue,
-                            fontSize: AwSize.s10),
+                        size: AwSize.s10,
                       );
                     }),
                     AwSpacing.s10,
@@ -145,19 +139,15 @@ class Chart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+             const AwText.bold(
                 'Gasto Total Acumulado:',
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AwColors.darkBlue,
-                    ),
+                size: AwSize.s18,
+                color: AwColors.darkBlue,
               ),
-              Text(
+              AwText.bold(
                 formatNumber(totalExpenses),
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AwColors.darkBlue,
-                    ),
+                size: AwSize.s18,
+                color: AwColors.darkBlue,
               ),
             ],
           )

@@ -28,7 +28,7 @@ class WalletMonthYearSelector extends StatelessWidget {
           items: List.generate(12, (index) {
             return DropdownMenuItem(
               value: index + 1,
-              child: Text(DateFormat('MMMM').format(DateTime(0, index + 1))),
+              child: AwText(text: DateFormat('MMMM').format(DateTime(0, index + 1))),
             );
           }),
           onChanged: (value) => onMonthChanged(value!),
@@ -39,14 +39,14 @@ class WalletMonthYearSelector extends StatelessWidget {
             int year = DateTime.now().year - index;
             return DropdownMenuItem(
               value: year,
-              child: Text('$year'),
+              child: AwText(text: '$year'),
             );
           }),
           onChanged: (value) => onYearChanged(value!),
         ),
-        Text(
-          'Total: ${formatNumber(totalAmount)}',
-          style: const TextStyle(fontSize: 18),
+        AwText(
+          text: 'Total: ${formatNumber(totalAmount)}',
+          size: AwSize.s18,
         ),
       ],
     );

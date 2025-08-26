@@ -13,7 +13,7 @@ class CategoryPickerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Seleccionar Categoría'),
+      title: const AwText(text: 'Seleccionar Categoría'),
       content: SizedBox(
         width: double.maxFinite,
         child: ListView.builder(
@@ -24,24 +24,16 @@ class CategoryPickerDialog extends StatelessWidget {
             return ListTile(
               leading: Icon(
                 categoryIcons[category],
-                color: selectedCategory == category 
-                    ? AwColors.appBarColor 
-                    : Colors.grey,
+                color: selectedCategory == category ? AwColors.appBarColor : Colors.grey,
               ),
               title: Text(
                 category.name.toUpperCase(),
                 style: TextStyle(
-                  fontWeight: selectedCategory == category 
-                      ? FontWeight.bold 
-                      : FontWeight.normal,
-                  color: selectedCategory == category 
-                      ? AwColors.appBarColor 
-                      : Colors.black,
+                  fontWeight: selectedCategory == category ? FontWeight.bold : FontWeight.normal,
+                  color: selectedCategory == category ? AwColors.appBarColor : Colors.black,
                 ),
               ),
-              trailing: selectedCategory == category 
-                  ? Icon(Icons.check, color: AwColors.appBarColor)
-                  : null,
+              trailing: selectedCategory == category ? Icon(Icons.check, color: AwColors.appBarColor) : null,
               onTap: () {
                 onCategorySelected(category);
                 Navigator.of(context).pop();

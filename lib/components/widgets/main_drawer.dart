@@ -21,10 +21,7 @@ class MainDrawer extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   Theme.of(context).colorScheme.primaryContainer,
-                  Theme.of(context)
-                      .colorScheme
-                      .primaryContainer
-                      .withOpacity(0.8),
+                  Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -38,11 +35,8 @@ class MainDrawer extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 18),
-                Text(
-                  'ADMIN WALLET',
-                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                const AwText(
+                  text: 'ADMIN WALLET',
                 ),
               ],
             ),
@@ -53,12 +47,9 @@ class MainDrawer extends StatelessWidget {
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
-            title: Text(
-              'Filtros',
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                    fontSize: 24,
-                  ),
+            title: const AwText(
+              text: 'Filtros',
+              size: AwSize.s24,
             ),
             onTap: () {
               onSelectScreen('filtros');
@@ -70,19 +61,15 @@ class MainDrawer extends StatelessWidget {
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
-            title: Text(
-              'Estadisticas',
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                    fontSize: 24,
-                  ),
+            title: const AwText(
+              text: 'Estadisticas',
+              size: AwSize.s24,
             ),
             onTap: () {
               onSelectScreen('estadisticas');
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (ctx) => EstadisticasScreen(
-                      expenses: expenses), // Pasar la lista de gastos
+                  builder: (ctx) => EstadisticasScreen(expenses: expenses), // Pasar la lista de gastos
                 ),
               );
             },
@@ -93,12 +80,9 @@ class MainDrawer extends StatelessWidget {
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
-            title: Text(
-              'Informe Mensual',
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                    fontSize: 24,
-                  ),
+            title: const AwText(
+              text: 'Informe Mensual',
+              size: AwSize.s24,
             ),
             onTap: () {
               onSelectScreen('informe_mensual');
@@ -117,12 +101,9 @@ class MainDrawer extends StatelessWidget {
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
-            title: Text(
-              'Obtener Consejo',
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                    fontSize: 24,
-                  ),
+            title: const AwText(
+              text: 'Obtener Consejo',
+              size: AwSize.s24,
             ),
             onTap: () async {
               Navigator.of(context).pop();
@@ -136,12 +117,9 @@ class MainDrawer extends StatelessWidget {
               size: 26,
               color: Theme.of(context).colorScheme.onBackground,
             ),
-            title: Text(
-              'Cerrar sesión',
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                    fontSize: 24,
-                  ),
+            title: const AwText(
+              text: 'Cerrar sesión',
+              size: AwSize.s24,
             ),
             onTap: () {
               LogOutDialog.showLogOutDialog(context);

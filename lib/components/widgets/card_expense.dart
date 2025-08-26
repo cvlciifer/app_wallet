@@ -22,19 +22,13 @@ class TotalExpensesCard extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            const AwText.bold(
               'Gasto Total Acumulado:',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AwColors.blue,
-                  ),
+              color: AwColors.blue,
             ),
-            Text(
+            AwText.bold(
               '\$${formatNumber(totalExpenses)}',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AwColors.blue,
-                  ),
+              color: AwColors.blue,
             ),
           ],
         ),

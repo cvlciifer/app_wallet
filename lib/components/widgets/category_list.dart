@@ -27,9 +27,9 @@ class WalletCategoryList extends StatelessWidget {
                 color: WalletCategoryHelper.getCategoryColor(category),
               ),
               const SizedBox(width: 8),
-              Text(
-                '$category: ${formatNumber(amount)}',
-                style: const TextStyle(fontSize: 16),
+              AwText(
+                text: '$category: ${formatNumber(amount)}',
+                size: AwSize.s16,
               ),
             ],
           ),

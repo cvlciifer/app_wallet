@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:app_wallet/services_bd/firebase_Service.dart';
+import 'package:app_wallet/Library/main_library.dart';
 
 class ConsejoProvider {
   static String? _consejoDelDiaCache;
@@ -28,8 +27,7 @@ class ConsejoProvider {
     await _mostrarDialogConConsejo(context, null);
   }
 
-  static Future<void> _mostrarDialogConConsejo(
-      BuildContext context, String? error) async {
+  static Future<void> _mostrarDialogConConsejo(BuildContext context, String? error) async {
     try {
       var consejo = await obtenerConsejoDelDia();
       if (!context.mounted) return;
@@ -37,15 +35,14 @@ class ConsejoProvider {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Tu consejo diario'),
-          content: Text(consejo),
+          title: const AwText(text: 'Tu consejo diario'),
+          content: AwText(text: consejo),
           actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cerrar'),
-            ),
+            WalletButton.primaryButton(
+                buttonText: 'Cerrar',
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
           ],
         ),
       );
@@ -54,21 +51,21 @@ class ConsejoProvider {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text(error ?? 'No se pudo obtener el consejo.'),
+          title: const AwText(text: 'Error'),
+          content: AwText(text: error ?? 'No se pudo obtener el consejo.'),
           actions: <Widget>[
-            TextButton(
+            WalletButton.primaryButton(
+              buttonText: 'Cerrar',
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cerrar'),
             ),
-            TextButton(
+            WalletButton.textButton(
+              buttonText: 'Reintentar',
               onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo antes de reintentar
+                Navigator.of(context).pop();
                 _mostrarDialogConConsejo(context, 'Reintentando obtener el consejo...');
               },
-              child: const Text('Reintentar'),
             ),
           ],
         ),

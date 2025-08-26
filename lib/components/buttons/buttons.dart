@@ -49,13 +49,10 @@ class WalletButton {
           ),
         ),
         child: Center(
-          child: Text(
+          child: AwText.bold(
             buttonText,
-            style: const TextStyle(
-              fontSize: AwSize.s14,
-              fontWeight: FontWeight.bold,
-              color: AwColors.blue,
-            ),
+            size: AwSize.s14,
+            color: AwColors.blue,
           ),
         ),
       ),
@@ -113,8 +110,7 @@ class WalletButton {
     double iconSize = 24.0,
     double fontSize = AwSize.s14,
     FontWeight fontWeight = FontWeight.bold,
-    EdgeInsetsGeometry padding =
-        const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
   }) {
     return SizedBox(
       height: height,

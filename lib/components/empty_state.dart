@@ -15,13 +15,11 @@ class EmptyState extends StatelessWidget {
             color: AwColors.grey,
           ),
           AwSpacing.m,
-          Text(
-            'No se encontraron gastos.\n¡Empieza a agregar algunos!',
+          AwText(
+            text: 'No se encontraron gastos.\n¡Empieza a agregar algunos!',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AwSize.s18,
-              color: AwColors.grey,
-            ),
+            size: AwSize.s18,
+            color: AwColors.grey,
           ),
         ],
       ),
