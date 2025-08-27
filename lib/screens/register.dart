@@ -28,7 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           // Imagen de fondo
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage('assets/images/background.png'),
                 fit: BoxFit.cover,
@@ -42,12 +42,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(
+                  // ignore: deprecated_member_use
+                  color: AwColors.white.withOpacity(
                       0.9), // Color de fondo del cuadro con opacidad
                   borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
-                      color: Colors.black26,
+                      color: AwColors.boldBlack,
                       blurRadius: 10,
                       offset: Offset(0, 4),
                     ),
@@ -64,7 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    AwSpacing.s,
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -73,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             fontSize: 16, fontWeight: FontWeight.w400),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    AwSpacing.s20,
                     TextField(
                       controller: _nameController,
                       decoration: const InputDecoration(
@@ -82,7 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         prefixIcon: Icon(Icons.person),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    AwSpacing.s20,
                     TextField(
                       controller: _emailController,
                       decoration: const InputDecoration(
@@ -98,7 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 20),
+                    AwSpacing.s20,
                     TextField(
                       controller: _confirmEmailController,
                       decoration: const InputDecoration(
@@ -119,11 +120,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           'Los correos no coinciden',
-                          style: TextStyle(color: Colors.red),
+                          style: TextStyle(color: AwColors.red),
                           textAlign: TextAlign.left,
                         ),
                       ),
-                    const SizedBox(height: 20),
+                    AwSpacing.s20,
                     TextField(
                       controller: _passwordController,
                       decoration: InputDecoration(
@@ -154,7 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 10),
+                    AwSpacing.s10,
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Wrap(
@@ -169,7 +170,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    AwSpacing.s20,
                     TextField(
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
@@ -203,11 +204,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           'Las contraseñas no coinciden',
-                          style: TextStyle(color: Colors.red),
+                          style: TextStyle(color: AwColors.red),
                           textAlign: TextAlign.left,
                         ),
                       ),
-                    const SizedBox(height: 40),
+                    AwSpacing.s40,
                     ElevatedButton(
                       onPressed: _isPasswordLengthValid &&
                               _isPasswordUppercaseValid &&
@@ -239,13 +240,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           content: Row(
                                             children: [
                                               Icon(Icons.account_balance_wallet,
-                                                  color: Colors.white),
+                                                  color: AwColors.white),
                                               SizedBox(width: 10),
                                               Text(
                                                   '¡Felicitaciones, ya has creado tu propia cuenta!'),
                                             ],
                                           ),
-                                          backgroundColor: Colors.green,
+                                          backgroundColor: AwColors.green,
                                           duration: Duration(seconds: 3),
                                         ),
                                       );
@@ -297,17 +298,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildValidationChip({required String label, required bool isValid}) {
     Color chipColor;
     if (isValid) {
-      chipColor = Colors.green;
+      chipColor = AwColors.green;
     } else if (_passwordController.text.isEmpty) {
-      chipColor = Colors.grey;
+      chipColor = AwColors.grey;
     } else {
-      chipColor = Colors.red;
+      chipColor = AwColors.red;
     }
 
     return Chip(
       label: Text(
         label,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: AwColors.white),
       ),
       backgroundColor: chipColor,
     );

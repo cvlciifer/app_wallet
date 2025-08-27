@@ -12,11 +12,17 @@ class AwSpacing {
   /// Size: 10 px
   static const SizedBox s10 = SizedBox(height: 10);
 
+  /// Size: 20 px
+  static const SizedBox s20 = SizedBox(height: 20);
+
   /// Size: 16 px
   static const SizedBox m = SizedBox(height: 16);
 
   /// Size: 32 px
   static const SizedBox l = SizedBox(height: 32);
+
+  /// Size: 48 px
+  static const SizedBox s40 = SizedBox(height: 40);
 
   /// Size: 64 px
   static const SizedBox xl = SizedBox(height: 64);
