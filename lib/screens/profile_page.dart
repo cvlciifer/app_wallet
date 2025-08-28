@@ -90,7 +90,7 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            const SizedBox(height: AwSize.s16),
+            AwSpacing.m,
             // Icono de usuario grande y centrado
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -111,7 +111,7 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                           color: AwColors.modalPurple,
                           size: AwSize.s20,
                         ),
-                        const SizedBox(height: 6),
+                        AwSpacing.s6,
                         AwText.bold(
                           userEmail ?? 'correo@ejemplo.com',
                           color: AwColors.boldBlack,
@@ -125,7 +125,7 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
             ),
             const Divider(height: 32),
             // Estadísticas y categorías en columna, sin tarjetas
-            const SizedBox(height: 12),
+            AwSpacing.s12,
             Row(
               children: [
                 const Icon(Icons.receipt_long, color: AwColors.blue, size: 32),
@@ -137,10 +137,10 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                     color: AwColors.modalPurple, size: AwSize.s20),
               ],
             ),
-            const SizedBox(height: 18),
+            AwSpacing.s18,
             const AwText.normal('Categorías',
                 color: AwColors.boldBlack, size: AwSize.s16),
-            const SizedBox(height: 8),
+            AwSpacing.s,
             Column(
               children: getCategoriasConTotal(widget.expenses)
                   .map((cat) => Padding(
@@ -160,7 +160,7 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                       ))
                   .toList(),
             ),
-            const SizedBox(height: 18),
+            AwSpacing.s18,
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -184,7 +184,7 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                 );
               },
             ),
-            const SizedBox(height: 20),
+            AwSpacing.s20,
             // Botón de cerrar sesión
             WalletButton.iconButtonText(
               icon: Icons.logout,

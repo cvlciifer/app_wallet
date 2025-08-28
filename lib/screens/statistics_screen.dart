@@ -3,9 +3,11 @@ import 'package:app_wallet/library/main_library.dart';
 class EstadisticasScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  const EstadisticasScreen({Key? key, required this.expenses}) : super(key: key);
+  const EstadisticasScreen({Key? key, required this.expenses})
+      : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _EstadisticasScreenState createState() => _EstadisticasScreenState();
 }
 
@@ -22,14 +24,17 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   List<Map<String, dynamic>> _getFilteredData() {
     final filteredExpenses = widget.expenses.where((expense) {
       final expenseDate = expense.date;
-      return expenseDate.month == selectedMonth && expenseDate.year == selectedYear;
+      return expenseDate.month == selectedMonth &&
+          expenseDate.year == selectedYear;
     }).toList();
 
     final walletExpenseBuckets = Category.values.map((category) {
       return WalletExpenseBucket.forCategory(filteredExpenses, category);
     }).toList();
 
-    return walletExpenseBuckets.where((bucket) => bucket.totalExpenses > 0).map((bucket) {
+    return walletExpenseBuckets
+        .where((bucket) => bucket.totalExpenses > 0)
+        .map((bucket) {
       return {
         'category': bucket.category.name,
         'amount': bucket.totalExpenses,
@@ -75,7 +80,9 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   @override
   Widget build(BuildContext context) {
     final data = _getFilteredData();
-    final totalAmount = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
+    final totalAmount =
+        // ignore: avoid_types_as_parameter_names
+        data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
     return Scaffold(
       appBar: const WalletAppBar(
@@ -93,44 +100,50 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Resumen del mes:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              const AwText.bold(
+                'Resumen del Mes:',
+                size: AwSize.s18,
+                color: AwColors.boldBlack,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 8.0),
+              AwSpacing.s,
               WalletMonthYearSelector(
                 selectedMonth: selectedMonth,
                 selectedYear: selectedYear,
-                onMonthChanged: (month) => setState(() => selectedMonth = month),
+                onMonthChanged: (month) =>
+                    setState(() => selectedMonth = month),
                 onYearChanged: (year) => setState(() => selectedYear = year),
                 totalAmount: totalAmount,
                 formatNumber: formatNumber,
               ),
-              const SizedBox(height: 16.0),
+              AwSpacing.m,
               Card(
                 elevation: 10,
                 margin: const EdgeInsets.symmetric(vertical: 4.0),
-                color: const Color.fromARGB(255, 242, 242, 242),
+                color: AwColors.greyLight,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: data.isEmpty
                       ? const Center(
-                          child: Text(
-                            'No hubo gastos registrados durante este mes.',
-                            style: TextStyle(fontSize: 18, color: Colors.black54),
+                          child: AwText.bold(
+                            'No existen gastos registrados durante este mes.',
+                            size: AwSize.s18,
+                            color: AwColors.black,
                           ),
                         )
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Gráfico porcentual:',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            const AwText.bold(
+                              'Gráfico Porcentual:',
+                              size: AwSize.s18,
+                              color: AwColors.boldBlack,
                             ),
-                            const SizedBox(height: 16.0),
+                            AwSpacing.m,
                             WalletPieChart(data: data),
-                            const SizedBox(height: 16.0),
-                            WalletCategoryList(data: data, formatNumber: formatNumber),
+                            AwSpacing.m,
+                            WalletCategoryList(
+                                data: data, formatNumber: formatNumber),
                           ],
                         ),
                 ),

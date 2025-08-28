@@ -37,7 +37,7 @@ class AwSize {
 
   /// Size: 26 px
   static const s26 = 26.0;
-
+  
   /// Size: 32 px
   static const s32 = 32.0;
 

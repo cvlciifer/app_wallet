@@ -21,14 +21,14 @@ class WelcomeScreen extends StatelessWidget {
               padding: const EdgeInsets.all(
                   20.0), // Espaciado interno del contenedor
               decoration: BoxDecoration(
-                color: Colors.white
+                color: AwColors.white
                     // ignore: deprecated_member_use
                     .withOpacity(0.9), // Fondo blanco con transparencia
                 borderRadius: BorderRadius.circular(20.0), // Bordes redondeados
                 boxShadow: [
                   BoxShadow(
                     // ignore: deprecated_member_use
-                    color: Colors.black.withOpacity(0.2),
+                    color: AwColors.black.withOpacity(0.2),
                     blurRadius: 10.0,
                     offset: const Offset(0, 5),
                   ),
@@ -38,21 +38,21 @@ class WelcomeScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: 30),
+                  AwSpacing.s30,
                   Text(
                     'Bienvenido a AdminWallet',
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: AwSize.s24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 50),
+                  AwSpacing.s50,
                   WalletLoader(),
-                  SizedBox(height: 50),
+                  AwSpacing.s50,
                   Text(
                     'Cargando la App de AdminWallet...',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AwSize.s18,
                     ),
                   ),
                 ],

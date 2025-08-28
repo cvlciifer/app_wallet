@@ -11,6 +11,7 @@ export 'package:font_awesome_flutter/font_awesome_flutter.dart';
 export 'package:intl/intl.dart' hide TextDirection;
 export 'package:uuid/uuid.dart';
 export 'dart:io';
+export 'package:another_flushbar/flushbar.dart';
 
 // Archivos locales del proyecto o rutas
 export 'package:app_wallet/models/expense.dart';

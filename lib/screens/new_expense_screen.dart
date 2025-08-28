@@ -40,7 +40,10 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Gasto agregado exitosamente'),
+            content: AwText.bold(
+              'Gasto agregado exitosamente',
+              color: AwColors.white,
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -52,7 +55,10 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al agregar gasto: $error'),
+            content: AwText.bold(
+              'Error al agregar gasto: $error',
+              color: AwColors.white,
+            ),
             backgroundColor: AwColors.red,
           ),
         );
