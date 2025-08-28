@@ -19,7 +19,8 @@ class ExpensesList extends StatelessWidget {
           'Eliminar Gasto',
           color: AwColors.red,
         ),
-        content: const AwText(text: 'Estás a punto de borrar un gasto. ¿Estás seguro?'),
+        content: const AwText(
+            text: 'Estás a punto de borrar un gasto. ¿Estás seguro?'),
         actions: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -34,7 +35,12 @@ class ExpensesList extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   onRemoveExpense(expense);
-                  WalletPopup.showNotificationSuccess(context: context, title: 'Gasto eliminado correctamente');
+                  Flushbar(
+                    message: 'Gasto eliminado correctamente',
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 2),
+                    flushbarPosition: FlushbarPosition.TOP,
+                  ).show(context);
                 },
                 backgroundColor: AwColors.red,
               ),
@@ -63,7 +69,7 @@ class ExpensesList extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: const Icon(
               Icons.delete,
-              color: Colors.white,
+              color: AwColors.white,
               size: 30,
             ),
           ),
