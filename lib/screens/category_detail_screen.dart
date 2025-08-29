@@ -4,7 +4,9 @@ class CategoryDetailScreen extends StatelessWidget {
   final Category category;
   final List<Expense> expenses;
 
-  CategoryDetailScreen({Key? key, required this.category, required this.expenses}) : super(key: key);
+  const CategoryDetailScreen(
+      {Key? key, required this.category, required this.expenses})
+      : super(key: key);
 
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
@@ -28,17 +30,23 @@ class CategoryDetailScreen extends StatelessWidget {
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
+        // ignore: deprecated_member_use
         color: Theme.of(context).colorScheme.background,
         child: expenses.isEmpty
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.info_outline, size: 50, color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(height: 16),
+                    Icon(Icons.info_outline,
+                        size: AwSize.s50,
+                        color: Theme.of(context).colorScheme.primary),
+                    AwSpacing.m,
                     Text(
                       'No hay gastos asociados a esta categoría durante este mes.',
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium!
+                          .copyWith(fontSize: 18),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -50,24 +58,34 @@ class CategoryDetailScreen extends StatelessWidget {
                   final expense = expenses[index];
                   return Card(
                     elevation: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     color: Theme.of(context).colorScheme.surface,
                     child: ListTile(
                       leading: Icon(
                         categoryIcons[expense.category],
-                        size: 30,
-                        color: Theme.of(context).colorScheme.tertiary, // Color terciario
+                        size: AwSize.s30,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .tertiary, // Color terciario
                       ),
                       title: Text(
                         expense.title,
-                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                       ),
                       subtitle: Text(
                         '${expense.formattedDate}\nMonto: ${formatNumber(expense.amount)}',
                         style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              // ignore: deprecated_member_use
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.6),
                             ),
                       ),
                     ),
