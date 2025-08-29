@@ -21,9 +21,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
     try {
       // Esperar un poco para mostrar el splash
       await Future.delayed(const Duration(seconds: 2));
-      
+
       final isLoggedIn = await _authService.isUserLoggedIn();
-      
+
       if (mounted) {
         if (isLoggedIn) {
           // Usuario ya está logueado, ir al home
@@ -63,10 +63,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
               width: MediaQuery.of(context).size.width * 0.8,
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: Colors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(20.0),
                 boxShadow: [
                   BoxShadow(
+                    // ignore: deprecated_member_use
                     color: Colors.black.withOpacity(0.2),
                     blurRadius: 10.0,
                     offset: const Offset(0, 5),
@@ -77,7 +79,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: 30),
+                  AwSpacing.s30,
                   Text(
                     'Bienvenido a AdminWallet',
                     style: TextStyle(
@@ -85,9 +87,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 50),
+                  AwSpacing.s50,
                   WalletLoader(),
-                  SizedBox(height: 50),
+                  AwSpacing.s50,
                   Text(
                     'Verificando sesión...',
                     style: TextStyle(

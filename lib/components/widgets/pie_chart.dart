@@ -37,8 +37,10 @@ class WalletPieChartState extends State<WalletPieChart> {
     );
   }
 
-  List<PieChartSectionData> _getPieChartSections(List<Map<String, dynamic>> data) {
-    final total = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
+  List<PieChartSectionData> _getPieChartSections(
+      List<Map<String, dynamic>> data) {
+    final total =
+        data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
     return data.map((item) {
       final category = item['category'] as String;
@@ -53,7 +55,7 @@ class WalletPieChartState extends State<WalletPieChart> {
         titleStyle: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: AwColors.white,
         ),
       );
     }).toList();

@@ -6,6 +6,7 @@ class AwColors {
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF595B5A);
   static const Color blue = Color(0xFF006FB9);
+  static const Color indigo = Color(0xFF4B0082);
   static const Color cyan = Color(0xFF00B8D4);
   static const Color lightBlue = Color(0xFF40C4FF);
   static const Color darkBlue = Color(0xFF01579B);
@@ -28,6 +29,7 @@ class AwColors {
 
   static final Map<String, Color> colorMap = {
     'blue': AwColors.blue,
+    'indigo': AwColors.indigo,
     'white': AwColors.white,
     'yellow': AwColors.yellow,
     'lightOrange': AwColors.lightOrange,

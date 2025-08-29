@@ -21,7 +21,10 @@ class MainDrawer extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   Theme.of(context).colorScheme.primaryContainer,
-                  Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8),
+                  Theme.of(context)
+                      .colorScheme
+                      .primaryContainer
+                      .withOpacity(0.8),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -31,10 +34,10 @@ class MainDrawer extends StatelessWidget {
               children: [
                 Icon(
                   Icons.wallet,
-                  size: 48,
+                  size: AwSize.s48,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                const SizedBox(width: 18),
+                AwSpacing.s18,
                 const AwText(
                   text: 'ADMIN WALLET',
                 ),
@@ -69,7 +72,8 @@ class MainDrawer extends StatelessWidget {
               onSelectScreen('estadisticas');
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (ctx) => EstadisticasScreen(expenses: expenses), // Pasar la lista de gastos
+                  builder: (ctx) => EstadisticasScreen(
+                      expenses: expenses), // Pasar la lista de gastos
                 ),
               );
             },

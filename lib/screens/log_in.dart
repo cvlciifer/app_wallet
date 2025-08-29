@@ -2,10 +2,12 @@ import 'package:app_wallet/library/main_library.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,7 +17,7 @@ class MyApp extends StatelessWidget {
       ),
       home: ChangeNotifierProvider(
         create: (context) => LoginProvider(),
-        child: LoginScreen(),
+        child: const LoginScreen(),
       ),
       routes: {
         '/home-page': (ctx) => const WalletHomePage(),
@@ -25,7 +27,10 @@ class MyApp extends StatelessWidget {
 }
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _LoginScreenState createState() => _LoginScreenState();
 }
 
@@ -56,9 +61,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
+                              // ignore: deprecated_member_use
+                              color: AwColors.grey.withOpacity(0.1),
                               blurRadius: 8,
-                              offset: Offset(0, 4),
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
@@ -76,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     size: AwSize.s20,
                     color: AwColors.boldBlack,
                   ),
-                  const SizedBox(height: 10),
+                  AwSpacing.s10,
                   TextField(
                     controller: _emailController,
                     decoration: const InputDecoration(
@@ -87,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     keyboardType: TextInputType.emailAddress,
                   ),
-                  const SizedBox(height: 10),
+                  AwSpacing.s10,
                   TextField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
@@ -110,13 +116,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  AwSpacing.s10,
                   if (_errorMessage != null)
                     AwText(
                       text: _errorMessage!,
                       color: AwColors.red,
                     ),
-                  const SizedBox(height: 10),
+                  AwSpacing.s10,
                   WalletButton.textButton(
                     buttonText: '¿Olvidaste tu contraseña?',
                     onPressed: () {
@@ -127,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
+                  AwSpacing.s20,
                   Center(
                     child: WalletButton.primaryButton(
                       buttonText: 'Acceder',
@@ -188,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  AwSpacing.s20,
                   WalletButton.iconButtonText(
                     icon: Icons.g_translate,
                     buttonText: 'Continuar con Google',
@@ -212,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
+                  AwSpacing.s20,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
