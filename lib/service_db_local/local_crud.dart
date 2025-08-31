@@ -143,3 +143,30 @@ Future<void> deleteExpenseLocal(Expense expense) async {
     log('Gasto eliminado: $id');
   }
 }
+
+// ==========================
+// CRUD UPDATE: Editar un gasto existente
+// ==========================
+Future<void> updateExpenseLocal(int uidGasto, Expense expense) async {
+  final uid = getUserUid();
+  if (uid == null) {
+    log('Error: No se encontró el usuario autenticado');
+    return;
+  }
+
+  final db = await _db();
+
+  await db.update(
+    'gastos',
+    {
+      'uid_correo': uid,
+      'nombre': expense.title,
+      'fecha': expense.date.millisecondsSinceEpoch,
+      'cantidad': expense.amount,
+      'categoria': _categoryToString(expense.category),
+    },
+    where: 'uid_gasto = ? AND uid_correo = ?',
+    whereArgs: [uidGasto, uid],
+  );
+}
+
