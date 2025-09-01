@@ -45,13 +45,22 @@ class RegisterProvider extends ChangeNotifier {
         'created_at': FieldValue.serverTimestamp(),
       });
 
-      // Crear una colección con el nombre del email en minúsculas dentro del documento del usuario
-      await _firestore
-          .collection('usuarios')
-          .doc('Gastos')
-          .collection(emailLower) // Cambiar a emailLower
-          .doc(userCredential.user?.uid)
-          .set({});
+
+    // Crear subcolección 'Gastos' para el usuario
+    await _firestore
+      .collection('usuarios')
+      .doc(emailLower)
+      .collection('gastos')
+      .doc(userCredential.user?.uid)
+      .set({});
+
+    // Crear subcolección 'Ingresos' para el usuario
+    await _firestore
+      .collection('usuarios')
+      .doc(emailLower)
+      .collection('ingresos')
+      .doc(userCredential.user?.uid)
+      .set({});
 
       // Llamar al método de éxito
       onSuccess();

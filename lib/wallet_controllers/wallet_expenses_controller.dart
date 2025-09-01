@@ -1,7 +1,12 @@
-import 'dart:developer';
 import 'package:app_wallet/library/main_library.dart';
-import 'package:app_wallet/service_db_local/local_crud.dart';
-import 'package:app_wallet/service_db_local/db_debug_helper.dart';
+
+
+import '../service_db_local/local_crud.dart';
+import '../sync_service/sync_service.dart';
+
+
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class WalletExpensesController extends ChangeNotifier {
   final List<Expense> _allExpenses = [];
@@ -15,79 +20,49 @@ class WalletExpensesController extends ChangeNotifier {
     Category.servicios: false,
   };
 
+  late final SyncService syncService;
+
+  WalletExpensesController() {
+    // Inicializa el servicio de sincronización con el email real del usuario autenticado
+    final email = FirebaseAuth.instance.currentUser?.email ?? '';
+    print('Email usado para SyncService: $email');
+    syncService = SyncService(
+      localCrud: LocalCrud(),
+      firestore: FirebaseFirestore.instance,
+      userEmail: email,
+    );
+    syncService.startAutoSync();
+  }
+
   List<Expense> get allExpenses => List.unmodifiable(_allExpenses);
   List<Expense> get filteredExpenses => List.unmodifiable(_filteredExpenses);
   Map<Category, bool> get currentFilters => Map.unmodifiable(_currentFilters);
 
   Future<void> loadExpensesFromFirebase() async {
-    // Debug: Mostrar información de la base de datos
-    await DBDebugHelper.debugDatabase();
-    
-    List<Map<String, dynamic>> gastosFromLocal = await getGastosLocal();
-
+    print('loadExpensesFromFirebase llamado');
+    List<Expense> gastosFromLocal = await syncService.localCrud.getAllExpenses();
+    print('Gastos obtenidos localmente: ${gastosFromLocal.length}');
     _allExpenses.clear();
-    for (var gasto in gastosFromLocal) {
-      try {
-        if (gasto['fecha'] != null &&
-            gasto['name'] != null &&
-            gasto['cantidad'] != null &&
-            gasto['tipo'] != null) {
-          // fecha en SQLite está en milliseconds since epoch
-          DateTime fecha = DateTime.fromMillisecondsSinceEpoch(gasto['fecha']);
-          _allExpenses.add(
-            Expense(
-              title: gasto['name'],
-              amount: gasto['cantidad'].toDouble(),
-              date: fecha,
-              category: _mapCategory(gasto['tipo']),
-            ),
-          );
-        }
-      } catch (e) {
-        log('Error al procesar gasto: $e');
-      }
-    }
+    _allExpenses.addAll(gastosFromLocal);
     _filteredExpenses = List.from(_allExpenses);
     notifyListeners();
   }
 
-  Category _mapCategory(String tipo) {
-    switch (tipo) {
-      case 'trabajo':
-        return Category.trabajo;
-      case 'ocio':
-        return Category.ocio;
-      case 'comida':
-        return Category.comida;
-      case 'viajes':
-        return Category.viajes;
-      case 'salud':
-        return Category.salud;
-      default:
-        return Category.servicios;
-    }
-  }
 
-  Future<void> addExpense(Expense expense) async {
-    _allExpenses.add(expense);
-    _filteredExpenses.add(expense);
-    notifyListeners();
+
+
+  Future<void> addExpense(Expense expense, {required bool hasConnection}) async {
+    print('addExpense llamado con: ${expense.title}');
+    await syncService.createExpense(expense, hasConnection: hasConnection);
+    // Sincroniza la base local con la nube después de guardar
+    await syncService.initializeLocalDbFromFirebase();
     await loadExpensesFromFirebase();
   }
 
-  Future<void> removeExpense(Expense expense) async {
-    final expenseIndex = _filteredExpenses.indexOf(expense);
 
-    if (expenseIndex == -1) {
-      log('Error: El gasto no se encontró en _filteredExpenses');
-      return;
-    }
-
-    _filteredExpenses.remove(expense);
-    notifyListeners();
-    log('Gasto eliminado de la vista: ${expense.title}, ${expense.date}');
-
-    await deleteExpenseLocal(expense);
+  Future<void> removeExpense(Expense expense, {required bool hasConnection}) async {
+    print('removeExpense llamado con: \\${expense.title}');
+    await syncService.deleteExpense(expense.id, hasConnection: hasConnection);
     await loadExpensesFromFirebase();
   }
 

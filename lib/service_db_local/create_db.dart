@@ -66,11 +66,13 @@ class DBHelper {
     await db.execute('''
       CREATE TABLE gastos (
         uid_gasto INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT,
         uid_correo TEXT NOT NULL,
         fecha INTEGER NOT NULL,
         cantidad INTEGER NOT NULL,
         nombre TEXT,
         categoria TEXT,
+        sync_status INTEGER DEFAULT 0,
         FOREIGN KEY (uid_correo) REFERENCES usuarios(uid) ON DELETE CASCADE
       );
     ''');
