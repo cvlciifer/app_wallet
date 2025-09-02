@@ -52,7 +52,10 @@ class RegisterProvider extends ChangeNotifier {
       .doc(emailLower)
       .collection('gastos')
       .doc(userCredential.user?.uid)
-      .set({});
+      .set({
+            'name': "Bienvenido a AdminWallet",
+          });
+
 
     // Crear subcolección 'Ingresos' para el usuario
     await _firestore
@@ -60,7 +63,10 @@ class RegisterProvider extends ChangeNotifier {
       .doc(emailLower)
       .collection('ingresos')
       .doc(userCredential.user?.uid)
-      .set({});
+      .set({
+            'name': "Bienvenido a AdminWallet",
+          });
+
 
       // Llamar al método de éxito
       onSuccess();

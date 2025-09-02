@@ -11,19 +11,19 @@ import 'package:sqflite/sqlite_api.dart';
 
 // Clase para exponer los métodos de la base local como instancia
 class LocalCrud {
-  Future<List<Expense>> getAllExpenses() => getAllExpenses();
-  Future<void> insertExpense(Expense expense) => insertExpense(expense);
-  Future<void> updateExpense(Expense expense) => updateExpense(expense);
-  Future<void> updateSyncStatus(String expenseId, SyncStatus status) => updateSyncStatus(expenseId, status);
-  Future<void> deleteExpense(String expenseId, {bool localOnly = false}) => deleteExpense(expenseId, localOnly: localOnly);
-  Future<List<Expense>> getPendingExpenses() => getPendingExpenses();
-  Future<void> replaceAllExpenses(List<Expense> expenses) => replaceAllExpenses(expenses);
+  Future<List<Expense>> getAllExpenses() => getAllExpensesImpl();
+  Future<void> insertExpense(Expense expense) => insertExpenseImpl(expense);
+  Future<void> updateExpense(Expense expense) => updateExpenseImpl(expense);
+  Future<void> updateSyncStatus(String expenseId, SyncStatus status) => updateSyncStatusImpl(expenseId, status);
+  Future<void> deleteExpense(String expenseId, {bool localOnly = false}) => deleteExpenseImpl(expenseId, localOnly: localOnly);
+  Future<List<Expense>> getPendingExpenses() => getPendingExpensesImpl();
+  Future<void> replaceAllExpenses(List<Expense> expenses) => replaceAllExpensesImpl(expenses);
 }
 
 
 
 
-Future<List<Expense>> getAllExpenses() async {
+Future<List<Expense>> getAllExpensesImpl() async {
   final uid = getUserUid();
   if (uid == null) return [];
   final db = await _db();
@@ -107,17 +107,17 @@ Future<List<Map<String, dynamic>>> getGastosLocal() async {
 // CRUD CREATE: Restaurar un gasto (equivalente a restoreExpense)
 // ==========================
 Future<void> restoreExpenseLocal(Expense expense) async {
-  await insertExpense(expense);
+  await insertExpenseImpl(expense);
 }
 
 // ==========================
 // CRUD CREATE: Crear un nuevo gasto (equivalente a createExpense)
 // ==========================
 Future<void> createExpenseLocal(Expense expense) async {
-  await insertExpense(expense);
+  await insertExpenseImpl(expense);
 }
 
-Future<void> insertExpense(Expense expense) async {
+Future<void> insertExpenseImpl(Expense expense) async {
   final uid = getUserUid();
   if (uid == null) {
     log('Error: No se encontró el usuario autenticado');
@@ -136,7 +136,7 @@ Future<void> insertExpense(Expense expense) async {
   });
 }
 
-Future<void> updateExpense(Expense expense) async {
+Future<void> updateExpenseImpl(Expense expense) async {
   final uid = getUserUid();
   if (uid == null) return;
   final db = await _db();
@@ -154,7 +154,7 @@ Future<void> updateExpense(Expense expense) async {
   );
 }
 
-Future<void> updateSyncStatus(String expenseId, SyncStatus status) async {
+Future<void> updateSyncStatusImpl(String expenseId, SyncStatus status) async {
   final uid = getUserUid();
   if (uid == null) return;
   final db = await _db();
@@ -166,14 +166,14 @@ Future<void> updateSyncStatus(String expenseId, SyncStatus status) async {
   );
 }
 
-Future<void> deleteExpense(String expenseId, {bool localOnly = false}) async {
+Future<void> deleteExpenseImpl(String expenseId, {bool localOnly = false}) async {
   final uid = getUserUid();
   if (uid == null) return;
   final db = await _db();
   await db.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expenseId, uid]);
 }
 
-Future<List<Expense>> getPendingExpenses() async {
+Future<List<Expense>> getPendingExpensesImpl() async {
   final uid = getUserUid();
   if (uid == null) return [];
   final db = await _db();
@@ -188,13 +188,13 @@ Future<List<Expense>> getPendingExpenses() async {
   )).toList();
 }
 
-Future<void> replaceAllExpenses(List<Expense> expenses) async {
+Future<void> replaceAllExpensesImpl(List<Expense> expenses) async {
   final uid = getUserUid();
   if (uid == null) return;
   final db = await _db();
   await db.delete('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
   for (final expense in expenses) {
-    await insertExpense(expense);
+  await insertExpenseImpl(expense);
   }
 }
 

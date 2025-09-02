@@ -1,6 +1,6 @@
 import 'package:app_wallet/library/main_library.dart';
 import 'package:provider/provider.dart';
-import 'package:app_wallet/sync_service/sync_service.dart';
+
 
 class WalletHomePage extends StatefulWidget {
   const WalletHomePage({super.key});
@@ -19,7 +19,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     _controller = WalletExpensesController();
     // Sincroniza con la nube solo una vez al entrar, luego carga local
     _controller.syncService.initializeLocalDbFromFirebase().then((_) {
-      _controller.loadExpensesFromFirebase();
+      _controller.loadExpensesSmart();
     });
   }
 
