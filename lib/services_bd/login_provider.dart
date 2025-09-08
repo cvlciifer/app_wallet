@@ -11,7 +11,13 @@ import 'package:sqflite/sqflite.dart';
 class LoginProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'email',
+      'profile',
+      'https://www.googleapis.com/auth/gmail.readonly', // Scope para leer Gmail
+    ],
+  );
   final AuthService _authService = AuthService();
 
   Future<void> loginUser({

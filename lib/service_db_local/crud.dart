@@ -61,6 +61,10 @@ Future<void> _insertExpense(Expense expense) async {
     log('Error: No se encontró el usuario autenticado');
     return;
   }
+  
+  // Asegurar que el usuario existe en la tabla usuarios
+  await _ensureUserExists(email);
+  
   final db = await _db();
   await db.insert('gastos', {
     'uid_correo': email,
@@ -72,6 +76,20 @@ Future<void> _insertExpense(Expense expense) async {
 
   // Opcional: encolar para sync si utilizas pending_ops
   // await DBHelper.instance.insertPending(...)
+}
+
+// Asegurar que el usuario existe en la tabla usuarios
+Future<void> _ensureUserExists(String email) async {
+  final dbHelper = DBHelper.instance;
+  
+  // Verificar si el usuario ya existe
+  final userExists = await dbHelper.existeUsuarioPorEmail(email);
+  
+  if (!userExists) {
+    // Si no existe, crearlo usando el email como uid también
+    await dbHelper.upsertUsuario(uid: email, correo: email);
+    log('Usuario creado en la base de datos: $email');
+  }
 }
 
 // ==========================

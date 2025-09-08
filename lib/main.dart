@@ -1,6 +1,8 @@
 import 'package:app_wallet/services_bd/reset_password.dart' as local_auth;
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/library/main_library.dart';
+import 'package:app_wallet/services_bd/google_signin_service.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
@@ -11,6 +13,14 @@ var kColorScheme = ColorScheme.fromSeed(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar Google Sign-In con los scopes necesarios
+  GoogleSignInService().initialize(scopes: [
+    'email',
+    'profile',
+    'https://www.googleapis.com/auth/gmail.readonly',
+  ]);
+  
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -31,55 +41,57 @@ void main() async {
   ]);
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-            create: (_) => RegisterProvider()), // Agrega el RegisterProvider
-        ChangeNotifierProvider(
-            create: (_) => LoginProvider()), // Agrega también el LoginProvider
-        ChangeNotifierProvider(
-            create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData().copyWith(
-          useMaterial3: true,
-          colorScheme: kColorScheme,
-          appBarTheme: AppBarTheme(
-            backgroundColor: kColorScheme.onPrimaryContainer,
-            foregroundColor: kColorScheme.primaryContainer,
-          ),
-          cardTheme: CardThemeData(
-            color: kColorScheme.secondaryContainer,
-            margin: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
+    ProviderScope(
+      child: provider.MultiProvider(
+        providers: [
+          provider.ChangeNotifierProvider(
+              create: (_) => RegisterProvider()), // Agrega el RegisterProvider
+          provider.ChangeNotifierProvider(
+              create: (_) => LoginProvider()), // Agrega también el LoginProvider
+          provider.ChangeNotifierProvider(
+              create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
+        ],
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData().copyWith(
+            useMaterial3: true,
+            colorScheme: kColorScheme,
+            appBarTheme: AppBarTheme(
+              backgroundColor: kColorScheme.onPrimaryContainer,
+              foregroundColor: kColorScheme.primaryContainer,
             ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: kColorScheme.primaryContainer,
-            ),
-          ),
-          textTheme: ThemeData().textTheme.copyWith(
-                titleLarge: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: kColorScheme.onSecondaryContainer,
-                  fontSize: 16,
-                ),
+            cardTheme: CardThemeData(
+              color: kColorScheme.secondaryContainer,
+              margin: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
               ),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kColorScheme.primaryContainer,
+              ),
+            ),
+            textTheme: ThemeData().textTheme.copyWith(
+                  titleLarge: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: kColorScheme.onSecondaryContainer,
+                    fontSize: 16,
+                  ),
+                ),
+          ),
+          themeMode:
+              ThemeMode.light, 
+          home: const AuthWrapper(), 
+          routes: {
+            '/home-page': (ctx) => const WalletHomePage(),
+            '/new-expense': (ctx) => const NewExpenseScreen(),
+            '/logIn': (ctx) =>  LoginScreen(),
+            '/filtros': (ctx) => const FiltersScreen(),
+            '/forgot-password': (ctx) =>
+                ForgotPasswordScreen(), 
+          },
         ),
-        themeMode:
-            ThemeMode.light, 
-        home: const AuthWrapper(), 
-        routes: {
-          '/home-page': (ctx) => const WalletHomePage(),
-          '/new-expense': (ctx) => const NewExpenseScreen(),
-          '/logIn': (ctx) =>  LoginScreen(),
-          '/filtros': (ctx) => const FiltersScreen(),
-          '/forgot-password': (ctx) =>
-              ForgotPasswordScreen(), 
-        },
       ),
     ),
   );
