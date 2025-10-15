@@ -1,10 +1,43 @@
 import 'dart:developer';
-
 import 'package:app_wallet/service_db_local/create_db.dart';
+import '../models/expense.dart';
+import '../sync_service/sync_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app_wallet/library/main_library.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
+
+
+
+// Clase para exponer los métodos de la base local como instancia
+class LocalCrud {
+  Future<List<Expense>> getAllExpenses() => getAllExpensesImpl();
+  Future<void> insertExpense(Expense expense) => insertExpenseImpl(expense);
+  Future<void> updateExpense(Expense expense) => updateExpenseImpl(expense);
+  Future<void> updateSyncStatus(String expenseId, SyncStatus status) => updateSyncStatusImpl(expenseId, status);
+  Future<void> deleteExpense(String expenseId, {bool localOnly = false}) => deleteExpenseImpl(expenseId, localOnly: localOnly);
+  Future<List<Expense>> getPendingExpenses() => getPendingExpensesImpl();
+  Future<void> replaceAllExpenses(List<Expense> expenses) => replaceAllExpensesImpl(expenses);
+}
+
+
+
+
+Future<List<Expense>> getAllExpensesImpl() async {
+  final uid = getUserUid();
+  if (uid == null) return [];
+  final db = await _db();
+  final rows = await db.query('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
+  return rows.map((row) => Expense(
+    id: row['id'] as String,
+    title: row['nombre'] as String,
+    amount: (row['cantidad'] as num).toDouble(),
+    date: DateTime.fromMillisecondsSinceEpoch(row['fecha'] as int),
+    category: _mapCategory(row['categoria'] as String),
+    syncStatus: row['sync_status'] != null ? SyncStatus.values[row['sync_status'] as int] : SyncStatus.synced,
+  )).toList();
+}
+
 
 // ==========================
 // Helpers
@@ -74,26 +107,23 @@ Future<List<Map<String, dynamic>>> getGastosLocal() async {
 // CRUD CREATE: Restaurar un gasto (equivalente a restoreExpense)
 // ==========================
 Future<void> restoreExpenseLocal(Expense expense) async {
-  await _insertExpense(expense);
+  await insertExpenseImpl(expense);
 }
 
 // ==========================
 // CRUD CREATE: Crear un nuevo gasto (equivalente a createExpense)
 // ==========================
 Future<void> createExpenseLocal(Expense expense) async {
-  await _insertExpense(expense);
+  await insertExpenseImpl(expense);
 }
 
-Future<void> _insertExpense(Expense expense) async {
+Future<void> insertExpenseImpl(Expense expense) async {
   final uid = getUserUid();
   if (uid == null) {
     log('Error: No se encontró el usuario autenticado');
     return;
   }
-  
-  // Asegurar que el usuario existe en la BD local
   await _ensureUserExists();
-  
   final db = await _db();
   await db.insert('gastos', {
     'uid_correo': uid,
@@ -101,10 +131,90 @@ Future<void> _insertExpense(Expense expense) async {
     'fecha': expense.date.millisecondsSinceEpoch,
     'cantidad': expense.amount,
     'categoria': _categoryToString(expense.category),
+    'sync_status': expense.syncStatus.index,
+    'id': expense.id,
   });
+}
 
-  // Opcional: encolar para sync si utilizas pending_ops
-  // await DBHelper.instance.insertPending(...)
+Future<void> updateExpenseImpl(Expense expense) async {
+  final uid = getUserUid();
+  if (uid == null) return;
+  final db = await _db();
+  await db.update(
+    'gastos',
+    {
+      'nombre': expense.title,
+      'fecha': expense.date.millisecondsSinceEpoch,
+      'cantidad': expense.amount,
+      'categoria': _categoryToString(expense.category),
+      'sync_status': expense.syncStatus.index,
+    },
+    where: 'id = ? AND uid_correo = ?',
+    whereArgs: [expense.id, uid],
+  );
+}
+
+Future<void> updateSyncStatusImpl(String expenseId, SyncStatus status) async {
+  final uid = getUserUid();
+  if (uid == null) return;
+  final db = await _db();
+  await db.update(
+    'gastos',
+    {'sync_status': status.index},
+    where: 'id = ? AND uid_correo = ?',
+    whereArgs: [expenseId, uid],
+  );
+}
+
+Future<void> deleteExpenseImpl(String expenseId, {bool localOnly = false}) async {
+  final uid = getUserUid();
+  if (uid == null) return;
+  final db = await _db();
+  await db.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expenseId, uid]);
+}
+
+Future<List<Expense>> getPendingExpensesImpl() async {
+  final uid = getUserUid();
+  if (uid == null) return [];
+  final db = await _db();
+  final rows = await db.query('gastos', where: 'uid_correo = ? AND sync_status != ?', whereArgs: [uid, SyncStatus.synced.index]);
+  return rows.map((row) => Expense(
+    id: row['id'] as String,
+    title: row['nombre'] as String,
+    amount: (row['cantidad'] as num).toDouble(),
+    date: DateTime.fromMillisecondsSinceEpoch(row['fecha'] as int),
+    category: _mapCategory(row['categoria'] as String),
+    syncStatus: SyncStatus.values[row['sync_status'] as int],
+  )).toList();
+}
+
+Future<void> replaceAllExpensesImpl(List<Expense> expenses) async {
+  final uid = getUserUid();
+  if (uid == null) return;
+  final db = await _db();
+  await db.delete('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
+  for (final expense in expenses) {
+  await insertExpenseImpl(expense);
+  }
+}
+
+Category _mapCategory(String tipo) {
+  switch (tipo) {
+    case 'trabajo':
+      return Category.trabajo;
+    case 'ocio':
+      return Category.ocio;
+    case 'comida':
+      return Category.comida;
+    case 'viajes':
+      return Category.viajes;
+    case 'salud':
+      return Category.salud;
+    case 'servicios':
+      return Category.servicios;
+    default:
+      return Category.comida;
+  }
 }
 
 // ==========================

@@ -21,7 +21,7 @@ Future<List> getGastos() async {
   }
 
   // Referenciar la subcolección 'gastos' del usuario autenticado
-  CollectionReference collectionReferenceGastos = db.collection('usuarios').doc('Gastos').collection(userEmail);
+  CollectionReference collectionReferenceGastos = db.collection('usuarios').doc(userEmail).collection('gastos');
 
   QuerySnapshot queryGastos = await collectionReferenceGastos.get();
 
@@ -53,7 +53,7 @@ Future<void> restoreExpense(Expense expense) async {
     log('Restaurando el gasto: ${expense.title}, ${expense.date}, ${expense.amount}, ${expense.category}');
 
     // Restaurar el gasto en la subcolección del usuario autenticado
-    await db.collection('usuarios').doc('Gastos').collection(userEmail).add({
+    await db.collection('usuarios').doc(userEmail).collection('gastos').add({
       'name': expense.title,
       'fecha': Timestamp.fromDate(expense.date), // Convertir DateTime a Timestamp
       'cantidad': expense.amount,
@@ -76,7 +76,7 @@ Future<void> createExpense(Expense expense) async {
   }
 
   // Referenciar la subcolección 'gastos' del usuario autenticado
-  await db.collection('usuarios').doc('Gastos').collection(userEmail).add({
+  await db.collection('usuarios').doc(userEmail).collection('gastos').add({
     'name': expense.title,
     'fecha': Timestamp.fromDate(expense.date), // Convertir DateTime a Timestamp
     'cantidad': expense.amount,
@@ -99,8 +99,8 @@ Future<void> deleteExpense(Expense expense) async {
     // Buscar el documento que coincide con el nombre, fecha, cantidad y tipo en la subcolección del usuario autenticado
     QuerySnapshot snapshot = await db
         .collection('usuarios')
-        .doc('Gastos')
-        .collection(userEmail)
+        .doc(userEmail)
+        .collection('gastos')
         .where('name', isEqualTo: expense.title)
         .where('fecha', isEqualTo: Timestamp.fromDate(expense.date)) // Convertir `expense.date` a Timestamp
         .where('cantidad', isEqualTo: expense.amount)

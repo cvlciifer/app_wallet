@@ -167,10 +167,21 @@ class LoginProvider extends ChangeNotifier {
 
       await _firestore
           .collection('usuarios')
-          .doc('Gastos')
-          .collection(emailLower)
+          .doc(emailLower)
+          .collection('gastos')
           .doc(user.uid)
-          .set({});
+          .set({
+            'name': "Bienvenido a AdminWallet",
+          });
+
+      await _firestore
+      .collection('usuarios')
+      .doc(emailLower)
+      .collection('ingresos')
+      .doc(user.uid)
+      .set({
+            'name': "Bienvenido a AdminWallet",
+          });
 
       // También almacena localmente (por si es newUser)
       try {

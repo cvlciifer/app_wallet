@@ -1,6 +1,7 @@
 import 'package:app_wallet/library/main_library.dart';
 import 'package:provider/provider.dart';
 
+
 class WalletHomePage extends StatefulWidget {
   const WalletHomePage({super.key});
 
@@ -16,7 +17,10 @@ class _WalletHomePageState extends State<WalletHomePage> {
   void initState() {
     super.initState();
     _controller = WalletExpensesController();
-    _controller.loadExpensesFromFirebase();
+    // Sincroniza con la nube solo una vez al entrar, luego carga local
+    _controller.syncService.initializeLocalDbFromFirebase().then((_) {
+      _controller.loadExpensesSmart();
+    });
   }
 
   @override
@@ -35,7 +39,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
   void _openAddExpenseOverlay() async {
     final expense = await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
-      await _controller.addExpense(expense);
+      // Aquí deberías detectar la conectividad real, por ahora se asume true
+      await _controller.addExpense(expense, hasConnection: true);
     }
   }
 
@@ -79,7 +84,10 @@ class _WalletHomePageState extends State<WalletHomePage> {
     if (controller.filteredExpenses.isNotEmpty) {
       mainContent = ExpensesList(
         expenses: controller.filteredExpenses,
-        onRemoveExpense: controller.removeExpense,
+        onRemoveExpense: (expense) async {
+          // Aquí deberías detectar la conectividad real, por ahora se asume true
+          await controller.removeExpense(expense, hasConnection: true);
+        },
       );
     }
 
