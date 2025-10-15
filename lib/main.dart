@@ -1,6 +1,9 @@
 import 'package:app_wallet/services_bd/reset_password.dart' as local_auth;
 import 'package:provider/provider.dart';
 import 'package:app_wallet/library/main_library.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import 'dart:developer';
 
 var kColorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromARGB(255, 8, 115, 158),
@@ -11,6 +14,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // DEBUG: Imprimir la ubicación de la base de datos
+  try {
+    final databasesPath = await getDatabasesPath();
+    final dbPath = join(databasesPath, 'adminwallet.db');
+    log('UBICACIÓN DE LA BASE DE DATOS: $dbPath');
+  } catch (e) {
+    log('❌ Error obteniendo ruta de BD: $e');
+  }
 
   // Restringir la orientación a vertical
   await SystemChrome.setPreferredOrientations([

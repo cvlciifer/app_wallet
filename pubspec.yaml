@@ -47,6 +47,10 @@ dependencies:
   font_awesome_flutter: ^10.7.0
   google_sign_in: ^6.1.5
   shared_preferences: ^2.2.2 
+
+  sqflite: ^2.3.3
+  path_provider: ^2.1.4
+
   another_flushbar: ^1.10.28
   
 dev_dependencies:

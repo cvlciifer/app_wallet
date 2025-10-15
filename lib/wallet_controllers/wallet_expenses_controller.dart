@@ -1,5 +1,7 @@
 import 'dart:developer';
 import 'package:app_wallet/library/main_library.dart';
+import 'package:app_wallet/service_db_local/local_crud.dart';
+import 'package:app_wallet/service_db_local/db_debug_helper.dart';
 
 class WalletExpensesController extends ChangeNotifier {
   final List<Expense> _allExpenses = [];
@@ -13,26 +15,25 @@ class WalletExpensesController extends ChangeNotifier {
     Category.servicios: false,
   };
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  String? get userEmail => _auth.currentUser?.email;
-
   List<Expense> get allExpenses => List.unmodifiable(_allExpenses);
   List<Expense> get filteredExpenses => List.unmodifiable(_filteredExpenses);
   Map<Category, bool> get currentFilters => Map.unmodifiable(_currentFilters);
 
   Future<void> loadExpensesFromFirebase() async {
-    List gastosFromFirebase = await getGastos();
+    // Debug: Mostrar información de la base de datos
+    await DBDebugHelper.debugDatabase();
+    
+    List<Map<String, dynamic>> gastosFromLocal = await getGastosLocal();
 
     _allExpenses.clear();
-    for (var gasto in gastosFromFirebase) {
+    for (var gasto in gastosFromLocal) {
       try {
         if (gasto['fecha'] != null &&
-            gasto['fecha'] is Timestamp &&
             gasto['name'] != null &&
             gasto['cantidad'] != null &&
             gasto['tipo'] != null) {
-          Timestamp timestamp = gasto['fecha'];
-          DateTime fecha = timestamp.toDate();
+          // fecha en SQLite está en milliseconds since epoch
+          DateTime fecha = DateTime.fromMillisecondsSinceEpoch(gasto['fecha']);
           _allExpenses.add(
             Expense(
               title: gasto['name'],
@@ -43,7 +44,7 @@ class WalletExpensesController extends ChangeNotifier {
           );
         }
       } catch (e) {
-        print('Error al procesar gasto: $e');
+        log('Error al procesar gasto: $e');
       }
     }
     _filteredExpenses = List.from(_allExpenses);
@@ -67,19 +68,6 @@ class WalletExpensesController extends ChangeNotifier {
     }
   }
 
-  Future<void> createExpense(Expense expense) async {
-    if (userEmail != null) {
-      await db.collection('usuarios').doc('Gastos').collection(userEmail!).add({
-        'name': expense.title,
-        'fecha': Timestamp.fromDate(expense.date),
-        'cantidad': expense.amount,
-        'tipo': expense.category.toString().split('.').last,
-      });
-    } else {
-      log('Error: El email del usuario no está disponible.');
-    }
-  }
-
   Future<void> addExpense(Expense expense) async {
     _allExpenses.add(expense);
     _filteredExpenses.add(expense);
@@ -91,7 +79,7 @@ class WalletExpensesController extends ChangeNotifier {
     final expenseIndex = _filteredExpenses.indexOf(expense);
 
     if (expenseIndex == -1) {
-      print('Error: El gasto no se encontró en _filteredExpenses');
+      log('Error: El gasto no se encontró en _filteredExpenses');
       return;
     }
 
@@ -99,7 +87,7 @@ class WalletExpensesController extends ChangeNotifier {
     notifyListeners();
     log('Gasto eliminado de la vista: ${expense.title}, ${expense.date}');
 
-    await deleteExpense(expense);
+    await deleteExpenseLocal(expense);
     await loadExpensesFromFirebase();
   }
 
