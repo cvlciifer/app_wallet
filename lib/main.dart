@@ -1,6 +1,6 @@
-import 'package:app_wallet/services_bd/reset_password.dart' as local_auth;
+import 'package:app_wallet/login_section/presentation/providers/reset_password.dart' as local_auth;
 import 'package:provider/provider.dart';
-import 'package:app_wallet/library/main_library.dart';
+import 'package:app_wallet/library_section/main_library.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
@@ -26,19 +26,15 @@ void main() async {
 
   // Restringir la orientación a vertical
   await SystemChrome.setPreferredOrientations([
-    DeviceOrientation
-        .portraitUp, // Solo permitir orientación vertical hacia arriba
+    DeviceOrientation.portraitUp, // Solo permitir orientación vertical hacia arriba
   ]);
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-            create: (_) => RegisterProvider()), // Agrega el RegisterProvider
-        ChangeNotifierProvider(
-            create: (_) => LoginProvider()), // Agrega también el LoginProvider
-        ChangeNotifierProvider(
-            create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
+        ChangeNotifierProvider(create: (_) => RegisterProvider()), // Agrega el RegisterProvider
+        ChangeNotifierProvider(create: (_) => LoginProvider()), // Agrega también el LoginProvider
+        ChangeNotifierProvider(create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -69,16 +65,14 @@ void main() async {
                 ),
               ),
         ),
-        themeMode:
-            ThemeMode.light, 
-        home: const AuthWrapper(), 
+        themeMode: ThemeMode.light,
+        home: const AuthWrapper(),
         routes: {
           '/home-page': (ctx) => const WalletHomePage(),
           '/new-expense': (ctx) => const NewExpenseScreen(),
-          '/logIn': (ctx) =>  LoginScreen(),
+          '/logIn': (ctx) => LoginScreen(),
           '/filtros': (ctx) => const FiltersScreen(),
-          '/forgot-password': (ctx) =>
-              ForgotPasswordScreen(), 
+          '/forgot-password': (ctx) => ForgotPasswordScreen(),
         },
       ),
     ),

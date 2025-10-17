@@ -1,4 +1,4 @@
-import 'package:app_wallet/library/main_library.dart';
+import 'package:app_wallet/library_section/main_library.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -16,10 +16,8 @@ class WelcomeScreen extends StatelessWidget {
         children: [
           Center(
             child: Container(
-              width: MediaQuery.of(context).size.width *
-                  0.8, // Ajusta el ancho del contenedor
-              padding: const EdgeInsets.all(
-                  20.0), // Espaciado interno del contenedor
+              width: MediaQuery.of(context).size.width * 0.8, // Ajusta el ancho del contenedor
+              padding: const EdgeInsets.all(20.0), // Espaciado interno del contenedor
               decoration: BoxDecoration(
                 color: AwColors.white
                     // ignore: deprecated_member_use
