@@ -54,6 +54,8 @@ dependencies:
   path_provider: ^2.1.4
 
   another_flushbar: ^1.10.28
+  flutter_secure_storage: ^9.0.0
+  crypto: ^3.0.3
   
 dev_dependencies:
   flutter_test:
