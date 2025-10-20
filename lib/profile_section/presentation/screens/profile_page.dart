@@ -63,12 +63,31 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
   final User? user = FirebaseAuth.instance.currentUser;
   late String? userEmail;
   late String? userName;
+  String? alias;
 
   @override
   void initState() {
     super.initState();
     userEmail = user?.email;
     userName = user?.displayName;
+    // Carga el alias almacenado
+    _loadAlias();
+  }
+
+  Future<void> _loadAlias() async {
+    final uid = user?.uid;
+    if (uid == null) return;
+    try {
+      final pinService = PinService();
+      final a = await pinService.getAlias(accountId: uid);
+      if (a != null && a.isNotEmpty) {
+        setState(() {
+          alias = a;
+        });
+      }
+    } catch (_) {
+      // ignore errors reading alias
+    }
   }
 
   String getFirstName(String? fullName) {
@@ -107,7 +126,7 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         AwText.bold(
-                          '¡Hola, ${getFirstName(userName)}!',
+                          '¡Hola, ${alias ?? 'Alias no disponible'}!',
                           color: AwColors.modalPurple,
                           size: AwSize.s20,
                         ),
@@ -130,13 +149,16 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
               children: [
                 const Icon(Icons.receipt_long, color: AwColors.blue, size: 32),
                 const SizedBox(width: 12),
-                const AwText.large('Cantidad de gastos:', color: AwColors.boldBlack, size: AwSize.s20),
+                const AwText.large('Cantidad de gastos:',
+                    color: AwColors.boldBlack, size: AwSize.s20),
                 const SizedBox(width: 8),
-                AwText.large('${widget.totalExpenses}', color: AwColors.modalPurple, size: AwSize.s20),
+                AwText.large('${widget.totalExpenses}',
+                    color: AwColors.modalPurple, size: AwSize.s20),
               ],
             ),
             AwSpacing.s18,
-            const AwText.normal('Categorías', color: AwColors.boldBlack, size: AwSize.s16),
+            const AwText.normal('Categorías',
+                color: AwColors.boldBlack, size: AwSize.s16),
             AwSpacing.s,
             Column(
               children: getCategoriasConTotal(widget.expenses)
@@ -147,9 +169,11 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                             Icon(cat['icono'], color: AwColors.blue, size: 24),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: AwText.normal(cat['nombre'], color: AwColors.boldBlack, size: AwSize.s16),
+                              child: AwText.normal(cat['nombre'],
+                                  color: AwColors.boldBlack, size: AwSize.s16),
                             ),
-                            AwText.bold(formatNumber(cat['total']), color: AwColors.modalPurple, size: AwSize.s16),
+                            AwText.bold(formatNumber(cat['total']),
+                                color: AwColors.modalPurple, size: AwSize.s16),
                           ],
                         ),
                       ))
@@ -159,9 +183,11 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const AwText.bold('Total de gastos:', color: AwColors.boldBlack, size: AwSize.s18),
+                const AwText.bold('Total de gastos:',
+                    color: AwColors.boldBlack, size: AwSize.s18),
                 const SizedBox(width: 8),
-                AwText.bold(formatNumber(widget.totalAmount), color: AwColors.red, size: AwSize.s20),
+                AwText.bold(formatNumber(widget.totalAmount),
+                    color: AwColors.red, size: AwSize.s20),
               ],
             ),
 

@@ -1,5 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
+import 'dart:developer';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({Key? key}) : super(key: key);
@@ -25,13 +25,44 @@ class _AuthWrapperState extends State<AuthWrapper> {
       final isLoggedIn = await _authService.isUserLoggedIn();
 
       if (mounted) {
+        log('AuthWrapper: isLoggedIn=$isLoggedIn');
         if (isLoggedIn) {
-          // Usuario ya está logueado, ir al home
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const WalletHomePage(),
-            ),
-          );
+          // Usuario ya está logueado: si tiene PIN pedirlo, si no ir al home
+          final uid = _authService.getCurrentUser()?.uid;
+          if (uid == null) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+            );
+            return;
+          }
+          final pinService = PinService();
+          // si borra la app e instala de nuevo, limpiar PIN/alias previo
+          await pinService.clearOnReinstallIfNeeded(accountId: uid);
+          final hasPin = await pinService.hasPin(accountId: uid);
+          log('AuthWrapper: uid=$uid hasPin=$hasPin');
+
+          if (hasPin) {
+            // Si el pin
+            final alias = await pinService.getAlias(accountId: uid);
+            if (alias == null || alias.isEmpty) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        const AliasInputPage(initialSetup: false)),
+              );
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const EnterPinPage()),
+              );
+            }
+          } else {
+            // Si no hay PIN configurado, primero pedir alias y luego crear el PIN
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                  builder: (context) =>
+                      const AliasInputPage(initialSetup: true)),
+            );
+          }
         } else {
           // Usuario no está logueado, ir al login
           Navigator.of(context).pushReplacement(
@@ -64,12 +95,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
                 // ignore: deprecated_member_use
-                color: Colors.white.withOpacity(0.9),
+                color: AwColors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(20.0),
                 boxShadow: [
                   BoxShadow(
                     // ignore: deprecated_member_use
-                    color: Colors.black.withOpacity(0.2),
+                    color: AwColors.black.withOpacity(0.2),
                     blurRadius: 10.0,
                     offset: const Offset(0, 5),
                   ),

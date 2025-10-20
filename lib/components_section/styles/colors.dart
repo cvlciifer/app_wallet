@@ -21,6 +21,7 @@ class AwColors {
   static const Color lightOrange = Color(0xFFFFB514);
   static const Color notificationGrey = Color(0xF4F4F4F4);
   static const Color boldBlack = Color(0xFF000000);
+  static const Color transparent = Colors.transparent;
 
   static const Color modalRed = Color(0xFFEF3742);
   static const Color modalBlue = Color(0xFF007AFF);
@@ -37,6 +38,7 @@ class AwColors {
     'green': AwColors.green,
     'black': AwColors.black,
     'cyan': AwColors.cyan,
+    'transparent': AwColors.transparent,
     'lightBlue': AwColors.lightBlue,
     'darkBlue': AwColors.darkBlue,
     'blueGrey': AwColors.blueGrey,
