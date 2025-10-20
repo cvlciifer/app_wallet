@@ -9,6 +9,8 @@ class CustomTextField extends StatelessWidget {
   final Function(String)? onChanged;
   final String? prefixText;
   final bool hideCounter;
+  final TextAlign? textAlign;
+  final TextAlignVertical? textAlignVertical;
 
   const CustomTextField({
     super.key,
@@ -20,6 +22,8 @@ class CustomTextField extends StatelessWidget {
     this.onChanged,
     this.prefixText,
     this.hideCounter = false,
+    this.textAlign,
+    this.textAlignVertical,
   });
 
   @override
@@ -32,6 +36,8 @@ class CustomTextField extends StatelessWidget {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         onChanged: onChanged,
+        textAlign: textAlign ?? TextAlign.start,
+        textAlignVertical: textAlignVertical,
         decoration: InputDecoration(
           label: AwText(
             text: label,

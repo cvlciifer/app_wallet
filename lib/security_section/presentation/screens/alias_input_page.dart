@@ -84,34 +84,39 @@ class _AliasInputPageState extends State<AliasInputPage> {
           color: AwColors.white,
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 12),
-            const AwText.bold(
-              'Ingresa un alias para este dispositivo',
-              color: AwColors.boldBlack,
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _controller,
-              decoration: const InputDecoration(
-                labelText: 'Alias',
-                hintText: 'Ej: Ricardo Rojas',
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AwSpacing.s,
+              const AwText.bold(
+                'Ingresa un alias para este dispositivo',
+                color: AwColors.boldBlack,
               ),
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: WalletButton.primaryButton(
-                buttonText: 'Confirmar',
-                onPressed: _canContinue ? _continue : () {},
-                backgroundColor: AwColors.appBarColor,
-                buttonTextColor: AwColors.white,
+              AwSpacing.s20,
+              CustomTextField(
+                controller: _controller,
+                label: 'Alias',
+                maxLength: 64,
+                textAlign: TextAlign.center,
+                textAlignVertical: TextAlignVertical.center,
+                onChanged: (_) {},
+                hideCounter: true,
               ),
-            ),
-          ],
+              AwSpacing.s20,
+              Center(
+                child: WalletButton.primaryButton(
+                  buttonText: 'Confirmar',
+                  onPressed: _canContinue ? _continue : () {},
+                  backgroundColor: AwColors.appBarColor,
+                  buttonTextColor: AwColors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

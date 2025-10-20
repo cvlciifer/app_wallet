@@ -39,25 +39,28 @@ class _SetPinPageState extends State<SetPinPage> {
         size: AwSize.s20,
         color: AwColors.white,
       )),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AwSpacing.s12,
-            const AwText.bold('Ingresa tu PIN', color: AwColors.boldBlack),
-            AwSpacing.s20,
-            PinInput(digits: _digits, onCompleted: _onCompleted),
-            AwSpacing.s20,
-            Center(
-              child: WalletButton.primaryButton(
-                buttonText: 'Continuar',
-                onPressed: _confirm,
-                backgroundColor: AwColors.appBarColor,
-                buttonTextColor: AwColors.white,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AwSpacing.s12,
+              const AwText.bold('Ingresa tu PIN', color: AwColors.boldBlack),
+              AwSpacing.s20,
+              PinInput(digits: _digits, onCompleted: _onCompleted),
+              AwSpacing.s20,
+              Center(
+                child: WalletButton.primaryButton(
+                  buttonText: 'Continuar',
+                  onPressed: _confirm,
+                  backgroundColor: AwColors.appBarColor,
+                  buttonTextColor: AwColors.white,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -134,30 +137,33 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
       appBar: AppBar(
           title: const AwText.bold('Configura tu PIN de seguridad',
               size: AwSize.s20, color: AwColors.white)),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AwSpacing.s12,
-            const AwText.bold('Confirma tu PIN', color: AwColors.boldBlack),
-            AwSpacing.s12,
-            if (widget.alias != null && widget.alias!.isNotEmpty) ...[
-              AwText.normal('Ya casi estamos ${widget.alias!}...'),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
               AwSpacing.s12,
-            ],
-            AwSpacing.s12,
-            PinInput(digits: widget.digits, onCompleted: _onCompleted),
-            AwSpacing.s20,
-            Center(
-              child: WalletButton.primaryButton(
-                buttonText: 'Guardar PIN',
-                onPressed: _save,
-                backgroundColor: AwColors.appBarColor,
-                buttonTextColor: AwColors.white,
+              const AwText.bold('Confirma tu PIN', color: AwColors.boldBlack),
+              AwSpacing.s12,
+              if (widget.alias != null && widget.alias!.isNotEmpty) ...[
+                AwText.normal('Ya casi estamos ${widget.alias!}...'),
+                AwSpacing.s12,
+              ],
+              AwSpacing.s12,
+              PinInput(digits: widget.digits, onCompleted: _onCompleted),
+              AwSpacing.s20,
+              Center(
+                child: WalletButton.primaryButton(
+                  buttonText: 'Guardar PIN',
+                  onPressed: _save,
+                  backgroundColor: AwColors.appBarColor,
+                  buttonTextColor: AwColors.white,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
