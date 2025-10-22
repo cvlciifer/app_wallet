@@ -79,15 +79,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   AwSpacing.xl,
                   const AwText.bold(
                     'Accede a tu cuenta',
-                    size: AwSize.s20,
+                    size: AwSize.large,
                     color: AwColors.boldBlack,
                   ),
                   AwSpacing.s10,
                   TextField(
                     controller: _emailController,
+                    style: const TextStyle(fontSize: AwSize.medium),
                     decoration: const InputDecoration(
                       fillColor: AwColors.greyLight,
                       labelText: 'Email',
+                      labelStyle: TextStyle(fontSize: AwSize.medium),
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.email),
                     ),
@@ -97,9 +99,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
+                    style: const TextStyle(fontSize: AwSize.medium),
                     decoration: InputDecoration(
                       fillColor: AwColors.greyLight,
                       labelText: 'Password',
+                      labelStyle: const TextStyle(fontSize: AwSize.medium),
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
@@ -201,6 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   AwSpacing.s20,
                   WalletButton.iconButtonText(
                     icon: Icons.g_translate,
+                    // icon: FontAwesomeIcons.google, aqui hay un icono de google q nos puede servir
                     buttonText: 'Continuar con Google',
                     onPressed: () async {
                       setState(() {

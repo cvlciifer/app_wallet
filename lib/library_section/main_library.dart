@@ -83,3 +83,5 @@ export 'package:app_wallet/security_section/presentation/screens/pin/enter_pin_p
 export 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
 export 'package:app_wallet/security_section/presentation/screens/alias_input_page.dart';
 export 'package:app_wallet/core/services/alias_service.dart';
+export 'package:app_wallet/login_section/presentation/providers/reset_password.dart'
+    hide AuthProvider;
