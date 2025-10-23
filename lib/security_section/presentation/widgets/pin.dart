@@ -24,9 +24,9 @@ class PinInput extends StatefulWidget {
     this.digits = 4,
     required this.onCompleted,
     this.dotSize = AwSize.s16,
-    this.dotSpacing = AwSize.s8,
-    this.filledColor = AwColors.black,
-    this.borderColor = Colors.black54,
+    this.dotSpacing = AwSize.s12,
+    this.filledColor = AwColors.appBarColor,
+    this.borderColor = AwColors.appBarColor,
   }) : super(key: key);
 
   @override
@@ -66,6 +66,33 @@ class PinInputState extends State<PinInput> {
     setState(() {});
   }
 
+  /// Append a digit to the pin (used by on-screen keypad)
+  void appendDigit(String d) {
+    if (_controller.text.length >= widget.digits) return;
+    _controller.text = '${_controller.text}$d';
+    _controller.selection =
+        TextSelection.collapsed(offset: _controller.text.length);
+    _onChange();
+    setState(() {});
+  }
+
+  /// Delete last digit (backspace)
+  void deleteDigit() {
+    if (_controller.text.isEmpty) return;
+    _controller.text =
+        _controller.text.substring(0, _controller.text.length - 1);
+    _controller.selection =
+        TextSelection.collapsed(offset: _controller.text.length);
+    _onChange();
+    setState(() {});
+  }
+
+  /// Public getter for current length of entered PIN
+  int get currentLength => _controller.text.length;
+
+  /// Public getter for current PIN string
+  String get currentPin => _controller.text;
+
   @override
   void dispose() {
     _controller.removeListener(_onChange);
@@ -87,7 +114,7 @@ class PinInputState extends State<PinInput> {
             height: widget.dotSize,
             decoration: BoxDecoration(
               color: filled ? widget.filledColor : AwColors.transparent,
-              border: Border.all(color: widget.borderColor),
+              border: Border.all(color: widget.borderColor, width: 2.0),
               borderRadius: BorderRadius.circular(widget.dotSize / 2),
             ),
           ),

@@ -11,7 +11,9 @@ class SetPinPage extends StatefulWidget {
 
 class _SetPinPageState extends State<SetPinPage> {
   String? _firstPin;
-  int _digits = 4;
+  final int _digits = 4;
+  // Keep a persistent GlobalKey so PinInput state is preserved across rebuilds
+  final GlobalKey<PinInputState> _pinKey = GlobalKey<PinInputState>();
 
   void _onCompleted(String pin) {
     setState(() {
@@ -33,12 +35,6 @@ class _SetPinPageState extends State<SetPinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: const AwText.bold(
-        'Configura tu PIN de seguridad',
-        size: AwSize.s20,
-        color: AwColors.white,
-      )),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -47,22 +43,138 @@ class _SetPinPageState extends State<SetPinPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AwSpacing.s12,
-              const AwText.bold('Ingresa tu PIN', color: AwColors.boldBlack),
+              const AwText.bold('Configura tu PIN de seguridad',
+                  size: AwSize.s20, color: AwColors.appBarColor),
+              AwSpacing.s,
+              const AwText.normal(
+                'Este PIN protegerá el acceso local de la app en este dispositivo.',
+                color: AwColors.boldBlack,
+                size: AwSize.s14,
+                textAlign: TextAlign.center,
+              ),
               AwSpacing.s20,
-              PinInput(digits: _digits, onCompleted: _onCompleted),
+              PinInput(
+                  key: _pinKey, digits: _digits, onCompleted: _onCompleted),
+              AwSpacing.s20,
+              _NumericKeypad(
+                onDigit: (d) {
+                  _pinKey.currentState?.appendDigit(d);
+                  setState(() {});
+                },
+                onBackspace: () {
+                  _pinKey.currentState?.deleteDigit();
+                  setState(() {});
+                },
+              ),
               AwSpacing.s20,
               Center(
-                child: WalletButton.primaryButton(
-                  buttonText: 'Continuar',
-                  onPressed: _confirm,
-                  backgroundColor: AwColors.appBarColor,
-                  buttonTextColor: AwColors.white,
-                ),
+                child: Builder(builder: (context) {
+                  final len = _pinKey.currentState?.currentLength ?? 0;
+                  final ready = len == _digits;
+                  return WalletButton.primaryButton(
+                    buttonText: 'Continuar',
+                    onPressed: ready ? _confirm : null,
+                    backgroundColor:
+                        ready ? AwColors.appBarColor : AwColors.blueGrey,
+                    buttonTextColor:
+                        ready ? AwColors.white : AwColors.boldBlack,
+                  );
+                }),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+// pantalla de teclado numérico personalizada
+class _NumericKeypad extends StatelessWidget {
+  final void Function(String) onDigit;
+  final VoidCallback onBackspace;
+
+  const _NumericKeypad(
+      {Key? key, required this.onDigit, required this.onBackspace})
+      : super(key: key);
+
+  Widget _buildKey(String label, {VoidCallback? onTap}) {
+    // si el label está vacío y no hay acción, renderiza un espaciador para mantener la simetría
+    if (label.isEmpty && onTap == null) {
+      return const Expanded(child: SizedBox());
+    }
+
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Center(
+          child: SizedBox(
+            width: 80,
+            height: 80,
+            child: OutlinedButton(
+              onPressed: onTap,
+              style: OutlinedButton.styleFrom(
+                shape: const CircleBorder(),
+                // ignore: deprecated_member_use
+                side: BorderSide(
+                    color: AwColors.indigoInk.withOpacity(0.3), width: 2),
+                padding: EdgeInsets.zero,
+                // ignore: deprecated_member_use
+                backgroundColor: AwColors.indigoInk.withOpacity(0.3),
+              ),
+              child: Text(label,
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AwColors.boldBlack)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(children: [
+          for (var i in ['1', '2', '3']) _buildKey(i, onTap: () => onDigit(i))
+        ]),
+        Row(children: [
+          for (var i in ['4', '5', '6']) _buildKey(i, onTap: () => onDigit(i))
+        ]),
+        Row(children: [
+          for (var i in ['7', '8', '9']) _buildKey(i, onTap: () => onDigit(i))
+        ]),
+        Row(children: [
+          _buildKey('', onTap: null),
+          _buildKey('0', onTap: () => onDigit('0')),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: OutlinedButton(
+                    onPressed: onBackspace,
+                    style: OutlinedButton.styleFrom(
+                      shape: const CircleBorder(),
+                      side: BorderSide(
+                          color: AwColors.indigoInk.withOpacity(0.3), width: 2),
+                      padding: EdgeInsets.zero,
+                      backgroundColor: AwColors.indigoInk.withOpacity(0.3),
+                    ),
+                    child:
+                        const Icon(Icons.backspace, color: AwColors.boldBlack),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ]),
+      ],
     );
   }
 }
@@ -82,6 +194,7 @@ class ConfirmPinPage extends StatefulWidget {
 
 class _ConfirmPinPageState extends State<ConfirmPinPage> {
   String? _secondPin;
+  final GlobalKey<PinInputState> _pinKey = GlobalKey<PinInputState>();
 
   void _onCompleted(String pin) {
     setState(() {
@@ -122,21 +235,39 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           content: Text('Error guardando el PIN. Intenta de nuevo.')));
       return;
     }
-
-    // Despues de configurar el PIN, ir al home de la app y eliminar rutas previas
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const WalletHomePage()),
-      (route) => false,
-    );
+    // // Después de configurar el PIN: mostrar animación de la billetera girando
+    // if (!mounted) return;
+    // showDialog(
+    //   context: context,
+    //   barrierDismissible: false,
+    //   builder: (_) => const Dialog(
+    //     backgroundColor: Colors.transparent,
+    //     elevation: 0,
+    //     child: SizedBox(
+    //       height: 220,
+    //       child: Column(
+    //         mainAxisAlignment: MainAxisAlignment.center,
+    //         children: [
+    //           WalletLoader(),
+    //         ],
+    //       ),
+    //     ),
+    //   ),
+    // );
+    // //mantener el diálogo visible por un corto tiempo
+    // await Future.delayed(const Duration(milliseconds: 900));
+    // if (mounted) Navigator.of(context, rootNavigator: true).pop();
+    // if (!mounted) return;
+    // Navigator.of(context).pushAndRemoveUntil(
+    //   MaterialPageRoute(builder: (_) => const WalletHomePage()),
+    //   (route) => false,
+    // );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: const AwText.bold('Configura tu PIN de seguridad',
-              size: AwSize.s20, color: AwColors.white)),
+      // No AppBar, mirror SetPinPage layout + keypad
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -145,22 +276,43 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AwSpacing.s12,
-              const AwText.bold('Confirma tu PIN', color: AwColors.boldBlack),
+              const AwText.bold('Confirma tu PIN',
+                  size: AwSize.s20, color: AwColors.appBarColor),
               AwSpacing.s12,
               if (widget.alias != null && widget.alias!.isNotEmpty) ...[
                 AwText.normal('Ya casi estamos ${widget.alias!}...'),
                 AwSpacing.s12,
               ],
               AwSpacing.s12,
-              PinInput(digits: widget.digits, onCompleted: _onCompleted),
+              PinInput(
+                  key: _pinKey,
+                  digits: widget.digits,
+                  onCompleted: _onCompleted),
+              AwSpacing.s20,
+              _NumericKeypad(
+                onDigit: (d) {
+                  _pinKey.currentState?.appendDigit(d);
+                  setState(() {});
+                },
+                onBackspace: () {
+                  _pinKey.currentState?.deleteDigit();
+                  setState(() {});
+                },
+              ),
               AwSpacing.s20,
               Center(
-                child: WalletButton.primaryButton(
-                  buttonText: 'Guardar PIN',
-                  onPressed: _save,
-                  backgroundColor: AwColors.appBarColor,
-                  buttonTextColor: AwColors.white,
-                ),
+                child: Builder(builder: (context) {
+                  final len = _pinKey.currentState?.currentLength ?? 0;
+                  final ready = len == widget.digits;
+                  return WalletButton.primaryButton(
+                    buttonText: 'Guardar PIN',
+                    onPressed: ready ? _save : null,
+                    backgroundColor:
+                        ready ? AwColors.appBarColor : AwColors.greyLight,
+                    buttonTextColor:
+                        ready ? AwColors.white : AwColors.boldBlack,
+                  );
+                }),
               ),
             ],
           ),
