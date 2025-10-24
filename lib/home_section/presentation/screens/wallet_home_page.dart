@@ -18,6 +18,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
     _controller = WalletExpensesController();
     // Sincroniza con la nube solo una vez al entrar, luego carga local
     _controller.syncService.initializeLocalDbFromFirebase().then((_) {
+      // Evitar llamar al controlador si el widget ya fue desmontado.
+      if (!mounted) return;
       _controller.loadExpensesSmart();
     });
   }
@@ -32,11 +34,13 @@ class _WalletHomePageState extends State<WalletHomePage> {
     setState(() {
       _currentBottomIndex = index;
     });
-    WalletNavigationService.handleBottomNavigation(context, index, _controller.allExpenses);
+    WalletNavigationService.handleBottomNavigation(
+        context, index, _controller.allExpenses);
   }
 
   void _openAddExpenseOverlay() async {
-    final expense = await WalletNavigationService.openAddExpenseOverlay(context);
+    final expense =
+        await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
       // Aquí deberías detectar la conectividad real, por ahora se asume true
       await _controller.addExpense(expense, hasConnection: true);
@@ -44,7 +48,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
   }
 
   void _openFilters() async {
-    final filters = await WalletNavigationService.openFiltersPage(context, _controller.currentFilters);
+    final filters = await WalletNavigationService.openFiltersPage(
+        context, _controller.currentFilters);
     if (filters != null) {
       _controller.applyFilters(filters);
     }

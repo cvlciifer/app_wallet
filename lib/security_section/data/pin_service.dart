@@ -155,13 +155,13 @@ class PinService {
     return await _getFailedAttempts(accountId: accountId);
   }
 
-// Resetear intentos fallidos
+  // Resetear intentos fallidos
   Future<void> resetFailedAttempts({required String accountId}) async {
     await _storage.write(key: _ns(_kFailedAttempts, accountId), value: '0');
     await _storage.delete(key: _ns(_kLockedUntil, accountId));
   }
 
-// Registrar intento fallido y posible bloqueo
+  // Registrar intento fallido y posible bloqueo
   Future<void> recordFailedAttempt({required String accountId}) async {
     final attempts = await _getFailedAttempts(accountId: accountId);
     final newAttempts = attempts + 1;
@@ -173,6 +173,10 @@ class PinService {
           DateTime.now().toUtc().add(PinService.lockDuration).toIso8601String();
       await _storage.write(
           key: _ns(_kLockedUntil, accountId), value: lockedUntil);
+      // Al alcanzar el límite, reiniciamos el contador de intentos fallidos
+      // para que, una vez pasado el periodo de bloqueo, el usuario tenga
+      // nuevamente el número completo de intentos.
+      await _storage.write(key: _ns(_kFailedAttempts, accountId), value: '0');
     }
   }
 

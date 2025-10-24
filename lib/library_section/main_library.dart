@@ -12,6 +12,7 @@ export 'package:intl/intl.dart' hide TextDirection;
 export 'package:uuid/uuid.dart';
 export 'dart:io';
 export 'package:another_flushbar/flushbar.dart';
+export 'package:connectivity_plus/connectivity_plus.dart';
 
 // Archivos locales del proyecto o rutas
 export 'package:app_wallet/home_section/presentation/new_expense/presentation/models/expense.dart';
@@ -83,3 +84,12 @@ export 'package:app_wallet/security_section/presentation/screens/pin/enter_pin_p
 export 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
 export 'package:app_wallet/security_section/presentation/screens/alias_input_page.dart';
 export 'package:app_wallet/core/services/alias_service.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/confirm_pin_page.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/set_pin_page.dart';
+export 'package:app_wallet/security_section/presentation/widgets/numeric_keypad.dart';
+export 'package:app_wallet/security_section/presentation/widgets/pin_failure_popup.dart';
+export 'package:app_wallet/security_section/presentation/widgets/pin_entry_area.dart';
+export 'package:app_wallet/security_section/presentation/widgets/pin_actions.dart';
+export 'package:app_wallet/security_section/presentation/widgets/failure_overlay.dart';
+export 'package:app_wallet/security_section/presentation/controllers/lock_status_controller.dart';
+export 'package:app_wallet/security_section/presentation/viewmodels/enter_pin_viewmodel.dart';

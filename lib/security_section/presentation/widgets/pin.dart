@@ -1,8 +1,8 @@
 import 'package:app_wallet/library_section/main_library.dart';
 
-/// Simple PIN input widget used by SetPinPage / ConfirmPinPage.
-/// - digits: number of digits to collect
-/// - onCompleted: called when collected length == digits
+/// Widget simple de entrada de PIN usado por `SetPinPage` / `ConfirmPinPage`.
+/// - digits: número de dígitos a recoger
+/// - onCompleted: llamado cuando la longitud recogida == digits
 class PinInput extends StatefulWidget {
   final int digits;
   final ValueChanged<String> onCompleted;
@@ -66,31 +66,29 @@ class PinInputState extends State<PinInput> {
     setState(() {});
   }
 
-  /// Append a digit to the pin (used by on-screen keypad)
+  /// Añade un dígito al PIN (usado por el teclado numérico en pantalla)
   void appendDigit(String d) {
     if (_controller.text.length >= widget.digits) return;
     _controller.text = '${_controller.text}$d';
     _controller.selection =
         TextSelection.collapsed(offset: _controller.text.length);
-    _onChange();
     setState(() {});
   }
 
-  /// Delete last digit (backspace)
+  /// Elimina el último dígito (retroceso)
   void deleteDigit() {
     if (_controller.text.isEmpty) return;
     _controller.text =
         _controller.text.substring(0, _controller.text.length - 1);
     _controller.selection =
         TextSelection.collapsed(offset: _controller.text.length);
-    _onChange();
     setState(() {});
   }
 
-  /// Public getter for current length of entered PIN
+  /// Getter público para la longitud actual del PIN introducido
   int get currentLength => _controller.text.length;
 
-  /// Public getter for current PIN string
+  /// Getter público para el texto actual del PIN
   String get currentPin => _controller.text;
 
   @override

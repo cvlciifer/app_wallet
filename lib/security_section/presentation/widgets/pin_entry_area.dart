@@ -1,0 +1,55 @@
+import 'package:app_wallet/library_section/main_library.dart';
+
+// Área de entrada de PIN que combina el PIN y el teclado numérico.
+
+class PinEntryArea extends StatefulWidget {
+  final int digits;
+  final void Function(String) onCompleted;
+  final Widget? actions;
+
+  const PinEntryArea({
+    Key? key,
+    this.digits = 4,
+    required this.onCompleted,
+    this.actions,
+  }) : super(key: key);
+
+  @override
+  PinEntryAreaState createState() => PinEntryAreaState();
+}
+
+class PinEntryAreaState extends State<PinEntryArea> {
+  final GlobalKey<PinInputState> _internalPinKey = GlobalKey<PinInputState>();
+
+  void clear() => _internalPinKey.currentState?.clear();
+  void appendDigit(String d) => _internalPinKey.currentState?.appendDigit(d);
+  void deleteDigit() => _internalPinKey.currentState?.deleteDigit();
+
+  /// Retorna el PIN actualmente ingresado (cadena vacía si nada)
+  String get currentPin => _internalPinKey.currentState?.currentPin ?? '';
+
+  /// Longitud actual del PIN ingresado
+  int get currentLength => _internalPinKey.currentState?.currentLength ?? 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        PinInput(
+            key: _internalPinKey,
+            digits: widget.digits,
+            onCompleted: widget.onCompleted),
+        const SizedBox(height: 12),
+        NumericKeypad(
+          onDigit: (d) => appendDigit(d),
+          onBackspace: () => deleteDigit(),
+        ),
+        if (widget.actions != null) ...[
+          const SizedBox(height: 12),
+          widget.actions!,
+        ],
+      ],
+    );
+  }
+}

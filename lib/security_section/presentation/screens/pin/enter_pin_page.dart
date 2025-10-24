@@ -1,8 +1,19 @@
+// ignore: unused_element
 import 'dart:async';
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../controllers/lock_status_controller.dart';
+import '../../widgets/pin_actions.dart';
+import '../../widgets/failure_overlay.dart';
+import '../../viewmodels/enter_pin_viewmodel.dart';
+
+import 'reauthenticate_page.dart';
 
 class EnterPinPage extends StatefulWidget {
-  const EnterPinPage({Key? key}) : super(key: key);
+  final bool verifyOnly;
+
+  const EnterPinPage({Key? key, this.verifyOnly = false}) : super(key: key);
 
   @override
   State<EnterPinPage> createState() => _EnterPinPageState();
@@ -11,32 +22,102 @@ class EnterPinPage extends StatefulWidget {
 class _EnterPinPageState extends State<EnterPinPage> {
   int _attempts = 0;
   String? _alias;
-  final GlobalKey<PinInputState> _pinKey = GlobalKey<PinInputState>();
+  final GlobalKey<PinEntryAreaState> _pinKey = GlobalKey<PinEntryAreaState>();
   Duration? _lockedRemaining;
-  Timer? _lockTimer;
+  // Controller que encapsula el polling de lockedRemaining por accountId
+  LockStatusController? _lockCtrl;
+  StreamSubscription<User?>? _authSub;
+  late final EnterPinViewModel _viewModel;
+  bool _hasConnection = true;
+  bool _showFailurePopup = false;
+  int _remainingAttempts = 0;
+  // (la bandera de Snack se delega al LockStatusController)
+  StreamSubscription<ConnectivityResult>? _connectivitySub;
 
   @override
   void initState() {
     super.initState();
+    _viewModel = EnterPinViewModel();
     _loadAlias();
     _loadAttempts();
-    // initial lock state
     _updateLockState();
+    _checkConnection();
+    // Escuchar cambios de conectividad para que la UI se actualice mientras esta página está activa
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((result) {
+      if (!mounted) return;
+      setState(() {
+        _hasConnection = result != ConnectivityResult.none;
+      });
+    });
+
+    // Mantener sincronizado el controller si el usuario cambia de cuenta
+    _authSub = FirebaseAuth.instance.authStateChanges().listen(_onAuthChanged);
+    // inicializar controller con usuario actual si existe
+    _onAuthChanged(FirebaseAuth.instance.currentUser);
+  }
+
+  Future<void> _onAuthChanged(User? user) async {
+    // Desechar el controlador anterior si existe
+    if (_lockCtrl != null) {
+      _lockCtrl!.dispose();
+      _lockCtrl = null;
+    }
+
+    if (user == null) {
+      if (!mounted) return;
+      setState(() {
+        _lockedRemaining = null;
+      });
+      return;
+    }
+
+    // Crear e iniciar el controlador para el nuevo accountId
+    _lockCtrl = LockStatusController(accountId: user.uid);
+    await _lockCtrl!.start();
+
+    // Conectar los notifiers para actualizar el estado local
+    _lockCtrl!.lockedRemaining.addListener(() {
+      if (!mounted) return;
+      setState(() {
+        _lockedRemaining = _lockCtrl!.lockedRemaining.value;
+      });
+    });
+
+    _lockCtrl!.isLocked.addListener(() {
+      if (!mounted) return;
+      if (_lockCtrl!.isLocked.value && !_lockCtrl!.shownLockSnack) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                'Demasiados intentos fallidos. Intenta nuevamente en ${PinService.lockDuration.inMinutes} minutos.')));
+        _lockCtrl!.markShownLockSnack();
+      }
+    });
+  }
+
+  Future<void> _checkConnection() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (!mounted) return;
+    setState(() {
+      _hasConnection = connectivityResult != ConnectivityResult.none;
+    });
   }
 
   Future<void> _loadAttempts() async {
     final uid = AuthService().getCurrentUser()?.uid;
     if (uid == null) return;
-    final a = await PinService().getFailedAttempts(accountId: uid);
+    await _viewModel.loadAttempts(uid);
     if (!mounted) return;
     setState(() {
-      _attempts = a;
+      _attempts = _viewModel.attempts.value;
     });
   }
 
   @override
   void dispose() {
-    _lockTimer?.cancel();
+    _authSub?.cancel();
+    _lockCtrl?.dispose();
+    _connectivitySub?.cancel();
     super.dispose();
   }
 
@@ -51,27 +132,25 @@ class _EnterPinPageState extends State<EnterPinPage> {
     });
   }
 
-  Future<void> _updateLockState() async {
-    final uid = AuthService().getCurrentUser()?.uid;
+  Future<void> _updateLockState([String? accountId]) async {
+    final uid = accountId ?? AuthService().getCurrentUser()?.uid;
     if (uid == null) return;
+    // Si hay controller, usarlo (polling ya centralizado). Si no, hacer una
+    // consulta puntual a PinService como fallback.
+    if (_lockCtrl != null) {
+      await _lockCtrl!.refresh();
+      if (!mounted) return;
+      setState(() {
+        _lockedRemaining = _lockCtrl!.lockedRemaining.value;
+      });
+      return;
+    }
+
     final remaining = await PinService().lockedRemaining(accountId: uid);
     if (!mounted) return;
     setState(() {
       _lockedRemaining = remaining;
     });
-    _lockTimer?.cancel();
-    if (remaining != null) {
-      _lockTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
-        final r = await PinService().lockedRemaining(accountId: uid);
-        if (!mounted) return;
-        setState(() {
-          _lockedRemaining = r;
-        });
-        if (r == null) {
-          _lockTimer?.cancel();
-        }
-      });
-    }
   }
 
   String _formatDuration(Duration d) {
@@ -80,97 +159,196 @@ class _EnterPinPageState extends State<EnterPinPage> {
     return '$minutes:$seconds';
   }
 
-  void _onCompleted(String pin) async {
-    final uid = AuthService().getCurrentUser()?.uid;
-    final pinService = PinService();
-    final ok = await pinService.verifyPin(accountId: uid ?? '', pin: pin);
+  Future<void> _onCompleted(String pin) async {
+    final accountId = AuthService().getCurrentUser()?.uid ?? '';
+    final ok = await _viewModel.verifyPin(accountId: accountId, pin: pin);
     if (ok) {
+      if (widget.verifyOnly) {
+        Navigator.of(context).pop(true);
+        return;
+      }
+      await Flushbar(
+        message: 'PIN correcto',
+        duration: const Duration(seconds: 1),
+        backgroundColor: Colors.green,
+        flushbarPosition: FlushbarPosition.TOP,
+      ).show(context);
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const WalletHomePage()),
       );
     } else {
-      final uid2 = AuthService().getCurrentUser()?.uid;
-      if (uid2 != null) {
-        final a = await PinService().getFailedAttempts(accountId: uid2);
-        if (mounted) {
-          setState(() {
-            _attempts = a;
-          });
+      if (mounted) {
+        setState(() {
+          _attempts = _viewModel.attempts.value;
+        });
+      }
+      // Si ok es true, ya manejamos el éxito arriba; si es false, continuar manejando el fallo
+      if (ok) return;
+      // Limpiar la entrada
+      _pinKey.currentState?.clear();
+
+      // Comprobar si la cuenta quedó bloqueada por este intento fallido.
+      final lockedNow =
+          await PinService().lockedRemaining(accountId: accountId);
+      if (!mounted) return;
+      if (lockedNow != null) {
+        // Existe bloqueo: actualizar estado de bloqueo y no mostrar el popup de reintento
+        await _updateLockState(accountId);
+        if (!mounted) return;
+        setState(() {
+          _remainingAttempts = 0;
+          _showFailurePopup = false;
+        });
+        // Mostrar la notificación de bloqueo.
+        if (_lockCtrl != null) {
+          if (!_lockCtrl!.shownLockSnack) {
+            ScaffoldMessenger.of(context).clearSnackBars();
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    'Demasiados intentos fallidos. Intenta nuevamente en ${PinService.lockDuration.inMinutes} minutos.')));
+            _lockCtrl!.markShownLockSnack();
+          }
+        } else {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  'Demasiados intentos fallidos. Intenta nuevamente en ${PinService.lockDuration.inMinutes} minutos.')));
         }
+        return;
       }
-      // Clear the PIN input so the user can type again
-      try {
-        _pinKey.currentState?.clear();
-      } catch (_) {}
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('PIN incorrecto')));
+
+      // Determinar los intentos restantes y mostrar un popup en pantalla
+      final remaining = PinService.maxAttempts - _attempts;
+      if (!mounted) return;
+      setState(() {
+        _remainingAttempts = remaining >= 0 ? remaining : 0;
+        _showFailurePopup = true;
+      });
+
       await _updateLockState();
-      if (_attempts >= PinService.maxAttempts) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                'Demasiados intentos fallidos. Intenta nuevamente en ${PinService.lockDuration.inMinutes} minutos.')));
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Ingresa tu PIN',
-          style: TextStyle(fontSize: AwSize.s20, color: AwColors.white),
-        ),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_alias != null && _alias!.isNotEmpty) ...[
-                AwText.bold('Que alegria verte de nuevo ${_alias!}...',
-                    color: AwColors.boldBlack),
-                AwSpacing.s,
-                const AwText.large('Ingresa tu PIN'),
-                AwSpacing.s20,
-              ] else ...[
-                const AwText.large('Ingresa tu PIN'),
-                AwSpacing.s20,
-              ],
-
-              // If locked, show an informational panel instead of the PinInput
-              if (_lockedRemaining != null) ...[
-                AwText.bold('Cuenta bloqueada', color: AwColors.red),
-                AwSpacing.s,
-                AwText.normal(
-                    'Intenta nuevamente en ${_formatDuration(_lockedRemaining!)}'),
-                AwSpacing.s20,
-              ] else ...[
-                PinInput(key: _pinKey, digits: 4, onCompleted: _onCompleted),
-              ],
-
-              AwSpacing.s12,
-              AwText.normal('Intentos: $_attempts / ${PinService.maxAttempts}'),
-              AwSpacing.s12,
-              Center(
-                child: WalletButton.iconButtonText(
-                  buttonText: '¿No eres tú?',
-                  onPressed: () async {
-                    try {
-                      await FirebaseAuth.instance.signOut();
-                    } catch (_) {}
-                    await AuthService().clearLoginState();
-                    if (!mounted) return;
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                  },
-                  backgroundColor: AwColors.blueGrey,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          AwSpacing.s,
+                          if (_alias != null && _alias!.isNotEmpty) ...[
+                            AwText.normal(
+                                'Que alegría verte de nuevo ${_alias!}...'),
+                            AwSpacing.s12,
+                          ],
+                          const AwText.bold('Ingresa tu PIN',
+                              size: AwSize.s30, color: AwColors.appBarColor),
+                          AwSpacing.s12,
+                          if (_lockedRemaining != null) ...[
+                            const AwText.bold('Cuenta bloqueada',
+                                color: AwColors.red),
+                            AwSpacing.s,
+                            AwText.normal(
+                                'Intenta nuevamente en ${_formatDuration(_lockedRemaining!)}'),
+                            AwSpacing.s20,
+                          ] else ...[
+                            PinEntryArea(
+                                key: _pinKey,
+                                digits: 4,
+                                onCompleted: (_) {},
+                                actions: Column(
+                                  children: [
+                                    // Botón de confirmar: el usuario debe pulsarlo para enviar el PIN
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0),
+                                      child: WalletButton.iconButtonText(
+                                        buttonText: 'Confirmar',
+                                        onPressed: () async {
+                                          final pin = _pinKey
+                                                  .currentState?.currentPin ??
+                                              '';
+                                          if (pin.length < 4) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                                    content: Text(
+                                                        'Ingresa el PIN completo')));
+                                            return;
+                                          }
+                                          await _onCompleted(pin);
+                                        },
+                                        backgroundColor: AwColors.appBarColor,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    PinActions(
+                                      hasConnection: _hasConnection,
+                                      onNotYou: () async {
+                                        try {
+                                          await FirebaseAuth.instance.signOut();
+                                        } catch (_) {}
+                                        await AuthService().clearLoginState();
+                                        if (!mounted) return;
+                                        Navigator.of(context).pushReplacement(
+                                          MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const LoginScreen()),
+                                        );
+                                      },
+                                      onForgotPin: () async {
+                                        final success =
+                                            await Navigator.of(context)
+                                                .push<bool>(
+                                          MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const ReauthenticatePage()),
+                                        );
+                                        if (success == true) {
+                                          if (!mounted) return;
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      const SetPinPage()));
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                )),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              )
-            ],
-          ),
+
+                // (Las acciones de PIN ahora se muestran justo debajo del teclado numérico)
+              ],
+            ),
+            if (_showFailurePopup)
+              FailureOverlay(
+                visible: _showFailurePopup,
+                remainingAttempts: _remainingAttempts,
+                onRetry: () {
+                  try {
+                    _pinKey.currentState?.clear();
+                  } catch (_) {}
+                  setState(() {
+                    _showFailurePopup = false;
+                  });
+                },
+              ),
+          ],
         ),
       ),
     );

@@ -32,6 +32,8 @@ class WalletExpensesController extends ChangeNotifier {
     syncService.startAutoSync();
   }
 
+  bool _isDisposed = false;
+
   List<Expense> get allExpenses => List.unmodifiable(_allExpenses);
   List<Expense> get filteredExpenses => List.unmodifiable(_filteredExpenses);
   Map<Category, bool> get currentFilters => Map.unmodifiable(_currentFilters);
@@ -49,15 +51,17 @@ class WalletExpensesController extends ChangeNotifier {
       print('Sin internet, mostrando solo base local');
     }
 
-    List<Expense> gastosFromLocal = await syncService.localCrud.getAllExpenses();
+    List<Expense> gastosFromLocal =
+        await syncService.localCrud.getAllExpenses();
     print('Gastos obtenidos localmente: ${gastosFromLocal.length}');
     _allExpenses.clear();
     _allExpenses.addAll(gastosFromLocal);
     _filteredExpenses = List.from(_allExpenses);
-    notifyListeners();
+    if (!_isDisposed) notifyListeners();
   }
 
-  Future<void> addExpense(Expense expense, {required bool hasConnection}) async {
+  Future<void> addExpense(Expense expense,
+      {required bool hasConnection}) async {
     print('addExpense llamado con: ${expense.title}');
     await syncService.createExpense(expense, hasConnection: hasConnection);
     // Sincroniza la base local con la nube después de guardar
@@ -65,7 +69,8 @@ class WalletExpensesController extends ChangeNotifier {
     await loadExpensesSmart();
   }
 
-  Future<void> removeExpense(Expense expense, {required bool hasConnection}) async {
+  Future<void> removeExpense(Expense expense,
+      {required bool hasConnection}) async {
     print('removeExpense llamado con: \\${expense.title}');
     await syncService.deleteExpense(expense.id, hasConnection: hasConnection);
     await loadExpensesSmart();
@@ -74,14 +79,29 @@ class WalletExpensesController extends ChangeNotifier {
   void applyFilters(Map<Category, bool> filters) {
     _currentFilters = Map.from(filters);
     _filteredExpenses = _allExpenses.where((expense) {
-      if (filters[Category.comida] == true && expense.category == Category.comida) return true;
-      if (filters[Category.viajes] == true && expense.category == Category.viajes) return true;
-      if (filters[Category.ocio] == true && expense.category == Category.ocio) return true;
-      if (filters[Category.trabajo] == true && expense.category == Category.trabajo) return true;
-      if (filters[Category.salud] == true && expense.category == Category.salud) return true;
-      if (filters[Category.servicios] == true && expense.category == Category.servicios) return true;
+      if (filters[Category.comida] == true &&
+          expense.category == Category.comida) return true;
+      if (filters[Category.viajes] == true &&
+          expense.category == Category.viajes) return true;
+      if (filters[Category.ocio] == true && expense.category == Category.ocio)
+        return true;
+      if (filters[Category.trabajo] == true &&
+          expense.category == Category.trabajo) return true;
+      if (filters[Category.salud] == true && expense.category == Category.salud)
+        return true;
+      if (filters[Category.servicios] == true &&
+          expense.category == Category.servicios) return true;
       return false;
     }).toList();
-    notifyListeners();
+    if (!_isDisposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    // Marcar disposed para evitar notifyListeners posteriores desde callbacks asíncronos
+    _isDisposed = true;
+    // Nota: SyncService actualmente no expone un stopAutoSync; si se añade en el futuro
+    // sería ideal cancelar allí también.
+    super.dispose();
   }
 }

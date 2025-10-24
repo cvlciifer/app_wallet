@@ -1,4 +1,7 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+
+import 'package:app_wallet/security_section/presentation/screens/pin/reauthenticate_page.dart';
 
 class WalletProfilePage extends StatefulWidget {
   final String? userEmail;
@@ -64,14 +67,24 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
   late String? userEmail;
   late String? userName;
   String? alias;
+  bool _hasConnection = true;
 
   @override
   void initState() {
     super.initState();
+    // initialize user info to avoid late initialization errors
     userEmail = user?.email;
     userName = user?.displayName;
-    // Carga el alias almacenado
     _loadAlias();
+    _checkConnection();
+  }
+
+  Future<void> _checkConnection() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (!mounted) return;
+    setState(() {
+      _hasConnection = connectivityResult != ConnectivityResult.none;
+    });
   }
 
   Future<void> _loadAlias() async {
@@ -99,11 +112,49 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AwColors.white,
-      appBar: const WalletAppBar(
-        title: AwText.bold(
-          'Mi Perfil',
-          color: AwColors.white,
-        ),
+      appBar: WalletAppBar(
+        title: AwText.bold('Mi Perfil', color: AwColors.white),
+        actions: [
+          PopupMenuButton<int>(
+            onSelected: (v) async {
+              try {
+                if (v == 1) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) =>
+                          const AliasInputPage(initialSetup: false)));
+                } else if (v == 2) {
+                  final ok = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              const EnterPinPage(verifyOnly: true)));
+                  if (ok == true)
+                    Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SetPinPage()));
+                } else if (v == 3) {
+                  final success = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                          builder: (_) => const ReauthenticatePage()));
+                  if (success == true)
+                    Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SetPinPage()));
+                }
+              } catch (e, st) {
+                // Evitar que un error de navegación o del flujo PIN cierre la app.
+                // Loguear y mostrar un mensaje amigable.
+                if (kDebugMode)
+                  debugPrint('Profile menu action error: $e\n$st');
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content:
+                        Text('Error al abrir la acción. Intenta de nuevo.')));
+              }
+            },
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(value: 1, child: Text('Cambiar alias')),
+              const PopupMenuItem(value: 2, child: Text('Cambiar PIN')),
+              const PopupMenuItem(value: 3, child: Text('Olvidé mi PIN')),
+            ],
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -192,6 +243,66 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
             ),
 
             const Divider(height: 32),
+            // If offline, show direct action buttons; otherwise use AppBar menu
+            if (!_hasConnection) ...[
+              AwSpacing.s18,
+              WalletButton.iconButtonText(
+                icon: Icons.edit,
+                buttonText: 'Cambiar alias',
+                onPressed: () async {
+                  try {
+                    await Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) =>
+                            const AliasInputPage(initialSetup: false)));
+                  } catch (e, st) {
+                    if (kDebugMode) debugPrint('Cambiar alias error: $e\n$st');
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('No se pudo abrir cambiar alias')));
+                  }
+                },
+              ),
+              AwSpacing.s12,
+              WalletButton.iconButtonText(
+                icon: Icons.lock,
+                buttonText: 'Cambiar PIN',
+                onPressed: () async {
+                  try {
+                    final ok = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                const EnterPinPage(verifyOnly: true)));
+                    if (ok == true)
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const SetPinPage()));
+                  } catch (e, st) {
+                    if (kDebugMode) debugPrint('Cambiar PIN error: $e\n$st');
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('No se pudo abrir cambiar PIN')));
+                  }
+                },
+              ),
+              AwSpacing.s12,
+              WalletButton.iconButtonText(
+                icon: Icons.lock_reset,
+                buttonText: 'Olvidé mi PIN',
+                onPressed: () async {
+                  try {
+                    final success = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                            builder: (_) => const ReauthenticatePage()));
+                    if (success == true)
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const SetPinPage()));
+                  } catch (e, st) {
+                    if (kDebugMode) debugPrint('Olvidé PIN error: $e\n$st');
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('No se pudo abrir olvide PIN')));
+                  }
+                },
+              ),
+            ],
+
+            AwSpacing.s20,
             // Botón de configuración
             WalletButton.iconButtonText(
               icon: Icons.settings,
