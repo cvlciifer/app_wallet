@@ -88,13 +88,13 @@ class _FiltersScreenState extends State<FiltersScreen> {
               });
             },
             title: Text(
-              category.name.toUpperCase(),
+              category.displayName.toUpperCase(),
               style: Theme.of(context).textTheme.titleLarge!.copyWith(
                     color: Theme.of(context).colorScheme.onBackground,
                   ),
             ),
             subtitle: Text(
-              'Solo incluye gastos relacionados con ${category.name}.',
+              'Solo incluye gastos relacionados con ${category.displayName}.',
               style: Theme.of(context).textTheme.labelMedium!.copyWith(
                     color: Theme.of(context).colorScheme.onBackground,
                   ),

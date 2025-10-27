@@ -30,7 +30,14 @@ Future<List<Map<String, dynamic>>> getGastosLocal() async {
   final db = await _db();
   final rows = await db.query(
     'gastos',
-    columns: ['uid_gasto AS id', 'nombre AS name', 'fecha', 'cantidad', 'categoria AS tipo'],
+    columns: [
+      'uid_gasto AS id',
+      'nombre AS name',
+      'fecha',
+      'cantidad',
+      'categoria AS tipo',
+      'subcategoria AS subcategoria'
+    ],
     where: 'uid_correo = ?',
     whereArgs: [email],
     orderBy: 'fecha DESC',
@@ -68,6 +75,7 @@ Future<void> _insertExpense(Expense expense) async {
     'fecha': expense.date.millisecondsSinceEpoch,
     'cantidad': expense.amount,
     'categoria': _categoryToString(expense.category),
+    'subcategoria': expense.subcategoryId,
   });
 
   // Opcional: encolar para sync si utilizas pending_ops
@@ -89,13 +97,15 @@ Future<void> deleteExpenseLocal(Expense expense) async {
   final rows = await db.query(
     'gastos',
     columns: ['uid_gasto'],
-    where: 'uid_correo = ? AND nombre = ? AND fecha = ? AND cantidad = ? AND categoria = ?',
+    where:
+        'uid_correo = ? AND nombre = ? AND fecha = ? AND cantidad = ? AND categoria = ? AND (subcategoria IS ? OR subcategoria = ?)',
     whereArgs: [
       email,
       expense.title,
       expense.date.millisecondsSinceEpoch,
       expense.amount,
       _categoryToString(expense.category),
+      expense.subcategoryId,
     ],
   );
 

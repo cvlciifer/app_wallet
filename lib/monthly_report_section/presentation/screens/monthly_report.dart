@@ -15,41 +15,6 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedYear = DateTime.now().year;
   int _currentBottomNavIndex = 2;
 
-  void _handleBottomNavTap(int index) {
-    setState(() {
-      _currentBottomNavIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (ctx) => const WalletHomePage(),
-          ),
-          (route) => false,
-        );
-        break;
-      case 1:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (ctx) => EstadisticasScreen(
-              expenses: widget.expenses,
-            ),
-          ),
-        );
-        break;
-      case 2:
-        break;
-      case 3:
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (ctx) => const WalletProfilePage(),
-          ),
-        );
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final filteredExpenses = widget.expenses.where((expense) {
@@ -68,7 +33,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
           size: AwSize.s18,
           color: AwColors.white,
         ),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
@@ -156,7 +121,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                         color: Theme.of(context).colorScheme.tertiary,
                       ),
                       title: Text(
-                        bucket.category.name,
+                        bucket.category.displayName,
                         style: Theme.of(context).textTheme.titleMedium!.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
@@ -188,10 +153,6 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: WalletBottomAppBar(
-        currentIndex: _currentBottomNavIndex,
-        onTap: _handleBottomNavTap,
       ),
     );
   }

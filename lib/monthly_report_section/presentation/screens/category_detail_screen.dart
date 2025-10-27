@@ -13,10 +13,38 @@ class CategoryDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final subcats = subcategoriesByCategory[category] ?? [];
+
+    IconData _iconForSubId(String? subId) {
+      if (subId == null) return categoryIcons[category] ?? Icons.category;
+      for (final s in subcats) {
+        if (s.id == subId) return s.icon;
+      }
+      for (final entry in subcategoriesByCategory.entries) {
+        for (final s in entry.value) {
+          if (s.id == subId) return s.icon;
+        }
+      }
+      return categoryIcons[category] ?? Icons.category;
+    }
+
+    String _nameForSubId(String? subId) {
+      if (subId == null) return 'Sin subcategoría';
+      for (final s in subcats) {
+        if (s.id == subId) return s.name;
+      }
+      for (final entry in subcategoriesByCategory.entries) {
+        for (final s in entry.value) {
+          if (s.id == subId) return s.name;
+        }
+      }
+      return subId;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Gastos asociados a ${category.name}',
+          '${category.displayName}',
           style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -28,7 +56,6 @@ class CategoryDetailScreen extends StatelessWidget {
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
-        // ignore: deprecated_member_use
         color: Theme.of(context).colorScheme.background,
         child: expenses.isEmpty
             ? Center(
@@ -48,29 +75,45 @@ class CategoryDetailScreen extends StatelessWidget {
             : ListView.builder(
                 itemCount: expenses.length,
                 itemBuilder: (context, index) {
-                  final expense = expenses[index];
+                  final e = expenses[index];
+                  final subName = _nameForSubId(e.subcategoryId);
+                  final subIcon = _iconForSubId(e.subcategoryId);
                   return Card(
                     elevation: 4,
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     color: Theme.of(context).colorScheme.surface,
                     child: ListTile(
                       leading: Icon(
-                        categoryIcons[expense.category],
+                        subIcon,
                         size: AwSize.s30,
-                        color: Theme.of(context).colorScheme.tertiary, // Color terciario
+                        color: Theme.of(context).colorScheme.tertiary,
                       ),
                       title: Text(
-                        expense.title,
+                        e.title,
                         style: Theme.of(context).textTheme.titleMedium!.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                       ),
                       subtitle: Text(
-                        '${expense.formattedDate}\nMonto: ${formatNumber(expense.amount)}',
+                        subName,
                         style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                              // ignore: deprecated_member_use
                               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                             ),
+                      ),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            formatNumber(e.amount),
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                          ),
+                          AwSpacing.xs,
+                          Text(e.formattedDate, style: Theme.of(context).textTheme.bodySmall),
+                        ],
                       ),
                     ),
                   );

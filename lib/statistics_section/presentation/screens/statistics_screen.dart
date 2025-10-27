@@ -33,45 +33,10 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
 
     return walletExpenseBuckets.where((bucket) => bucket.totalExpenses > 0).map((bucket) {
       return {
-        'category': bucket.category.name,
+        'category': bucket.category.displayName,
         'amount': bucket.totalExpenses,
       };
     }).toList();
-  }
-
-  void _handleBottomNavTap(int index) {
-    setState(() {
-      _currentBottomNavIndex = index;
-    });
-
-    switch (index) {
-      case 0: // Home
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (ctx) => const WalletHomePage(),
-          ),
-          (route) => false,
-        );
-        break;
-      case 1: // Estadísticas (ya estamos aquí)
-        break;
-      case 2: // Informes
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (ctx) => InformeMensualScreen(
-              expenses: widget.expenses,
-            ),
-          ),
-        );
-        break;
-      case 3: // MiWallet
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (ctx) => const WalletProfilePage(),
-          ),
-        );
-        break;
-    }
   }
 
   @override
@@ -88,7 +53,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
           size: AwSize.s18,
           color: AwColors.white,
         ),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
       ),
       body: Container(
         color: Colors.white,
@@ -146,10 +111,6 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: WalletBottomAppBar(
-        currentIndex: _currentBottomNavIndex,
-        onTap: _handleBottomNavTap,
       ),
     );
   }

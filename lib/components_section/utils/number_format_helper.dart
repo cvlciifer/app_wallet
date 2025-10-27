@@ -1,9 +1,10 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/home_section/presentation/new_expense/presentation/models/currency.dart' as currency_model;
 import 'package:app_wallet/components_section/utils/text_formatters.dart' as formatters;
 
 class NumberFormatHelper {
-  static String formatAmount(String value, currency_model.Currency currency) {
+  static String formatAmount(
+    String value,
+  ) {
     if (value.isEmpty) return '';
 
     final numericValue = value.replaceAll(RegExp(r'[^\d]'), '');

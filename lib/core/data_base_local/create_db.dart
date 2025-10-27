@@ -6,7 +6,8 @@ import 'package:sqflite/sqflite.dart';
 /// Crea la base de datos si no existe y expone métodos básicos de inicialización
 class DBHelper {
   // versión de la base de datos - incrementa cuando realices cambios en las tablas
-  static const int _dbVersion = 1;
+  // Se incrementó a 2 para añadir la columna 'subcategoria' en la tabla 'gastos'
+  static const int _dbVersion = 2;
   static const String _dbName = 'adminwallet.db';
 
   // Singleton
@@ -72,6 +73,7 @@ class DBHelper {
         cantidad INTEGER NOT NULL,
         nombre TEXT,
         categoria TEXT,
+        subcategoria TEXT,
         sync_status INTEGER DEFAULT 0,
         FOREIGN KEY (uid_correo) REFERENCES usuarios(uid) ON DELETE CASCADE
       );
@@ -97,10 +99,19 @@ class DBHelper {
 
   // Migraciones futuras
   FutureOr<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // ejemplo: if (oldVersion < 2) { await db.execute("ALTER TABLE ..."); }
+    // Migraciones entre versiones
+    if (oldVersion < 2) {
+      // Añadimos la columna subcategoria para guardar el id de la subcategoría
+      try {
+        await db.execute('ALTER TABLE gastos ADD COLUMN subcategoria TEXT;');
+      } catch (e) {
+        // En caso de error (por ejemplo, si la columna ya existe) lo ignoramos
+      }
+    }
     // agrega migraciones aquí cuando subas _dbVersion
   }
-    // Upsert usuario (inserta o reemplaza)
+
+  // Upsert usuario (inserta o reemplaza)
   Future<void> upsertUsuario({required String uid, required String correo}) async {
     final db = await database;
     await db.insert(
@@ -154,7 +165,6 @@ class DBHelper {
     return await db.query('usuarios', orderBy: 'correo');
   }
 
-
   /// Cierra la base de datos
   Future close() async {
     final db = _database;
@@ -163,5 +173,4 @@ class DBHelper {
       _database = null;
     }
   }
-
 }

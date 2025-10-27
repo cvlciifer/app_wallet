@@ -28,7 +28,7 @@ class DetailExpenseContent extends StatelessWidget {
   }
 
   String _getCategoryName(Category category) {
-    return category.toString().split('.').last.capitalize();
+    return category.displayName;
   }
 
   @override

@@ -31,6 +31,7 @@ Future<List<Expense>> getAllExpensesImpl() async {
             amount: (row['cantidad'] as num).toDouble(),
             date: DateTime.fromMillisecondsSinceEpoch(row['fecha'] as int),
             category: _mapCategory(row['categoria'] as String),
+            subcategoryId: row['subcategoria'] as String?,
             syncStatus: row['sync_status'] != null ? SyncStatus.values[row['sync_status'] as int] : SyncStatus.synced,
           ))
       .toList();
@@ -128,6 +129,7 @@ Future<void> insertExpenseImpl(Expense expense) async {
     'fecha': expense.date.millisecondsSinceEpoch,
     'cantidad': expense.amount,
     'categoria': _categoryToString(expense.category),
+    'subcategoria': expense.subcategoryId,
     'sync_status': expense.syncStatus.index,
     'id': expense.id,
   });
@@ -144,6 +146,7 @@ Future<void> updateExpenseImpl(Expense expense) async {
       'fecha': expense.date.millisecondsSinceEpoch,
       'cantidad': expense.amount,
       'categoria': _categoryToString(expense.category),
+      'subcategoria': expense.subcategoryId,
       'sync_status': expense.syncStatus.index,
     },
     where: 'id = ? AND uid_correo = ?',
@@ -183,6 +186,7 @@ Future<List<Expense>> getPendingExpensesImpl() async {
             amount: (row['cantidad'] as num).toDouble(),
             date: DateTime.fromMillisecondsSinceEpoch(row['fecha'] as int),
             category: _mapCategory(row['categoria'] as String),
+            subcategoryId: row['subcategoria'] as String?,
             syncStatus: SyncStatus.values[row['sync_status'] as int],
           ))
       .toList();
@@ -199,22 +203,16 @@ Future<void> replaceAllExpensesImpl(List<Expense> expenses) async {
 }
 
 Category _mapCategory(String tipo) {
-  switch (tipo) {
-    case 'trabajo':
-      return Category.trabajo;
-    case 'ocio':
-      return Category.ocio;
-    case 'comida':
-      return Category.comida;
-    case 'viajes':
-      return Category.viajes;
-    case 'salud':
-      return Category.salud;
-    case 'servicios':
-      return Category.servicios;
-    default:
-      return Category.comida;
+  // Acepta tanto el nombre del enum (ej: 'comidaBebida') como el displayName
+  // (ej: 'Comida y Bebida'). Si coincide con alguno devolvemos el enum.
+  for (final c in Category.values) {
+    final enumName = c.toString().split('.').last;
+    if (enumName == tipo) return c;
+    if (c.displayName == tipo) return c;
   }
+
+  // Si no coincide con ninguno, como fallback devolvemos comidaBebida
+  return Category.comidaBebida;
 }
 
 // ==========================

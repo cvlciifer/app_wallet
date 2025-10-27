@@ -6,14 +6,7 @@ class Chart extends StatelessWidget {
   final List<Expense> expenses;
 
   List<WalletExpenseBucket> get buckets {
-    return [
-      WalletExpenseBucket.forCategory(expenses, Category.comida),
-      WalletExpenseBucket.forCategory(expenses, Category.ocio),
-      WalletExpenseBucket.forCategory(expenses, Category.viajes),
-      WalletExpenseBucket.forCategory(expenses, Category.trabajo),
-      WalletExpenseBucket.forCategory(expenses, Category.salud),
-      WalletExpenseBucket.forCategory(expenses, Category.servicios),
-    ];
+    return Category.values.map((c) => WalletExpenseBucket.forCategory(expenses, c)).toList();
   }
 
   double get maxTotalExpense {
@@ -33,20 +26,8 @@ class Chart extends StatelessWidget {
   }
 
   Color getColorForCategory(Category category) {
-    switch (category) {
-      case Category.comida:
-        return AwColors.darkBlue;
-      case Category.ocio:
-        return AwColors.darkBlue;
-      case Category.viajes:
-        return AwColors.darkBlue;
-      case Category.trabajo:
-        return AwColors.darkBlue;
-      case Category.servicios:
-        return AwColors.darkBlue;
-      default:
-        return AwColors.darkBlue;
-    }
+    // For now use a single theme color; can be expanded per category
+    return AwColors.darkBlue;
   }
 
   @override

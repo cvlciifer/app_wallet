@@ -1,35 +1,55 @@
 import 'package:flutter/material.dart';
+import 'category.dart';
 
 class WalletCategoryHelper {
-  static const Map<String, IconData> categoryIcons = {
-    'comida': Icons.lunch_dining,
-    'viajes': Icons.flight_takeoff,
-    'ocio': Icons.movie,
-    'trabajo': Icons.work,
-    'salud': Icons.health_and_safety,
-    'servicios': Icons.design_services,
-  };
+  /// Devuelve icono según un identificador o nombre de categoría/subcategoría.
+  static IconData getCategoryIcon(String categoryOrSubcategory) {
+    // 1) buscar en subcategorías por id o por nombre
+    for (final entry in subcategoriesByCategory.entries) {
+      for (final sub in entry.value) {
+        if (sub.id == categoryOrSubcategory || sub.name.toLowerCase() == categoryOrSubcategory.toLowerCase()) {
+          return sub.icon;
+        }
+      }
+    }
 
-  static IconData getCategoryIcon(String category) {
-    return categoryIcons[category] ?? Icons.category;
+    // 2) buscar por nombre legible de la categoría
+    for (final c in Category.values) {
+      if (c.displayName.toLowerCase() == categoryOrSubcategory.toLowerCase() ||
+          c.toString().split('.').last == categoryOrSubcategory) {
+        return categoryIcons[c] ?? Icons.category;
+      }
+    }
+
+    // fallback
+    return Icons.category;
   }
 
-  static Color getCategoryColor(String category) {
-    switch (category) {
-      case 'comida':
-        return Colors.blue;
-      case 'viajes':
-        return Colors.red;
-      case 'ocio':
-        return Colors.green;
-      case 'trabajo':
-        return Colors.orange;
-      case 'salud':
-        return Colors.purple;
-      case 'servicios':
-        return Colors.amber;
-      default:
-        return Colors.grey;
+  static Color getCategoryColor(String categoryOrSubcategory) {
+    for (final c in Category.values) {
+      if (c.displayName.toLowerCase() == categoryOrSubcategory.toLowerCase() ||
+          c.toString().split('.').last == categoryOrSubcategory) {
+        switch (c) {
+          case Category.comidaBebida:
+            return Colors.blue;
+          case Category.comprasPersonales:
+            return Colors.pink;
+          case Category.salud:
+            return Colors.green;
+          case Category.hogarVivienda:
+            return Colors.brown;
+          case Category.transporte:
+            return Colors.indigo;
+          case Category.vehiculos:
+            return Colors.orange;
+          case Category.ocioEntretenimiento:
+            return Colors.deepPurple;
+          case Category.serviciosCuentas:
+            return Colors.teal;
+        }
+      }
     }
+
+    return Colors.grey;
   }
 }

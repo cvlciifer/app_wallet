@@ -63,16 +63,18 @@ export 'package:app_wallet/components_section/appbar/wallet_expenses_appbar.dart
 export 'package:app_wallet/components_section/filters/wallet_filters_button.dart';
 export 'package:app_wallet/components_section/buttons/buttons.dart';
 export 'package:app_wallet/components_section/utils/format_number.dart';
-export 'package:app_wallet/home_section/presentation/new_expense/presentation/models/currency.dart';
 export 'package:app_wallet/components_section/utils/number_format_helper.dart';
 export 'package:app_wallet/components_section/widgets/expense_form/expense_form.dart';
 export 'package:app_wallet/components_section/widgets/expense_form/category_selector.dart';
 export 'package:app_wallet/components_section/widgets/expense_form/category_picker_dialog.dart';
-export 'package:app_wallet/components_section/widgets/expense_form/currency_selector.dart';
-export 'package:app_wallet/components_section/widgets/expense_form/currency_picker_dialog.dart';
 export 'package:app_wallet/components_section/widgets/expense_form/custom_text_field.dart';
 export 'package:app_wallet/components_section/widgets/expense_form/date_selector.dart';
 export 'package:app_wallet/core/data_base_local/create_db.dart';
 export 'package:app_wallet/components_section/modals/wallet_pop_up.dart';
 export 'package:app_wallet/monthly_report_section/presentation/screens/monthly_report.dart';
 export 'package:app_wallet/components_section/utils/text_formatters.dart';
+
+export 'package:app_wallet/components_section/components/ticket_card.dart';
+export 'package:app_wallet/components_section/components/form_header.dart';
+export 'package:app_wallet/components_section/components/category_picker.dart';
+export 'package:app_wallet/components_section/components/amount_input.dart';
