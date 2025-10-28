@@ -53,7 +53,6 @@ class TicketCard extends StatelessWidget {
 
     if (boxShadowAll) {
       return Container(
-        // BoxDecoration shadow around the ticket's bounding box
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(

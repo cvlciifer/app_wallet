@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/core/data_base_local/local_crud.dart';
 
 class NewExpenseScreen extends StatefulWidget {
   const NewExpenseScreen({super.key});
@@ -20,8 +19,6 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
 
   void _handleExpenseSubmit(Expense expense) async {
     try {
-      await createExpenseLocal(expense);
-
       if (mounted) {
         await showDialog(
           context: context,
@@ -29,10 +26,10 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
           builder: (ctx) {
             return AlertDialog(
               title: const AwText.bold(
-                'Gasto agregado',
+                'Gasto preparado',
                 color: AwColors.black,
               ),
-              content: const AwText(text: 'El gasto ha sido añadido correctamente'),
+              content: const AwText(text: 'El gasto está listo para guardarse.'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),

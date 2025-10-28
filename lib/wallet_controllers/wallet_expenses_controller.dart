@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 
@@ -16,9 +18,8 @@ class WalletExpensesController extends ChangeNotifier {
   late final SyncService syncService;
 
   WalletExpensesController() {
-    // Inicializa el servicio de sincronización con el email real del usuario autenticado
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
-    print('Email usado para SyncService: $email');
+    log('Email usado para SyncService: $email');
     syncService = SyncService(
       localCrud: LocalCrud(),
       firestore: FirebaseFirestore.instance,
@@ -31,21 +32,20 @@ class WalletExpensesController extends ChangeNotifier {
   List<Expense> get filteredExpenses => List.unmodifiable(_filteredExpenses);
   Map<Category, bool> get currentFilters => Map.unmodifiable(_currentFilters);
 
-  /// Carga los gastos desde la nube si hay internet, o desde la base local si no hay conexión
   Future<void> loadExpensesSmart() async {
-    print('loadExpensesSmart llamado');
+    log('loadExpensesSmart llamado');
     final connectivityResult = await Connectivity().checkConnectivity();
     final hasConnection = connectivityResult != ConnectivityResult.none;
 
     if (hasConnection) {
-      print('Hay internet, sincronizando con la nube...');
+      log('Hay internet, sincronizando con la nube...');
       await syncService.initializeLocalDbFromFirebase();
     } else {
-      print('Sin internet, mostrando solo base local');
+      log('Sin internet, mostrando solo base local');
     }
 
     List<Expense> gastosFromLocal = await syncService.localCrud.getAllExpenses();
-    print('Gastos obtenidos localmente: ${gastosFromLocal.length}');
+    log('Gastos obtenidos localmente: ${gastosFromLocal.length}');
     _allExpenses.clear();
     _allExpenses.addAll(gastosFromLocal);
     _filteredExpenses = List.from(_allExpenses);
@@ -53,16 +53,20 @@ class WalletExpensesController extends ChangeNotifier {
   }
 
   Future<void> addExpense(Expense expense, {required bool hasConnection}) async {
-    print('addExpense llamado con: ${expense.title}');
+    log('addExpense llamado con: ${expense.title}');
     await syncService.createExpense(expense, hasConnection: hasConnection);
-    // Sincroniza la base local con la nube después de guardar
-    await syncService.initializeLocalDbFromFirebase();
+    if (hasConnection) {
+      await syncService.initializeLocalDbFromFirebase();
+    }
     await loadExpensesSmart();
   }
 
   Future<void> removeExpense(Expense expense, {required bool hasConnection}) async {
-    print('removeExpense llamado con: \\${expense.title}');
+    log('removeExpense llamado con: \\${expense.title}');
     await syncService.deleteExpense(expense.id, hasConnection: hasConnection);
+    if (hasConnection) {
+      await syncService.initializeLocalDbFromFirebase();
+    }
     await loadExpensesSmart();
   }
 
