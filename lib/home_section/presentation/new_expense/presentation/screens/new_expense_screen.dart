@@ -23,18 +23,26 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       await createExpenseLocal(expense);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: AwText.bold(
-              'Gasto agregado exitosamente',
-              color: AwColors.white,
-            ),
-            backgroundColor: Colors.green,
-          ),
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) {
+            return AlertDialog(
+              title: const AwText.bold(
+                'Gasto agregado',
+                color: AwColors.black,
+              ),
+              content: const AwText(text: 'El gasto ha sido añadido correctamente'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const AwText.bold('Aceptar', color: AwColors.blue),
+                ),
+              ],
+            );
+          },
         );
-
-        // Navegar de vuelta y pasar el expense como resultado
-        Navigator.pop(context, expense);
+        if (mounted) Navigator.pop(context, expense);
       }
     } catch (error) {
       if (mounted) {

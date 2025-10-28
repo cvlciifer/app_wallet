@@ -55,6 +55,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     return ChangeNotifierProvider.value(
       value: _controller,
       child: Scaffold(
+        backgroundColor: AwColors.greyLight,
         appBar: const WalletHomeAppbar(),
         body: Consumer<WalletExpensesController>(
           builder: (context, controller, child) {

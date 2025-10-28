@@ -42,9 +42,10 @@ class CategoryDetailScreen extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: AwColors.greyLight,
       appBar: AppBar(
         title: Text(
-          '${category.displayName}',
+          category.displayName,
           style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -78,42 +79,53 @@ class CategoryDetailScreen extends StatelessWidget {
                   final e = expenses[index];
                   final subName = _nameForSubId(e.subcategoryId);
                   final subIcon = _iconForSubId(e.subcategoryId);
-                  return Card(
-                    elevation: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    color: Theme.of(context).colorScheme.surface,
-                    child: ListTile(
-                      leading: Icon(
-                        subIcon,
-                        size: AwSize.s30,
-                        color: Theme.of(context).colorScheme.tertiary,
-                      ),
-                      title: Text(
-                        e.title,
-                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 20.0),
+                    child: TicketCard(
+                      boxShadowAll: true,
+                      roundTopCorners: true,
+                      topCornerRadius: 10,
+                      compactNotches: true,
+                      elevation: 4,
+                      color: Theme.of(context).colorScheme.surface,
+                      // Reduce outer padding so the child can use more space
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      child: ListTile(
+                        // Remove ListTile default inner padding to let content fill the area
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        leading: Icon(
+                          subIcon,
+                          size: AwSize.s30,
+                          color: Theme.of(context).colorScheme.tertiary,
+                        ),
+                        title: Text(
+                          e.title,
+                          style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                        ),
+                        subtitle: Text(
+                          subName,
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                        ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              formatNumber(e.amount),
+                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
                             ),
-                      ),
-                      subtitle: Text(
-                        subName,
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                            ),
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            formatNumber(e.amount),
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                          ),
-                          AwSpacing.xs,
-                          Text(e.formattedDate, style: Theme.of(context).textTheme.bodySmall),
-                        ],
+                            AwSpacing.xs,
+                            Text(e.formattedDate, style: Theme.of(context).textTheme.bodySmall),
+                            AwSpacing.xs,
+                          ],
+                        ),
                       ),
                     ),
                   );

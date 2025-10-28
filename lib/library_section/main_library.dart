@@ -34,7 +34,6 @@ export 'package:app_wallet/firebase_options.dart';
 export 'package:app_wallet/login_section/presentation/providers/register_provider.dart';
 export 'package:app_wallet/home_section/presentation/screens/filters.dart';
 export 'package:app_wallet/components_section/empty_state.dart';
-export 'package:app_wallet/components_section/widgets/main_drawer.dart';
 export 'package:app_wallet/monthly_report_section/presentation/screens/category_detail_screen.dart';
 export 'package:app_wallet/register_section/presentation/screens/register.dart';
 export 'package:app_wallet/components_section/widgets/chart/chart_bar.dart';

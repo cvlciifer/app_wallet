@@ -13,7 +13,6 @@ class InformeMensualScreen extends StatefulWidget {
 class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
-  int _currentBottomNavIndex = 2;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +26,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold(
           'Informe Mensual',
@@ -110,43 +110,67 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                 itemCount: expenseBuckets.length,
                 itemBuilder: (context, index) {
                   final bucket = expenseBuckets[index];
-                  return Card(
-                    elevation: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 4.0),
-                    color: Theme.of(context).colorScheme.surface,
-                    child: ListTile(
-                      leading: Icon(
-                        categoryIcons[bucket.category],
-                        size: 30,
-                        color: Theme.of(context).colorScheme.tertiary,
-                      ),
-                      title: Text(
-                        bucket.category.displayName,
-                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                          alignment: Alignment.centerLeft,
+                          backgroundColor: Colors.transparent,
+                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        ),
+                        onPressed: () {
+                          final categoryExpenses = filteredExpenses.where((expense) {
+                            return expense.category == bucket.category;
+                          }).toList();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (ctx) => CategoryDetailScreen(
+                                category: bucket.category,
+                                expenses: categoryExpenses,
+                              ),
                             ),
-                      ),
-                      subtitle: Text(
-                        'Total: ${formatNumber(bucket.totalExpenses)}',
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              categoryIcons[bucket.category],
+                              size: 30,
+                              color: Theme.of(context).colorScheme.tertiary,
                             ),
-                      ),
-                      trailing: const Icon(Icons.arrow_forward),
-                      onTap: () {
-                        final categoryExpenses = filteredExpenses.where((expense) {
-                          return expense.category == bucket.category;
-                        }).toList();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (ctx) => CategoryDetailScreen(
-                              category: bucket.category,
-                              expenses: categoryExpenses,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    bucket.category.displayName,
+                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Total: ${formatNumber(bucket.totalExpenses)}',
+                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                        ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                            const Icon(Icons.arrow_forward),
+                          ],
+                        ),
+                      ),
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ],
                   );
                 },
               ),

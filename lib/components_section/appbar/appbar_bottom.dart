@@ -13,6 +13,8 @@ class WalletBottomAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
+      color: const Color.fromARGB(255, 253, 250, 250),
+      shadowColor: Colors.black.withOpacity(0.5),
       elevation: 8.0,
       shape: const CircularNotchedRectangle(),
       child: SizedBox(

@@ -5,7 +5,6 @@ class ExpenseItem extends StatelessWidget {
 
   final Expense expense;
 
-  // Define un formateador para los números con '.' cada tres dígitos
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
     return formatter.format(value);
@@ -13,12 +12,15 @@ class ExpenseItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 15,
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 10,
+      ),
+      child: TicketCard(
+        compactNotches: true,
+        roundTopCorners: true,
+        topCornerRadius: 7,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
