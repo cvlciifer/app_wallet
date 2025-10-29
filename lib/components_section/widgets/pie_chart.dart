@@ -38,17 +38,15 @@ class WalletPieChartState extends State<WalletPieChart> {
   }
 
   List<PieChartSectionData> _getPieChartSections(List<Map<String, dynamic>> data) {
-    final total = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
-
     return data.map((item) {
-      final category = item['category'] as String;
+      final label = item['label'] as String;
       final amount = item['amount'] as double;
-      final percentage = (amount / total) * 100;
+      final Color? color = item['color'] as Color?;
 
       return PieChartSectionData(
-        color: WalletCategoryHelper.getCategoryColor(category),
-        value: percentage,
-        title: '${percentage.toStringAsFixed(1)}%',
+        color: color ?? WalletCategoryHelper.getCategoryColor(label),
+        value: amount,
+        title: '',
         radius: 100,
         titleStyle: const TextStyle(
           fontSize: 16,
