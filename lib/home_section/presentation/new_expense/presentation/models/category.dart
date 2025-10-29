@@ -32,6 +32,27 @@ extension CategoryX on Category {
         return 'Servicios y cuentas';
     }
   }
+
+  Color get color {
+    switch (this) {
+      case Category.comidaBebida:
+        return Colors.blue;
+      case Category.comprasPersonales:
+        return Colors.pink;
+      case Category.salud:
+        return Colors.green;
+      case Category.hogarVivienda:
+        return Colors.brown;
+      case Category.transporte:
+        return Colors.indigo;
+      case Category.vehiculos:
+        return Colors.orange;
+      case Category.ocioEntretenimiento:
+        return Colors.deepPurple;
+      case Category.serviciosCuentas:
+        return Colors.teal;
+    }
+  }
 }
 
 const categoryIcons = {

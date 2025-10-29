@@ -45,19 +45,17 @@ class _CategoryPickerDialogState extends State<CategoryPickerDialog> {
                 shrinkWrap: true,
                 children: Category.values.map((category) {
                   final mainName = category.displayName;
-                  // filter categories if neither main nor any subcategories match
                   final subcats = subcategoriesByCategory[category] ?? [];
                   final mainMatches = _matches(mainName);
                   final anySubMatches = subcats.any((s) => _matches(s.name));
                   if (!mainMatches && !anySubMatches) return const SizedBox.shrink();
 
                   return ExpansionTile(
-                    leading: Icon(categoryIcons[category], color: AwColors.appBarColor),
+                    leading: Icon(categoryIcons[category], color: category.color),
                     title: AwText.bold(mainName),
                     children: [
-                      // Option to select main category without subcategoria
                       ListTile(
-                        leading: Icon(categoryIcons[category], color: Colors.grey),
+                        leading: Icon(categoryIcons[category], color: category.color),
                         title: AwText(text: 'Sin subcategoría (usar ${mainName.toLowerCase()})'),
                         onTap: () {
                           widget.onCategorySelected(category, null);
@@ -67,11 +65,12 @@ class _CategoryPickerDialogState extends State<CategoryPickerDialog> {
                       ...subcats.where((s) => _matches(s.name)).map((s) {
                         return ListTile(
                           leading: Icon(s.icon,
-                              color: widget.selectedSubcategoryId == s.id ? AwColors.appBarColor : Colors.grey),
+                              color: widget.selectedSubcategoryId == s.id
+                                  ? category.color
+                                  : category.color.withOpacity(0.5)),
                           title: AwText(text: s.name),
-                          trailing: widget.selectedSubcategoryId == s.id
-                              ? Icon(Icons.check, color: AwColors.appBarColor)
-                              : null,
+                          trailing:
+                              widget.selectedSubcategoryId == s.id ? Icon(Icons.check, color: category.color) : null,
                           onTap: () {
                             widget.onCategorySelected(category, s.id);
                             Navigator.of(context).pop();

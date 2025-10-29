@@ -94,7 +94,7 @@ class CategoryDetailScreen extends StatelessWidget {
                         leading: Icon(
                           subIcon,
                           size: AwSize.s30,
-                          color: Theme.of(context).colorScheme.tertiary,
+                          color: category.color,
                         ),
                         title: Text(
                           e.title,

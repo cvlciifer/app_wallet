@@ -137,7 +137,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                             Icon(
                               categoryIcons[bucket.category],
                               size: 30,
-                              color: Theme.of(context).colorScheme.tertiary,
+                              color: bucket.category.color,
                             ),
                             const SizedBox(width: 12),
                             Expanded(

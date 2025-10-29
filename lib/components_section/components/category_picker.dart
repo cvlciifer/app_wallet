@@ -38,7 +38,7 @@ class CategoryPicker extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 color: Colors.grey.shade100,
               ),
-              child: Icon(icon, color: AwColors.appBarColor),
+              child: Icon(icon, color: selectedCategory.color),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -180,17 +180,18 @@ class _CategoryBottomSheetContentState extends State<_CategoryBottomSheetContent
                 if (!mainMatches && !anySubMatches) return const SizedBox.shrink();
 
                 return ExpansionTile(
-                  leading: Icon(categoryIcons[category], color: AwColors.appBarColor),
+                  leading: Icon(categoryIcons[category], color: category.color),
                   title: AwText.bold(mainName),
                   children: [
                     ListTile(
-                      leading: Icon(categoryIcons[category], color: Colors.grey),
+                      leading: Icon(categoryIcons[category], color: category.color),
                       title: AwText(text: 'Sin subcategoría (usar ${mainName.toLowerCase()})'),
                       onTap: () => widget.onSelect(category, null, mainName),
                     ),
                     ...subcats.where((s) => _matches(s.name)).map((s) {
                       return ListTile(
-                        leading: Icon(s.icon, color: widget.initialSubId == s.id ? AwColors.appBarColor : Colors.grey),
+                        leading: Icon(s.icon,
+                            color: widget.initialSubId == s.id ? category.color : category.color.withOpacity(0.5)),
                         title: AwText(text: s.name),
                         onTap: () => widget.onSelect(category, s.id, s.name),
                       );

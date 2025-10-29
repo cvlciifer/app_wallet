@@ -29,7 +29,6 @@ class CategorySelector extends StatelessWidget {
             children: [
               Center(
                 child: Icon(
-                  // If a subcategory is selected, try to show its icon; otherwise main category icon
                   (() {
                     if (selectedSubcategoryId != null) {
                       final list = subcategoriesByCategory[selectedCategory] ?? [];
@@ -45,7 +44,7 @@ class CategorySelector extends StatelessWidget {
                     return categoryIcons[selectedCategory];
                   })(),
                   size: 28,
-                  color: AwColors.appBarColor,
+                  color: selectedCategory.color,
                 ),
               ),
               Positioned(

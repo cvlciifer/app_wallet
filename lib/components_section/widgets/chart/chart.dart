@@ -26,8 +26,7 @@ class Chart extends StatelessWidget {
   }
 
   Color getColorForCategory(Category category) {
-    // For now use a single theme color; can be expanded per category
-    return AwColors.darkBlue;
+    return category.color;
   }
 
   @override
@@ -103,7 +102,7 @@ class Chart extends StatelessWidget {
                               width: 40,
                               child: Icon(
                                 categoryIcons[bucket.category],
-                                color: AwColors.blue,
+                                color: bucket.category.color,
                               ),
                             ),
                           );

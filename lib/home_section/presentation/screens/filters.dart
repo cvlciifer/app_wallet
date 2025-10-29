@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/monthly_report_section/presentation/screens/monthly_report.dart';
 
 class FiltersScreen extends StatefulWidget {
   const FiltersScreen({super.key});
@@ -98,7 +97,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                     color: Theme.of(context).colorScheme.onBackground,
                   ),
             ),
-            secondary: Icon(categoryIcons[category], color: Theme.of(context).colorScheme.onBackground),
+            secondary: Icon(categoryIcons[category], color: category.color),
             activeColor: Theme.of(context).colorScheme.tertiary,
             contentPadding: const EdgeInsets.only(left: 34, right: 22),
           );
