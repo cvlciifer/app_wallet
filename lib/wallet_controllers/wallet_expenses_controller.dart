@@ -1,12 +1,8 @@
 import 'dart:developer';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:app_wallet/library_section/main_library.dart';
-
 import '../core/data_base_local/local_crud.dart';
 import '../core/sync_service/sync_service.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
 
 class WalletExpensesController extends ChangeNotifier {
   final List<Expense> _allExpenses = [];
@@ -26,6 +22,7 @@ class WalletExpensesController extends ChangeNotifier {
       userEmail: email,
     );
     syncService.startAutoSync();
+    loadExpensesSmart();
   }
 
   List<Expense> get allExpenses => List.unmodifiable(_allExpenses);
@@ -46,8 +43,11 @@ class WalletExpensesController extends ChangeNotifier {
 
     List<Expense> gastosFromLocal = await syncService.localCrud.getAllExpenses();
     log('Gastos obtenidos localmente: ${gastosFromLocal.length}');
+
+    final visibleExpenses = gastosFromLocal.where((e) => e.syncStatus != SyncStatus.pendingDelete).toList();
+
     _allExpenses.clear();
-    _allExpenses.addAll(gastosFromLocal);
+    _allExpenses.addAll(visibleExpenses);
     _filteredExpenses = List.from(_allExpenses);
     notifyListeners();
   }

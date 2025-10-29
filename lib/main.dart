@@ -15,26 +15,25 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // DEBUG: Imprimir la ubicación de la base de datos
   try {
     final databasesPath = await getDatabasesPath();
     final dbPath = join(databasesPath, 'adminwallet.db');
     log('UBICACIÓN DE LA BASE DE DATOS: $dbPath');
   } catch (e) {
-    log('❌ Error obteniendo ruta de BD: $e');
+    log('Error obteniendo ruta de BD: $e');
   }
 
-  // Restringir la orientación a vertical
   await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp, // Solo permitir orientación vertical hacia arriba
+    DeviceOrientation.portraitUp,
   ]);
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => RegisterProvider()), // Agrega el RegisterProvider
-        ChangeNotifierProvider(create: (_) => LoginProvider()), // Agrega también el LoginProvider
-        ChangeNotifierProvider(create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
+        ChangeNotifierProvider(create: (_) => WalletExpensesController()),
+        ChangeNotifierProvider(create: (_) => RegisterProvider()),
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
+        ChangeNotifierProvider(create: (_) => local_auth.AuthProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

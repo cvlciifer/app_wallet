@@ -88,10 +88,8 @@ class CategoryDetailScreen extends StatelessWidget {
                       compactNotches: true,
                       elevation: 4,
                       color: Theme.of(context).colorScheme.surface,
-                      // Reduce outer padding so the child can use more space
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                       child: ListTile(
-                        // Remove ListTile default inner padding to let content fill the area
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         leading: Icon(
                           subIcon,

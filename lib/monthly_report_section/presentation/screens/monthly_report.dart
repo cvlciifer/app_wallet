@@ -6,7 +6,6 @@ class InformeMensualScreen extends StatefulWidget {
   const InformeMensualScreen({Key? key, required this.expenses}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _InformeMensualScreenState createState() => _InformeMensualScreenState();
 }
 

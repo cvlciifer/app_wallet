@@ -11,23 +11,14 @@ class WalletHomePage extends StatefulWidget {
 
 class _WalletHomePageState extends State<WalletHomePage> {
   int _currentBottomIndex = 0;
-  late WalletExpensesController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = WalletExpensesController();
-    Connectivity().checkConnectivity().then((result) async {
-      if (result != ConnectivityResult.none) {
-        await _controller.syncService.initializeLocalDbFromFirebase();
-      }
-      await _controller.loadExpensesSmart();
-    });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
   }
 
@@ -35,7 +26,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
     setState(() {
       _currentBottomIndex = index;
     });
-    WalletNavigationService.handleBottomNavigation(context, index, _controller.allExpenses);
+    final controller = context.read<WalletExpensesController>();
+    WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
   }
 
   void _openAddExpenseOverlay() async {
@@ -43,40 +35,39 @@ class _WalletHomePageState extends State<WalletHomePage> {
     if (expense != null) {
       final connectivity = await Connectivity().checkConnectivity();
       final hasConnection = connectivity != ConnectivityResult.none;
-      await _controller.addExpense(expense, hasConnection: hasConnection);
+      final controller = context.read<WalletExpensesController>();
+      await controller.addExpense(expense, hasConnection: hasConnection);
     }
   }
 
   void _openFilters() async {
-    final filters = await WalletNavigationService.openFiltersPage(context, _controller.currentFilters);
+    final controller = context.read<WalletExpensesController>();
+    final filters = await WalletNavigationService.openFiltersPage(context, controller.currentFilters);
     if (filters != null) {
-      _controller.applyFilters(filters);
+      controller.applyFilters(filters);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _controller,
-      child: Scaffold(
-        backgroundColor: AwColors.greyLight,
-        appBar: const WalletHomeAppbar(),
-        body: Consumer<WalletExpensesController>(
-          builder: (context, controller, child) {
-            return _buildBody(context, controller);
-          },
-        ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: AwColors.appBarColor,
-          onPressed: _openAddExpenseOverlay,
-          tooltip: 'Agregar gasto',
-          child: const Icon(Icons.add, color: AwColors.white),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: WalletBottomAppBar(
-          currentIndex: _currentBottomIndex,
-          onTap: _onBottomNavTap,
-        ),
+    return Scaffold(
+      backgroundColor: AwColors.greyLight,
+      appBar: const WalletHomeAppbar(),
+      body: Consumer<WalletExpensesController>(
+        builder: (context, controller, child) {
+          return _buildBody(context, controller);
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AwColors.appBarColor,
+        onPressed: _openAddExpenseOverlay,
+        tooltip: 'Agregar gasto',
+        child: const Icon(Icons.add, color: AwColors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: WalletBottomAppBar(
+        currentIndex: _currentBottomIndex,
+        onTap: _onBottomNavTap,
       ),
     );
   }
@@ -89,7 +80,9 @@ class _WalletHomePageState extends State<WalletHomePage> {
       mainContent = ExpensesList(
         expenses: controller.filteredExpenses,
         onRemoveExpense: (expense) async {
-          await controller.removeExpense(expense, hasConnection: true);
+          final connectivity = await Connectivity().checkConnectivity();
+          final hasConnection = connectivity != ConnectivityResult.none;
+          await controller.removeExpense(expense, hasConnection: hasConnection);
         },
       );
     }

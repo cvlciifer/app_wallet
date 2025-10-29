@@ -10,7 +10,7 @@ class FiltersScreen extends StatefulWidget {
 
 class _FiltersScreenState extends State<FiltersScreen> {
   late Map<Category, bool> _filters;
-  int _currentBottomNavIndex = 0; // Filtros está en el índice 0
+  int _currentBottomNavIndex = 0;
 
   @override
   void didChangeDependencies() {
@@ -37,13 +37,13 @@ class _FiltersScreenState extends State<FiltersScreen> {
     });
 
     switch (index) {
-      case 0: // Filtros (ya estamos aquí)
+      case 0:
         break;
-      case 1: // Estadísticas
+      case 1:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (ctx) => EstadisticasScreen(
-              expenses: [], // Necesitarás pasar los expenses desde donde sea apropiado
+              expenses: [],
             ),
           ),
         );
@@ -52,13 +52,12 @@ class _FiltersScreenState extends State<FiltersScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (ctx) => InformeMensualScreen(
-              expenses: [], // Necesitarás pasar los expenses desde donde sea apropiado
+              expenses: [],
             ),
           ),
         );
         break;
-      case 3: // MiWallet
-        // Navigator.of(context).pushNamed('/mi-wallet');
+      case 3:
         break;
     }
   }
@@ -111,7 +110,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Acción para agregar nuevo gasto
           Navigator.of(context).pushNamed('/add-expense');
         },
         backgroundColor: AwColors.appBarColor,

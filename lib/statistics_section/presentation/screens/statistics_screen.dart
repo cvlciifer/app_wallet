@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/monthly_report_section/presentation/screens/monthly_report.dart';
 
 class EstadisticasScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -7,14 +6,12 @@ class EstadisticasScreen extends StatefulWidget {
   const EstadisticasScreen({Key? key, required this.expenses}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _EstadisticasScreenState createState() => _EstadisticasScreenState();
 }
 
 class _EstadisticasScreenState extends State<EstadisticasScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
-  int _currentBottomNavIndex = 1; // Estadísticas está en el índice 1
 
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
@@ -42,9 +39,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   @override
   Widget build(BuildContext context) {
     final data = _getFilteredData();
-    final totalAmount =
-        // ignore: avoid_types_as_parameter_names
-        data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
+    final totalAmount = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
     return Scaffold(
       appBar: const WalletAppBar(
