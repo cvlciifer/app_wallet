@@ -4,7 +4,7 @@
   "description": "Serverless API for app_wallet token reset (Vercel/Render)",
   "main": "index.js",
   "engines": {
-    "node": "22.x"
+    "node": "22"
   },
   "dependencies": {
     "firebase-admin": "^11.10.0",
