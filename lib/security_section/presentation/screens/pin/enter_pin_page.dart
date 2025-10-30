@@ -1,19 +1,13 @@
 // ignore: unused_element
 import 'dart:async';
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../controllers/lock_status_controller.dart';
-import '../../widgets/pin_actions.dart';
-import '../../widgets/failure_overlay.dart';
-import '../../viewmodels/enter_pin_viewmodel.dart';
-
-import 'reauthenticate_page.dart';
 
 class EnterPinPage extends StatefulWidget {
   final bool verifyOnly;
+  final String? accountId;
 
-  const EnterPinPage({Key? key, this.verifyOnly = false}) : super(key: key);
+  const EnterPinPage({Key? key, this.verifyOnly = false, this.accountId})
+      : super(key: key);
 
   @override
   State<EnterPinPage> createState() => _EnterPinPageState();
@@ -50,10 +44,37 @@ class _EnterPinPageState extends State<EnterPinPage> {
       });
     });
 
-    // Mantener sincronizado el controller si el usuario cambia de cuenta
-    _authSub = FirebaseAuth.instance.authStateChanges().listen(_onAuthChanged);
-    // inicializar controller con usuario actual si existe
-    _onAuthChanged(FirebaseAuth.instance.currentUser);
+    // Mantener sincronizado el controller si el usuario cambia de cuenta.
+    // Si se pasó `accountId` explícitamente (por ejemplo desde logout), no necesitamos
+    // suscribirnos a authStateChanges porque trabajamos con ese id fijo.
+    if (widget.accountId == null) {
+      _authSub =
+          FirebaseAuth.instance.authStateChanges().listen(_onAuthChanged);
+      // inicializar controller con usuario actual si existe
+      _onAuthChanged(FirebaseAuth.instance.currentUser);
+    } else {
+      // Crear y arrancar el LockStatusController para el accountId proporcionado
+      () async {
+        _lockCtrl = LockStatusController(accountId: widget.accountId!);
+        await _lockCtrl!.start();
+        _lockCtrl!.lockedRemaining.addListener(() {
+          if (!mounted) return;
+          setState(() {
+            _lockedRemaining = _lockCtrl!.lockedRemaining.value;
+          });
+        });
+        _lockCtrl!.isLocked.addListener(() {
+          if (!mounted) return;
+          if (_lockCtrl!.isLocked.value && !_lockCtrl!.shownLockSnack) {
+            ScaffoldMessenger.of(context).clearSnackBars();
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    'Demasiados intentos fallidos. Intenta nuevamente en ${PinService.lockDuration.inMinutes} minutos.')));
+            _lockCtrl!.markShownLockSnack();
+          }
+        });
+      }();
+    }
   }
 
   Future<void> _onAuthChanged(User? user) async {
@@ -104,7 +125,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
   }
 
   Future<void> _loadAttempts() async {
-    final uid = AuthService().getCurrentUser()?.uid;
+    final uid = widget.accountId ?? AuthService().getCurrentUser()?.uid;
     if (uid == null) return;
     await _viewModel.loadAttempts(uid);
     if (!mounted) return;
@@ -122,7 +143,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
   }
 
   Future<void> _loadAlias() async {
-    final uid = AuthService().getCurrentUser()?.uid;
+    final uid = widget.accountId ?? AuthService().getCurrentUser()?.uid;
     if (uid == null) return;
     final pinService = PinService();
     final a = await pinService.getAlias(accountId: uid);
@@ -133,7 +154,8 @@ class _EnterPinPageState extends State<EnterPinPage> {
   }
 
   Future<void> _updateLockState([String? accountId]) async {
-    final uid = accountId ?? AuthService().getCurrentUser()?.uid;
+    final uid =
+        accountId ?? widget.accountId ?? AuthService().getCurrentUser()?.uid;
     if (uid == null) return;
     // Si hay controller, usarlo (polling ya centralizado). Si no, hacer una
     // consulta puntual a PinService como fallback.
@@ -160,7 +182,8 @@ class _EnterPinPageState extends State<EnterPinPage> {
   }
 
   Future<void> _onCompleted(String pin) async {
-    final accountId = AuthService().getCurrentUser()?.uid ?? '';
+    final accountId =
+        widget.accountId ?? AuthService().getCurrentUser()?.uid ?? '';
     final ok = await _viewModel.verifyPin(accountId: accountId, pin: pin);
     if (ok) {
       if (widget.verifyOnly) {
@@ -241,19 +264,25 @@ class _EnterPinPageState extends State<EnterPinPage> {
                 Expanded(
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          AwSpacing.s,
+                          const SizedBox(height: 0),
                           if (_alias != null && _alias!.isNotEmpty) ...[
-                            AwText.normal(
-                                'Que alegría verte de nuevo ${_alias!}...'),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Transform.translate(
+                                offset: const Offset(0, -6),
+                                child: AwText.bold('Hola ${_alias!}...',
+                                    size: AwSize.s30,
+                                    color: AwColors.appBarColor),
+                              ),
+                            ),
                             AwSpacing.s12,
                           ],
-                          const AwText.bold('Ingresa tu PIN',
-                              size: AwSize.s30, color: AwColors.appBarColor),
+                          const AwText.normal('Ingresa tu PIN'),
                           AwSpacing.s12,
                           if (_lockedRemaining != null) ...[
                             const AwText.bold('Cuenta bloqueada',
@@ -307,20 +336,17 @@ class _EnterPinPageState extends State<EnterPinPage> {
                                         );
                                       },
                                       onForgotPin: () async {
-                                        final success =
-                                            await Navigator.of(context)
-                                                .push<bool>(
+                                        // Abrir la pantalla local de 'Olvidé mi PIN'
+                                        final email = AuthService()
+                                            .getCurrentUser()
+                                            ?.email;
+                                        Navigator.of(context).push(
                                           MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const ReauthenticatePage()),
+                                            builder: (_) => ForgotPinPage(
+                                              initialEmail: email,
+                                            ),
+                                          ),
                                         );
-                                        if (success == true) {
-                                          if (!mounted) return;
-                                          Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                  builder: (_) =>
-                                                      const SetPinPage()));
-                                        }
                                       },
                                     ),
                                   ],

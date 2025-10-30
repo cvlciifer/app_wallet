@@ -21,7 +21,8 @@ class LoginProvider extends ChangeNotifier {
   }) async {
     try {
       final String emailLower = email.toLowerCase();
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
         email: emailLower,
         password: password,
       );
@@ -29,8 +30,8 @@ class LoginProvider extends ChangeNotifier {
       final User? user = userCredential.user;
       if (user != null) {
         if (user.emailVerified) {
-          // Guardar estado de login
-          await _authService.saveLoginState(emailLower);
+          // Guardar estado de login (incluye uid)
+          await _authService.saveLoginState(emailLower, uid: user.uid);
 
           // Asegurar que la DB local exista y crear/actualizar el usuario local
           try {
@@ -38,19 +39,22 @@ class LoginProvider extends ChangeNotifier {
             await DBHelper.instance.database;
 
             // Verificar si el usuario ya existe en la BD local
-            final existingUser = await DBHelper.instance.getUsuarioPorUid(user.uid);
+            final existingUser =
+                await DBHelper.instance.getUsuarioPorUid(user.uid);
 
             if (existingUser != null) {
               log('Usuario encontrado en BD local: ${existingUser['correo']}');
               // El usuario ya existe, verificar si el email cambió
               if (existingUser['correo'] != emailLower) {
                 log('Email actualizado de ${existingUser['correo']} a $emailLower');
-                await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+                await DBHelper.instance
+                    .upsertUsuario(uid: user.uid, correo: emailLower);
               }
             } else {
               log('Usuario nuevo, guardando en BD local: $emailLower');
               // Usuario nuevo, guardarlo
-              await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+              await DBHelper.instance
+                  .upsertUsuario(uid: user.uid, correo: emailLower);
             }
           } catch (dbErr) {
             log('Error creando/verificando DB local: $dbErr');
@@ -60,7 +64,8 @@ class LoginProvider extends ChangeNotifier {
           onSuccess();
         } else {
           await _auth.signOut();
-          onError('Debe verificar su correo electrónico antes de iniciar sesión.');
+          onError(
+              'Debe verificar su correo electrónico antes de iniciar sesión.');
         }
       } else {
         onError('Error al obtener el usuario después del inicio de sesión.');
@@ -97,14 +102,16 @@ class LoginProvider extends ChangeNotifier {
         return;
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
 
       final User? user = userCredential.user;
       if (user != null) {
@@ -112,27 +119,30 @@ class LoginProvider extends ChangeNotifier {
           await _createUserProfile(user);
         }
 
-        // Guardar estado de login para Google
+        // Guardar estado de login para Google (incluye uid)
         final emailLower = (user.email ?? '').toLowerCase();
-        await _authService.saveLoginState(emailLower);
+        await _authService.saveLoginState(emailLower, uid: user.uid);
 
         // Asegurar DB local y upsert usuario
         try {
           await DBHelper.instance.database;
 
           // Verificar si el usuario ya existe en la BD local
-          final existingUser = await DBHelper.instance.getUsuarioPorUid(user.uid);
+          final existingUser =
+              await DBHelper.instance.getUsuarioPorUid(user.uid);
 
           if (existingUser != null) {
             log('Usuario Google encontrado en BD local: ${existingUser['correo']}');
             // Verificar si el email cambió
             if (existingUser['correo'] != emailLower) {
               log('Email Google actualizado de ${existingUser['correo']} a $emailLower');
-              await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+              await DBHelper.instance
+                  .upsertUsuario(uid: user.uid, correo: emailLower);
             }
           } else {
             log('Usuario Google nuevo, guardando en BD local: $emailLower');
-            await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+            await DBHelper.instance
+                .upsertUsuario(uid: user.uid, correo: emailLower);
           }
         } catch (dbErr) {
           log('Error creando/verificando DB local (Google): $dbErr');
@@ -140,7 +150,8 @@ class LoginProvider extends ChangeNotifier {
 
         onSuccess();
       } else {
-        onError('Error al obtener el usuario después del inicio de sesión con Google.');
+        onError(
+            'Error al obtener el usuario después del inicio de sesión con Google.');
       }
     } on FirebaseAuthException catch (e) {
       onError('Error de autenticación: ${e.message}');
@@ -161,18 +172,29 @@ class LoginProvider extends ChangeNotifier {
         'created_at': FieldValue.serverTimestamp(),
       });
 
-      await _firestore.collection('usuarios').doc(emailLower).collection('gastos').doc(user.uid).set({
+      await _firestore
+          .collection('usuarios')
+          .doc(emailLower)
+          .collection('gastos')
+          .doc(user.uid)
+          .set({
         'name': "Bienvenido a AdminWallet",
       });
 
-      await _firestore.collection('usuarios').doc(emailLower).collection('ingresos').doc(user.uid).set({
+      await _firestore
+          .collection('usuarios')
+          .doc(emailLower)
+          .collection('ingresos')
+          .doc(user.uid)
+          .set({
         'name': "Bienvenido a AdminWallet",
       });
 
       // También almacena localmente (por si es newUser)
       try {
         await DBHelper.instance.database;
-        await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
+        await DBHelper.instance
+            .upsertUsuario(uid: user.uid, correo: emailLower);
       } catch (dbErr) {
         log('Error guardando usuario local tras crear perfil Firestore: $dbErr');
       }

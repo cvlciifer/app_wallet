@@ -49,12 +49,13 @@ class PinService {
     return h != null;
   }
 
-// Establecer PIN con versión 2 (PBKDF2)
-  Future<void> setPin(
-      {required String accountId,
-      required String pin,
-      required int digits,
-      String? alias}) async {
+  // Establecer PIN con versión 2 (PBKDF2)
+  Future<void> setPin({
+    required String accountId,
+    required String pin,
+    required int digits,
+    String? alias,
+  }) async {
     final salt = PinCrypto.randomSalt(16);
     final version = '2';
     final hash = await PinCrypto.deriveV2(pin, salt);
@@ -199,4 +200,6 @@ class PinService {
     if (now.isBefore(until)) return until.difference(now);
     return null;
   }
+
+  // Nota: no sincronizamos el PIN al backend para mantener el PIN ligado al dispositivo.
 }

@@ -1,22 +1,12 @@
 import 'package:app_wallet/library_section/main_library.dart';
 
-/// Widget simple de entrada de PIN usado por `SetPinPage` / `ConfirmPinPage`.
-/// - digits: número de dígitos a recoger
-/// - onCompleted: llamado cuando la longitud recogida == digits
 class PinInput extends StatefulWidget {
   final int digits;
   final ValueChanged<String> onCompleted;
-
-  /// Tamaño del punto en píxeles lógicos. `AwSize.s16`.
+  // Configuracion de pin visual
   final double dotSize;
-
-  /// Espaciado horizontal entre puntos en píxeles lógicos. `AwSize.s8`.
   final double dotSpacing;
-
-  /// Color utilizado cuando un punto está lleno.
   final Color filledColor;
-
-  /// Color utilizado para el borde del punto cuando no está lleno.
   final Color borderColor;
 
   const PinInput({
@@ -85,10 +75,8 @@ class PinInputState extends State<PinInput> {
     setState(() {});
   }
 
-  /// Getter público para la longitud actual del PIN introducido
   int get currentLength => _controller.text.length;
 
-  /// Getter público para el texto actual del PIN
   String get currentPin => _controller.text;
 
   @override

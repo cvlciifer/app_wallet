@@ -2,6 +2,7 @@
     <application
         android:label="app_wallet"
         android:name="${applicationName}"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -23,6 +24,14 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Deep-link intent filter for Email Link Sign-In redirect -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- scheme: appwallet, host: resetPin -> appwallet://resetPin?link=... -->
+                <data android:scheme="appwallet" android:host="resetPin" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

@@ -77,7 +77,6 @@ export 'package:app_wallet/core/data_base_local/create_db.dart';
 export 'package:app_wallet/components_section/modals/wallet_pop_up.dart';
 export 'package:app_wallet/monthly_report_section/presentation/screens/monthly_report.dart';
 export 'package:app_wallet/components_section/utils/text_formatters.dart';
-export 'package:app_wallet/security_section/presentation/widgets/pin.dart';
 export 'package:app_wallet/security_section/data/pin_service.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/configure_pin.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/enter_pin_page.dart';
@@ -86,10 +85,15 @@ export 'package:app_wallet/security_section/presentation/screens/alias_input_pag
 export 'package:app_wallet/core/services/alias_service.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/confirm_pin_page.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/set_pin_page.dart';
-export 'package:app_wallet/security_section/presentation/widgets/numeric_keypad.dart';
-export 'package:app_wallet/security_section/presentation/widgets/pin_failure_popup.dart';
-export 'package:app_wallet/security_section/presentation/widgets/pin_entry_area.dart';
-export 'package:app_wallet/security_section/presentation/widgets/pin_actions.dart';
-export 'package:app_wallet/security_section/presentation/widgets/failure_overlay.dart';
+// moved security-related reusable widgets into components_section/widgets/pin
+export 'package:app_wallet/components_section/widgets/pin/pin.dart';
+export 'package:app_wallet/components_section/widgets/pin/numeric_keypad.dart';
+export 'package:app_wallet/components_section/widgets/pin/pin_failure_popup.dart';
+export 'package:app_wallet/components_section/widgets/pin/pin_entry_area.dart';
+export 'package:app_wallet/components_section/widgets/pin/pin_actions.dart';
+export 'package:app_wallet/components_section/widgets/pin/failure_overlay.dart';
 export 'package:app_wallet/security_section/presentation/controllers/lock_status_controller.dart';
 export 'package:app_wallet/security_section/presentation/viewmodels/enter_pin_viewmodel.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/forgot_pin_page.dart';
+export 'package:app_wallet/components_section/buttons/underlined_button.dart';
+export 'package:app_wallet/components_section/widgets/settings_card.dart';

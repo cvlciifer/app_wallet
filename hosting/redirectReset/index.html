@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Redirigiendo...</title>
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; text-align:center; padding:2rem; }
+      a { color: #0b66a6; }
+    </style>
+  </head>
+  <body>
+    <h1>Abriendo la aplicación…</h1>
+    <p>Si la app no se abre automáticamente, pulsa el enlace que aparece más abajo.</p>
+    <p id="link"></p>
+    <script>
+      (function(){
+        // Si la URL incluye ?token=..., extraemos token y lo pasamos al esquema de la app.
+        var params = new URLSearchParams(window.location.search);
+        var token = params.get('token');
+        var appScheme;
+        if (token) {
+          // Pasamos sólo el token al esquema custom; la app verificará el token contra la Function
+          appScheme = 'appwallet://resetPin?token=' + encodeURIComponent(token);
+        } else {
+          // Fallback: si no hay token usamos la URL completa en el parámetro `link` como antes
+          var full = window.location.href;
+          var encoded = encodeURIComponent(full);
+          appScheme = 'appwallet://resetPin?link=' + encoded;
+        }
+
+        var el = document.getElementById('link');
+        el.innerHTML = '<a href="' + appScheme + '">' + appScheme + '</a>';
+
+        // Intentar redirigir inmediatamente
+        window.location.replace(appScheme);
+
+        // Como fallback, mostrar enlace y una instrucción clara.
+      })();
+    </script>
+  </body>
+</html>

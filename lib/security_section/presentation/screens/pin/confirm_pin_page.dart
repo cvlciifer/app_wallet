@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
 
 class ConfirmPinPage extends StatefulWidget {
@@ -44,8 +45,14 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
         alias: widget.alias);
     // intenta sincronizar el alias al backend (no bloquea la UX)
     try {
-      await AliasService().syncAliasForCurrentUser();
-    } catch (_) {}
+      final aliasOk = await AliasService().syncAliasForCurrentUser();
+      log('ConfirmPinPage: syncAliasForCurrentUser result=$aliasOk',
+          name: 'ConfirmPinPage');
+    } catch (e, st) {
+      log('ConfirmPinPage: syncAliasForCurrentUser error=$e',
+          name: 'ConfirmPinPage', error: e, stackTrace: st);
+    }
+    // Nota: no sincronizamos el PIN al backend para mantener el PIN ligado al dispositivo.
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('PIN configurado correctamente')));
 

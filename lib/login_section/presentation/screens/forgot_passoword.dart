@@ -24,7 +24,8 @@ class ForgotPasswordScreen extends StatelessWidget {
               margin: const EdgeInsets.all(16.0),
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9), // Fondo blanco semi-transparente
+                color: Colors.white
+                    .withOpacity(0.9), // Fondo blanco semi-transparente
                 borderRadius: BorderRadius.circular(15.0),
                 boxShadow: [
                   BoxShadow(
@@ -76,15 +77,19 @@ class ForgotPasswordScreen extends StatelessWidget {
                         String email = _emailController.text.trim();
                         if (email.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Por favor, ingresa tu correo.')),
+                            const SnackBar(
+                                content: Text('Por favor, ingresa tu correo.')),
                           );
                           return;
                         }
-                        Provider.of<AuthProvider>(context, listen: false).resetPassword(
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .resetPassword(
                           email,
                           () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Se ha enviado un enlace de restablecimiento a $email.')),
+                              SnackBar(
+                                  content: Text(
+                                      'Se ha enviado un enlace de restablecimiento a $email.')),
                             );
                             Navigator.of(context).pop();
                           },
@@ -96,7 +101,8 @@ class ForgotPasswordScreen extends StatelessWidget {
                         );
                       },
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 40.0),
+                        padding: EdgeInsets.symmetric(
+                            vertical: 12.0, horizontal: 40.0),
                         child: Text(
                           'Enviar al Email',
                           style: TextStyle(fontSize: 18),

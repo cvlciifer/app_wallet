@@ -19,6 +19,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
     super.initState();
     _controller.addListener(_onTextChanged);
     _confirmController.addListener(_onTextChanged);
+    // sin acción
   }
 
   void _onTextChanged() {
@@ -44,11 +45,19 @@ class _AliasInputPageState extends State<AliasInputPage> {
     final normalized = alias.isEmpty ? null : alias;
 
     if (widget.initialSetup) {
-      // Para nuevos usuarios: ir a SetPinPage y pasar el alias capturado.
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => SetPinPage(alias: normalized),
-      ));
-      return;
+      final uidCheck = AuthService().getCurrentUser()?.uid;
+      final pinServiceCheck = PinService();
+      final hasPinCheck =
+          uidCheck != null && await pinServiceCheck.hasPin(accountId: uidCheck);
+      if (hasPinCheck) {
+        // fall-through: save alias below and pop
+      } else {
+        // Para nuevos usuarios sin PIN: ir a SetPinPage y pasar el alias capturado.
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (_) => SetPinPage(alias: normalized),
+        ));
+        return;
+      }
     }
 
     // Solo modo alias: guardar alias y luego ir a EnterPinPage para que el usuario aún deba ingresar el PIN
@@ -66,8 +75,11 @@ class _AliasInputPageState extends State<AliasInputPage> {
       await AliasService().syncAliasForCurrentUser();
     } catch (_) {}
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const EnterPinPage()));
+    // Después de guardar el alias en modo no-inicial, simplemente regresa a la
+    // pantalla anterior (Perfil). No fuerces la entrada del PIN.
+    // Devuelve el alias guardado al llamante para que la pantalla anterior
+    // pueda actualizar su UI inmediatamente.
+    Navigator.of(context).pop(normalized);
   }
 
   @override
@@ -185,13 +197,18 @@ class _AliasInputPageState extends State<AliasInputPage> {
                 ),
               ),
               AwSpacing.s12,
-              // Opcion para configurar mas tarde
+              // Opción para configurar más tarde
               WalletButton.textButton(
                 buttonText: 'Configurar más tarde',
                 onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const SetPinPage(),
-                  ));
+                  if (widget.initialSetup) {
+                    // Usuario nuevo: forzar continuar a la configuración del PIN.
+                    Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const SetPinPage()));
+                  } else {
+                    // Usuario existente: solo cerrar y devolver null.
+                    Navigator.of(context).pop(null);
+                  }
                 },
                 alignment: MainAxisAlignment.center,
                 colorText: AwColors.blueGrey,

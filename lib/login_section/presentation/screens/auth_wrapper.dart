@@ -64,7 +64,21 @@ class _AuthWrapperState extends State<AuthWrapper> {
             );
           }
         } else {
-          // Usuario no está logueado, ir al login
+          final savedUid = await _authService.getSavedUid();
+          if (savedUid != null) {
+            try {
+              final pinService = PinService();
+              final hasPin = await pinService.hasPin(accountId: savedUid);
+              if (hasPin) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                      builder: (context) => EnterPinPage(accountId: savedUid)),
+                );
+                return;
+              }
+            } catch (_) {}
+          }
+
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => LoginScreen(),

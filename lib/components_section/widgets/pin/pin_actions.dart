@@ -1,7 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
 
-// pinactions son los botones debajo del PIN (no eres tú, olvidé mi PIN)
-
 class PinActions extends StatelessWidget {
   final bool hasConnection;
   final VoidCallback onNotYou;
@@ -24,21 +22,19 @@ class PinActions extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: WalletButton.iconButtonText(
-                    buttonText: '¿No eres tú?',
-                    onPressed: onNotYou,
-                    backgroundColor: AwColors.blueGrey,
+                  child: UnderlinedButton(
+                    text: '¿No eres tú?',
+                    onTap: onNotYou,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: WalletButton.iconButtonText(
-                    buttonText: 'Olvidé mi PIN',
+                  child: UnderlinedButton(
+                    text: 'Olvidé mi PIN',
                     icon: Icons.lock_reset,
-                    onPressed: () async {
+                    onTap: () async {
                       await onForgotPin();
                     },
-                    backgroundColor: AwColors.blue,
                   ),
                 ),
               ],

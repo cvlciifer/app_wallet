@@ -10,7 +10,6 @@ class NumericKeypad extends StatelessWidget {
       : super(key: key);
 
   Widget _buildKey(String label, {VoidCallback? onTap}) {
-    // si el label está vacío y no hay acción, renderiza un espaciador para mantener la simetría
     if (label.isEmpty && onTap == null) {
       return const Expanded(child: SizedBox());
     }
