@@ -1,4 +1,3 @@
-import 'package:provider/provider.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 
 class RegisterScreen extends StatefulWidget {

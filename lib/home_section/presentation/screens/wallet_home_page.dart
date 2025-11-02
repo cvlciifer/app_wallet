@@ -1,6 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:provider/provider.dart';
 
 class WalletHomePage extends StatefulWidget {
   const WalletHomePage({super.key});
@@ -10,24 +8,12 @@ class WalletHomePage extends StatefulWidget {
 }
 
 class _WalletHomePageState extends State<WalletHomePage> {
-  int _currentBottomIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  void _onBottomNavTap(int index) {
-    setState(() {
-      _currentBottomIndex = index;
-    });
+  void _onBottomNavTap(int index) async {
+    final bottomNav = context.read<BottomNavProvider>();
+    bottomNav.setIndex(index);
     final controller = context.read<WalletExpensesController>();
-    WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
+    await WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
+    bottomNav.reset();
   }
 
   void _openAddExpenseOverlay() async {
@@ -65,9 +51,14 @@ class _WalletHomePageState extends State<WalletHomePage> {
         child: const Icon(Icons.add, color: AwColors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: WalletBottomAppBar(
-        currentIndex: _currentBottomIndex,
-        onTap: _onBottomNavTap,
+      bottomNavigationBar: Consumer<BottomNavProvider>(
+        builder: (context, bottomNav, child) {
+          final selected = bottomNav.selectedIndex;
+          return WalletBottomAppBar(
+            currentIndex: selected,
+            onTap: _onBottomNavTap,
+          );
+        },
       ),
     );
   }

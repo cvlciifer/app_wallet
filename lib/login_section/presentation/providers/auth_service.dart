@@ -1,11 +1,10 @@
 import 'dart:developer';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app_wallet/library_section/main_library.dart';
 
 class AuthService {
   static const String _isLoggedInKey = 'isLoggedIn';
   static const String _userEmailKey = 'userEmail';
-  
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<bool> isUserLoggedIn() async {
@@ -13,14 +12,13 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       final isLoggedIn = prefs.getBool(_isLoggedInKey) ?? false;
       final currentUser = _auth.currentUser;
-      
+
       return isLoggedIn && currentUser != null;
     } catch (e) {
       log('Error verificando estado de login: $e');
       return false;
     }
   }
-
 
   Future<void> saveLoginState(String email) async {
     try {

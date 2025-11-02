@@ -77,3 +77,7 @@ export 'package:app_wallet/components_section/components/ticket_card.dart';
 export 'package:app_wallet/components_section/components/form_header.dart';
 export 'package:app_wallet/components_section/components/category_picker.dart';
 export 'package:app_wallet/components_section/components/amount_input.dart';
+export 'package:app_wallet/core/providers/bottom_nav_provider.dart';
+export 'package:provider/provider.dart';
+export 'package:connectivity_plus/connectivity_plus.dart';
+export 'package:shared_preferences/shared_preferences.dart';

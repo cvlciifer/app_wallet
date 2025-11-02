@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 import '../core/data_base_local/local_crud.dart';
 import '../core/sync_service/sync_service.dart';

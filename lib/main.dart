@@ -1,5 +1,4 @@
 import 'package:app_wallet/login_section/presentation/providers/reset_password.dart' as local_auth;
-import 'package:provider/provider.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -31,6 +30,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => WalletExpensesController()),
+        ChangeNotifierProvider(create: (_) => BottomNavProvider()),
         ChangeNotifierProvider(create: (_) => RegisterProvider()),
         ChangeNotifierProvider(create: (_) => LoginProvider()),
         ChangeNotifierProvider(create: (_) => local_auth.AuthProvider()),

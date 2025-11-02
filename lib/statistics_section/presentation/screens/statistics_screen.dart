@@ -26,7 +26,6 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
     }).toList();
 
     if (!groupBySubcategory) {
-      // Group by Category
       final walletExpenseBuckets = Category.values.map((category) {
         return WalletExpenseBucket.forCategory(filteredExpenses, category);
       }).toList();

@@ -18,7 +18,6 @@ class WalletProfilePage extends StatefulWidget {
   State<WalletProfilePage> createState() => _WalletProfilePageState();
 }
 
-// Devuelve una lista de mapas con nombre, ícono y total por categoría
 List<Map<String, dynamic>> getCategoriasConTotal(List<Expense> expenses) {
   final Map<String, double> totales = {};
   for (var e in expenses) {
@@ -59,7 +58,6 @@ List<Map<String, dynamic>> getCategoriasConTotal(List<Expense> expenses) {
 }
 
 class _WalletProfilePageState extends State<WalletProfilePage> {
-  // se obtiene el nombre y correo del usuario usando FirebaseAuth.
   final User? user = FirebaseAuth.instance.currentUser;
   late String? userEmail;
   late String? userName;
@@ -91,7 +89,6 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
         child: Column(
           children: [
             AwSpacing.m,
-            // Icono de usuario grande y centrado
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
               child: Row(
@@ -124,7 +121,6 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
               ),
             ),
             const Divider(height: 32),
-            // Estadísticas y categorías en columna, sin tarjetas
             AwSpacing.s12,
             Row(
               children: [
@@ -164,9 +160,7 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                 AwText.bold(formatNumber(widget.totalAmount), color: AwColors.red, size: AwSize.s20),
               ],
             ),
-
             const Divider(height: 32),
-            // Botón de configuración
             WalletButton.iconButtonText(
               icon: Icons.settings,
               buttonText: 'Configuración',
@@ -178,7 +172,6 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
               },
             ),
             AwSpacing.s20,
-            // Botón de cerrar sesión
             WalletButton.iconButtonText(
               icon: Icons.logout,
               buttonText: 'Cerrar sesión',

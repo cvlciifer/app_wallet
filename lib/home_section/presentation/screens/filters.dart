@@ -9,7 +9,6 @@ class FiltersScreen extends StatefulWidget {
 
 class _FiltersScreenState extends State<FiltersScreen> {
   late Map<Category, bool> _filters;
-  int _currentBottomNavIndex = 0;
 
   @override
   void didChangeDependencies() {
@@ -30,31 +29,32 @@ class _FiltersScreenState extends State<FiltersScreen> {
     return _filters;
   }
 
-  void _handleBottomNavTap(int index) {
-    setState(() {
-      _currentBottomNavIndex = index;
-    });
+  void _handleBottomNavTap(int index) async {
+    final bottomNav = context.read<BottomNavProvider>();
+    bottomNav.setIndex(index);
 
     switch (index) {
       case 0:
         break;
       case 1:
-        Navigator.of(context).pushReplacement(
+        await Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (ctx) => EstadisticasScreen(
               expenses: [],
             ),
           ),
         );
+        bottomNav.reset();
         break;
       case 2: // Informes
-        Navigator.of(context).pushReplacement(
+        await Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (ctx) => InformeMensualScreen(
               expenses: [],
             ),
           ),
         );
+        bottomNav.reset();
         break;
       case 3:
         break;
@@ -103,9 +103,13 @@ class _FiltersScreenState extends State<FiltersScreen> {
           );
         }).toList(),
       ),
-      bottomNavigationBar: WalletBottomAppBar(
-        currentIndex: _currentBottomNavIndex,
-        onTap: _handleBottomNavTap,
+      bottomNavigationBar: Consumer<BottomNavProvider>(
+        builder: (context, bottomNav, child) {
+          return WalletBottomAppBar(
+            currentIndex: bottomNav.selectedIndex,
+            onTap: _handleBottomNavTap,
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
