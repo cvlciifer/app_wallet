@@ -8,6 +8,7 @@ class WalletMonthYearSelector extends StatelessWidget {
   final List<int> availableMonths;
   final List<int> availableYears;
   final double totalAmount;
+  final bool showTotal;
   final String Function(double) formatNumber;
 
   const WalletMonthYearSelector({
@@ -20,6 +21,7 @@ class WalletMonthYearSelector extends StatelessWidget {
     required this.availableYears,
     required this.totalAmount,
     required this.formatNumber,
+    this.showTotal = true,
   }) : super(key: key);
 
   @override
@@ -47,10 +49,12 @@ class WalletMonthYearSelector extends StatelessWidget {
           }).toList(),
           onChanged: (value) => onYearChanged(value!),
         ),
-        AwText(
-          text: 'Total: ${formatNumber(totalAmount)}',
-          size: AwSize.s18,
-        ),
+        showTotal
+            ? AwText(
+                text: 'Total: ${formatNumber(totalAmount)}',
+                size: AwSize.s18,
+              )
+            : const SizedBox.shrink(),
       ],
     );
   }

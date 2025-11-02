@@ -13,6 +13,34 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
 
+  @override
+  void initState() {
+    super.initState();
+    _initializeSelectedMonthYear();
+  }
+
+  @override
+  void didUpdateWidget(covariant InformeMensualScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.expenses != widget.expenses) {
+      _initializeSelectedMonthYear();
+    }
+  }
+
+  void _initializeSelectedMonthYear() {
+    if (widget.expenses.isEmpty) return;
+    final years = widget.expenses.map((e) => e.date.year).toSet().toList();
+    years.sort((a, b) => b.compareTo(a));
+    if (years.isNotEmpty) {
+      selectedYear = years.first;
+    }
+    final months = widget.expenses.where((e) => e.date.year == selectedYear).map((e) => e.date.month).toSet().toList();
+    months.sort();
+    if (months.isNotEmpty) {
+      selectedMonth = months.first;
+    }
+  }
+
   List<int> getAvailableYears() {
     final years = widget.expenses.map((e) => e.date.year).toSet().toList();
     years.sort((a, b) => b.compareTo(a));
@@ -90,7 +118,8 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                 onYearChanged: (y) => setState(() => selectedYear = y),
                 availableMonths: availableMonths,
                 availableYears: availableYears,
-                totalAmount: 0, // total is shown arriba; aquí no es necesario
+                totalAmount: totalExpenses,
+                showTotal: false,
                 formatNumber: (d) => formatNumber(d),
               );
             }),

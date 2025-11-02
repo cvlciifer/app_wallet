@@ -31,11 +31,10 @@ class DetailExpenseDialog {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const AwText.bold(
-                'Detalles del Gasto',
+                'Detalles',
                 color: AwColors.blue,
                 size: AwSize.s24,
               ),
-              const SizedBox(height: 12),
               DetailExpenseContent(expense: expense),
               const SizedBox(height: 12),
               Row(

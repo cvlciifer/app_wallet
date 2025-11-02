@@ -116,7 +116,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
       backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold(
-          'Estadísticas',
+          'Estadística Mensual',
           size: AwSize.s18,
           color: AwColors.white,
         ),
@@ -128,24 +128,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AwText.bold(
-              'Resumen del Mes:',
-              size: AwSize.s18,
-              color: AwColors.boldBlack,
-              fontWeight: FontWeight.bold,
-            ),
             AwSpacing.s,
-            WalletMonthYearSelector(
-              selectedMonth: selectedMonth,
-              selectedYear: selectedYear,
-              onMonthChanged: (month) => setState(() => selectedMonth = month),
-              onYearChanged: (year) => setState(() => selectedYear = year),
-              availableMonths: availableMonths,
-              availableYears: availableYears,
-              totalAmount: totalAmount,
-              formatNumber: formatNumber,
-            ),
-            AwSpacing.m,
             Row(
               children: [
                 Expanded(
@@ -201,6 +184,16 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                 ),
               ],
             ),
+            WalletMonthYearSelector(
+              selectedMonth: selectedMonth,
+              selectedYear: selectedYear,
+              onMonthChanged: (month) => setState(() => selectedMonth = month),
+              onYearChanged: (year) => setState(() => selectedYear = year),
+              availableMonths: availableMonths,
+              availableYears: availableYears,
+              totalAmount: totalAmount,
+              formatNumber: formatNumber,
+            ),
             AwSpacing.s,
             Expanded(
               child: Padding(
@@ -221,13 +214,13 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                             size: AwSize.s18,
                             color: AwColors.boldBlack,
                           ),
+                          WalletPieChart(data: data),
                           AwSpacing.s,
                           Expanded(
                             child: SingleChildScrollView(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  WalletPieChart(data: data),
                                   AwSpacing.m,
                                   WalletCategoryList(data: data, formatNumber: formatNumber),
                                 ],

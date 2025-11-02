@@ -4,43 +4,6 @@ class DetailExpenseContent extends StatelessWidget {
   final Expense expense;
   const DetailExpenseContent({required this.expense, super.key});
 
-  Widget _buildDetailRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          AwText.bold(title, size: AwSize.s16),
-          Flexible(
-              child: AwText(
-            text: value,
-            size: AwSize.s16,
-            textAlign: TextAlign.end,
-          )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRowWidget(String title, Widget valueWidget, {IconData? leadingIcon, Color? iconColor}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              if (leadingIcon != null) Icon(leadingIcon, size: 18, color: iconColor ?? Colors.grey),
-              if (leadingIcon != null) const SizedBox(width: 8),
-              AwText.bold(title, size: AwSize.s16),
-            ],
-          ),
-          Flexible(child: valueWidget),
-        ],
-      ),
-    );
-  }
-
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
     return '\$${formatter.format(value)}';
@@ -68,26 +31,71 @@ class DetailExpenseContent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDetailRow(' -   Título:', expense.title.capitalize()),
-          _buildDetailRowWidget(
-            'Categoría:',
-            AwText(text: _getCategoryName(expense.category), size: AwSize.s16, textAlign: TextAlign.end),
-            leadingIcon: WalletCategoryHelper.getCategoryIcon(expense.category.displayName),
-            iconColor: WalletCategoryHelper.getCategoryColor(expense.category.displayName),
+          // Título
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: AwText.bold(expense.title.capitalize(), size: AwSize.s26),
           ),
-          _buildDetailRowWidget(
-            'Subcategoría:',
-            AwText(
-              text: _getSubcategoryName(expense.subcategoryId) ?? 'Sin subcategoría',
-              size: AwSize.s16,
-              textAlign: TextAlign.end,
+          // Categoría (ícono + nombre)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Icon(WalletCategoryHelper.getCategoryIcon(expense.category.displayName),
+                    size: 18, color: WalletCategoryHelper.getCategoryColor(expense.category.displayName)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: AwText(text: _getCategoryName(expense.category), size: AwSize.s18),
+                ),
+              ],
             ),
-            leadingIcon:
-                expense.subcategoryId != null ? WalletCategoryHelper.getCategoryIcon(expense.subcategoryId!) : null,
-            iconColor: WalletCategoryHelper.getCategoryColor(expense.category.displayName),
           ),
-          _buildDetailRow(' -   Fecha:', expense.formattedDate),
-          _buildDetailRow(' -   Monto:', formatNumber(expense.amount)),
+
+          // Subcategoría (ícono opcional + nombre)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                if (expense.subcategoryId != null)
+                  Icon(WalletCategoryHelper.getCategoryIcon(expense.subcategoryId!),
+                      size: 18, color: WalletCategoryHelper.getCategoryColor(expense.category.displayName)),
+                if (expense.subcategoryId != null) const SizedBox(width: 8),
+                Expanded(
+                  child: AwText(
+                    text: _getSubcategoryName(expense.subcategoryId) ?? 'Sin subcategoría',
+                    size: AwSize.s18,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Fecha
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: AwText(
+                text: expense.formattedDate,
+                size: AwSize.s18,
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ),
+
+          // Monto
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: AwText(
+                color: AwColors.boldBlack,
+                text: formatNumber(expense.amount),
+                size: AwSize.s24,
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ),
         ],
       ),
     );
