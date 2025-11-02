@@ -27,6 +27,8 @@ class WalletExpensesController extends ChangeNotifier {
   List<Expense> get allExpenses => List.unmodifiable(_allExpenses);
   List<Expense> get filteredExpenses => List.unmodifiable(_filteredExpenses);
   Map<Category, bool> get currentFilters => Map.unmodifiable(_currentFilters);
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
   Future<void> loadExpensesSmart() async {
     log('loadExpensesSmart llamado');
@@ -44,6 +46,8 @@ class WalletExpensesController extends ChangeNotifier {
     log('Gastos obtenidos localmente: ${gastosFromLocal.length}');
 
     final visibleExpenses = gastosFromLocal.where((e) => e.syncStatus != SyncStatus.pendingDelete).toList();
+    // Ordenar por fecha descendente: del más reciente al más antiguo
+    visibleExpenses.sort((a, b) => b.date.compareTo(a.date));
 
     _allExpenses.clear();
     _allExpenses.addAll(visibleExpenses);
@@ -53,20 +57,34 @@ class WalletExpensesController extends ChangeNotifier {
 
   Future<void> addExpense(Expense expense, {required bool hasConnection}) async {
     log('addExpense llamado con: ${expense.title}');
-    await syncService.createExpense(expense, hasConnection: hasConnection);
-    if (hasConnection) {
-      await syncService.initializeLocalDbFromFirebase();
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await syncService.createExpense(expense, hasConnection: hasConnection);
+      if (hasConnection) {
+        await syncService.initializeLocalDbFromFirebase();
+      }
+      await loadExpensesSmart();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    await loadExpensesSmart();
   }
 
   Future<void> removeExpense(Expense expense, {required bool hasConnection}) async {
-    log('removeExpense llamado con: \\${expense.title}');
-    await syncService.deleteExpense(expense.id, hasConnection: hasConnection);
-    if (hasConnection) {
-      await syncService.initializeLocalDbFromFirebase();
+    log('removeExpense llamado con: \\\${expense.title}');
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await syncService.deleteExpense(expense.id, hasConnection: hasConnection);
+      if (hasConnection) {
+        await syncService.initializeLocalDbFromFirebase();
+      }
+      await loadExpensesSmart();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    await loadExpensesSmart();
   }
 
   void applyFilters(Map<Category, bool> filters) {
@@ -74,6 +92,7 @@ class WalletExpensesController extends ChangeNotifier {
     _filteredExpenses = _allExpenses.where((expense) {
       return filters[expense.category] == true;
     }).toList();
+    _filteredExpenses.sort((a, b) => b.date.compareTo(a.date));
     notifyListeners();
   }
 }

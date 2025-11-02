@@ -13,6 +13,23 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
 
+  List<int> getAvailableYears() {
+    final years = widget.expenses.map((e) => e.date.year).toSet().toList();
+    years.sort((a, b) => b.compareTo(a));
+    return years;
+  }
+
+  List<int> getAvailableMonthsForYear(int year) {
+    final months = widget.expenses.where((e) => e.date.year == year).map((e) => e.date.month).toSet().toList();
+    months.sort();
+    return months;
+  }
+
+  String formatNumber(double value) {
+    final formatter = NumberFormat('#,##0', 'es');
+    return '\$${formatter.format(value)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredExpenses = widget.expenses.where((expense) {
@@ -56,53 +73,27 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                   ),
             ),
             const SizedBox(height: 10.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: DropdownButton<int>(
-                    value: selectedMonth,
-                    isExpanded: true,
-                    items: List.generate(12, (index) {
-                      return DropdownMenuItem(
-                        value: index + 1,
-                        child: Text(
-                          DateFormat('MMMM').format(DateTime(0, index + 1)),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      );
-                    }),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedMonth = value!;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10.0),
-                Expanded(
-                  child: DropdownButton<int>(
-                    value: selectedYear,
-                    isExpanded: true,
-                    items: List.generate(5, (index) {
-                      int year = DateTime.now().year - index;
-                      return DropdownMenuItem(
-                        value: year,
-                        child: Text(
-                          year.toString(),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      );
-                    }),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedYear = value!;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
+            Builder(builder: (context) {
+              final availableYears = getAvailableYears();
+              if (!availableYears.contains(selectedYear) && availableYears.isNotEmpty) {
+                selectedYear = availableYears.first;
+              }
+              final availableMonths = getAvailableMonthsForYear(selectedYear);
+              if (!availableMonths.contains(selectedMonth) && availableMonths.isNotEmpty) {
+                selectedMonth = availableMonths.first;
+              }
+
+              return WalletMonthYearSelector(
+                selectedMonth: selectedMonth,
+                selectedYear: selectedYear,
+                onMonthChanged: (m) => setState(() => selectedMonth = m),
+                onYearChanged: (y) => setState(() => selectedYear = y),
+                availableMonths: availableMonths,
+                availableYears: availableYears,
+                totalAmount: 0, // total is shown arriba; aquí no es necesario
+                formatNumber: (d) => formatNumber(d),
+              );
+            }),
             const SizedBox(height: 16.0),
             Expanded(
               child: ListView.builder(

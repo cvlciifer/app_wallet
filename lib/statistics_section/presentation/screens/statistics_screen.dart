@@ -14,6 +14,18 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   int selectedYear = DateTime.now().year;
   bool groupBySubcategory = false;
 
+  List<int> getAvailableYears() {
+    final years = widget.expenses.map((e) => e.date.year).toSet().toList();
+    years.sort((a, b) => b.compareTo(a));
+    return years;
+  }
+
+  List<int> getAvailableMonthsForYear(int year) {
+    final months = widget.expenses.where((e) => e.date.year == year).map((e) => e.date.month).toSet().toList();
+    months.sort();
+    return months;
+  }
+
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
     return '\$${formatter.format(value)}';
@@ -86,6 +98,17 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Aseguramos que las listas de años y meses disponibles reflejen los gastos
+    final availableYears = getAvailableYears();
+    if (!availableYears.contains(selectedYear) && availableYears.isNotEmpty) {
+      selectedYear = availableYears.first;
+    }
+
+    final availableMonths = getAvailableMonthsForYear(selectedYear);
+    if (!availableMonths.contains(selectedMonth) && availableMonths.isNotEmpty) {
+      selectedMonth = availableMonths.first;
+    }
+
     final data = _getFilteredData();
     final totalAmount = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
@@ -117,6 +140,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
               selectedYear: selectedYear,
               onMonthChanged: (month) => setState(() => selectedMonth = month),
               onYearChanged: (year) => setState(() => selectedYear = year),
+              availableMonths: availableMonths,
+              availableYears: availableYears,
               totalAmount: totalAmount,
               formatNumber: formatNumber,
             ),

@@ -41,7 +41,20 @@ class _WalletHomePageState extends State<WalletHomePage> {
       appBar: const WalletHomeAppbar(),
       body: Consumer<WalletExpensesController>(
         builder: (context, controller, child) {
-          return _buildBody(context, controller);
+          return Stack(
+            children: [
+              _buildBody(context, controller),
+              if (controller.isLoading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.4),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ),
+            ],
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(

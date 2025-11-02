@@ -33,12 +33,6 @@ class ExpensesList extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   onRemoveExpense(expense);
-                  Flushbar(
-                    message: 'Gasto eliminado correctamente',
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 2),
-                    flushbarPosition: FlushbarPosition.TOP,
-                  ).show(context);
                 },
                 backgroundColor: AwColors.red,
               ),

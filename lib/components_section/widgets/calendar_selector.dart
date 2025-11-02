@@ -5,6 +5,8 @@ class WalletMonthYearSelector extends StatelessWidget {
   final int selectedYear;
   final Function(int) onMonthChanged;
   final Function(int) onYearChanged;
+  final List<int> availableMonths;
+  final List<int> availableYears;
   final double totalAmount;
   final String Function(double) formatNumber;
 
@@ -14,6 +16,8 @@ class WalletMonthYearSelector extends StatelessWidget {
     required this.selectedYear,
     required this.onMonthChanged,
     required this.onYearChanged,
+    required this.availableMonths,
+    required this.availableYears,
     required this.totalAmount,
     required this.formatNumber,
   }) : super(key: key);
@@ -25,23 +29,22 @@ class WalletMonthYearSelector extends StatelessWidget {
       children: [
         DropdownButton<int>(
           value: selectedMonth,
-          items: List.generate(12, (index) {
+          items: availableMonths.map((m) {
             return DropdownMenuItem(
-              value: index + 1,
-              child: AwText(text: DateFormat('MMMM').format(DateTime(0, index + 1))),
+              value: m,
+              child: AwText(text: DateFormat('MMMM').format(DateTime(0, m))),
             );
-          }),
+          }).toList(),
           onChanged: (value) => onMonthChanged(value!),
         ),
         DropdownButton<int>(
           value: selectedYear,
-          items: List.generate(5, (index) {
-            int year = DateTime.now().year - index;
+          items: availableYears.map((y) {
             return DropdownMenuItem(
-              value: year,
-              child: AwText(text: '$year'),
+              value: y,
+              child: AwText(text: '$y'),
             );
-          }),
+          }).toList(),
           onChanged: (value) => onYearChanged(value!),
         ),
         AwText(
