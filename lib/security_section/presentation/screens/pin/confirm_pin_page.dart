@@ -30,7 +30,6 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           .showSnackBar(const SnackBar(content: Text('Los PIN no coinciden')));
       return;
     }
-    // Guarda el PIN usando el PinService
     final uid = AuthService().getCurrentUser()?.uid;
     if (uid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -43,7 +42,6 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
         pin: _secondPin!,
         digits: widget.digits,
         alias: widget.alias);
-    // intenta sincronizar el alias al backend (no bloquea la UX)
     try {
       final aliasOk = await AliasService().syncAliasForCurrentUser();
       log('ConfirmPinPage: syncAliasForCurrentUser result=$aliasOk',
@@ -52,7 +50,6 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
       log('ConfirmPinPage: syncAliasForCurrentUser error=$e',
           name: 'ConfirmPinPage', error: e, stackTrace: st);
     }
-    // Nota: no sincronizamos el PIN al backend para mantener el PIN ligado al dispositivo.
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('PIN configurado correctamente')));
 
@@ -63,7 +60,6 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           content: Text('Error guardando el PIN. Intenta de nuevo.')));
       return;
     }
-    // Después de configurar el PIN: navegar al home
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const WalletHomePage()),
@@ -74,7 +70,6 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // No AppBar, mirror SetPinPage layout + keypad
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

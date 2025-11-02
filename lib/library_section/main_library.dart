@@ -77,7 +77,7 @@ export 'package:app_wallet/core/data_base_local/create_db.dart';
 export 'package:app_wallet/components_section/modals/wallet_pop_up.dart';
 export 'package:app_wallet/monthly_report_section/presentation/screens/monthly_report.dart';
 export 'package:app_wallet/components_section/utils/text_formatters.dart';
-export 'package:app_wallet/security_section/data/pin_service.dart';
+export 'package:app_wallet/core/services/pin_service.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/configure_pin.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/enter_pin_page.dart';
 export 'package:app_wallet/login_section/presentation/providers/auth_service.dart';

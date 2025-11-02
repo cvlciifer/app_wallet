@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:app_wallet/security_section/data/pin_service.dart';
+import 'package:app_wallet/core/services/pin_service.dart';
 import 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
 
 class AliasService {

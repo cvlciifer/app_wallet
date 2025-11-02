@@ -3,18 +3,15 @@ import 'dart:math';
 import 'package:cryptography/cryptography.dart';
 
 class PinCrypto {
-  // parametros PBKDF2 v2
   static const int pbkdf2Iterations = 100000;
   static const int pbkdf2Len = 32;
 
-  // Genera una sal aleatoria criptográficamente segura codificada como base64Url
   static String randomSalt([int length = 16]) {
     final rnd = Random.secure();
     final bytes = List<int>.generate(length, (_) => rnd.nextInt(256));
     return base64Url.encode(bytes);
   }
 
-  // Deriva usando PBKDF2-HMAC-SHA256 (version 2)
   static Future<String> deriveV2(String pin, String saltBase64) async {
     final salt = base64Url.decode(saltBase64);
     final pbkdf2 = Pbkdf2(
@@ -30,7 +27,6 @@ class PinCrypto {
     return base64Url.encode(bytes);
   }
 
-  // Deriva usando SHA256 iterado (version antigua)
   static Future<String> deriveLegacy(String pin, String saltBase64,
       {int iterations = 10000}) async {
     final saltBytes = base64Url.decode(saltBase64);
@@ -44,7 +40,6 @@ class PinCrypto {
     return base64Url.encode(digest);
   }
 
-  // tiempo constante para evitar ataques de temporización
   static bool constantTimeEquals(String a, String b) {
     if (a.length != b.length) return false;
     var res = 0;

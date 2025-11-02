@@ -11,6 +11,11 @@ class ForgotPinPage extends StatefulWidget {
   State<ForgotPinPage> createState() => _ForgotPinPageState();
 }
 
+const String _functionsUrl = String.fromEnvironment(
+  'RESET_API_URL',
+  defaultValue: 'https://admin-wallet-chi.vercel.app/api/request-reset',
+);
+
 class _ForgotPinPageState extends State<ForgotPinPage> {
   late final TextEditingController _emailController;
 
@@ -37,9 +42,17 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
       final storage = FlutterSecureStorage();
       await storage.write(key: 'pin_reset_email', value: email);
 
-      final functionsUrl =
-          'https://us-central1-base-flutter-f5463.cloudfunctions.net/sendResetEmailHttp';
-      final resp = await http.post(Uri.parse(functionsUrl),
+      final functionsUrl = _functionsUrl;
+
+      final parsed = Uri.tryParse(functionsUrl);
+      if (parsed == null || parsed.host.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                'URL del API inválida: "$functionsUrl". Configura RESET_API_URL o usa --dart-define al ejecutar.')));
+        return;
+      }
+
+      final resp = await http.post(parsed,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'email': email}));
 
@@ -48,13 +61,16 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
         if (body['debugLink'] != null) {
           final debugLink = body['debugLink'] as String;
 
-          print('Debug reset link (SMTP not configured): $debugLink');
-          // Devolver true al llamante (perfil) para que pueda navegar a SetPin
+          if (kDebugMode) {
+            print('Debug reset link (SMTP not configured): $debugLink');
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Enlace (debug) creado: $debugLink')));
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Se envió un enlace a tu correo.')));
+          }
           Navigator.of(context).pop(true);
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Enlace (debug) creado: $debugLink')));
         } else {
-          // Devolver true al llamante (perfil) cuando el correo fue solicitado correctamente
           Navigator.of(context).pop(true);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text(
@@ -66,9 +82,11 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
                 'Error al solicitar enlace: ${resp.statusCode} — ${resp.body}')));
       }
     } catch (e, st) {
-      print('sendSignInLinkToEmail error: $e');
-      // ignore: avoid_print
-      print(st);
+      if (kDebugMode) {
+        print('sendSignInLinkToEmail error: $e');
+        // ignore: avoid_print
+        print(st);
+      }
       final msg =
           e is FirebaseAuthException ? e.message ?? e.toString() : e.toString();
       final code = e is FirebaseAuthException ? e.code : null;

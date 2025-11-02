@@ -8,18 +8,49 @@ class AuthWrapper extends StatefulWidget {
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkAuthStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      try {
+        final isLoggedIn = await _authService.isUserLoggedIn();
+        if (!isLoggedIn) return;
+
+        final uid = _authService.getCurrentUser()?.uid;
+        if (uid == null) return;
+
+        final pinService = PinService();
+        final hasPin = await pinService.hasPin(accountId: uid);
+        if (hasPin) {
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                  builder: (context) => EnterPinPage(accountId: uid)),
+            );
+          }
+        }
+      } catch (_) {}
+    }
   }
 
   Future<void> _checkAuthStatus() async {
     try {
-      // Esperar un poco para mostrar el splash
       await Future.delayed(const Duration(seconds: 2));
 
       final isLoggedIn = await _authService.isUserLoggedIn();
@@ -27,7 +58,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
       if (mounted) {
         log('AuthWrapper: isLoggedIn=$isLoggedIn');
         if (isLoggedIn) {
-          // Usuario ya está logueado: si tiene PIN pedirlo, si no ir al home
           final uid = _authService.getCurrentUser()?.uid;
           if (uid == null) {
             Navigator.of(context).pushReplacement(
@@ -36,7 +66,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
             return;
           }
           final pinService = PinService();
-          // si borra la app e instala de nuevo, limpiar PIN/alias previo
           await pinService.clearOnReinstallIfNeeded(accountId: uid);
           final hasPin = await pinService.hasPin(accountId: uid);
           log('AuthWrapper: uid=$uid hasPin=$hasPin');
@@ -64,15 +93,20 @@ class _AuthWrapperState extends State<AuthWrapper> {
             );
           }
         } else {
-          final savedUid = await _authService.getSavedUid();
-          if (savedUid != null) {
+          String? candidateUid = await _authService.getSavedUid();
+          if (candidateUid == null) {
+            candidateUid = await _authService.getLastSavedUid();
+          }
+
+          if (candidateUid != null) {
             try {
               final pinService = PinService();
-              final hasPin = await pinService.hasPin(accountId: savedUid);
+              final hasPin = await pinService.hasPin(accountId: candidateUid);
               if (hasPin) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                      builder: (context) => EnterPinPage(accountId: savedUid)),
+                      builder: (context) =>
+                          EnterPinPage(accountId: candidateUid)),
                 );
                 return;
               }

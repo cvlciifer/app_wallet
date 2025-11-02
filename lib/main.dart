@@ -9,7 +9,14 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
+
+// Endpoint que consume un token de reseteo y puede devolver un custom token de Firebase
+const String _consumeResetUrl = String.fromEnvironment(
+  'CONSUME_RESET_URL',
+  defaultValue: 'https://admin-wallet-chi.vercel.app/api/consume-reset',
+);
 
 var kColorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromARGB(255, 8, 115, 158),
@@ -84,36 +91,69 @@ class _AppRootState extends State<AppRoot> {
       final token = uri.queryParameters['token'] ?? uri.queryParameters['link'];
       if (token != null) {
         try {
-          final verifyUrl =
-              'https://us-central1-base-flutter-f5463.cloudfunctions.net/verifyResetToken?token=${Uri.encodeQueryComponent(token)}';
-          final resp = await http.get(Uri.parse(verifyUrl));
+          // Llamamos al endpoint consume-reset que consume el token y
+          // puede devolver un Firebase customToken para autenticar al usuario.
+          final consumeUrl =
+              '$_consumeResetUrl?token=${Uri.encodeQueryComponent(token)}';
+          final resp = await http.get(Uri.parse(consumeUrl));
           if (resp.statusCode == 200) {
             final body = jsonDecode(resp.body) as Map<String, dynamic>;
-            if (body['valid'] == true) {
+            if (body['success'] == true) {
               final storage = const FlutterSecureStorage();
-              await storage.write(key: 'pin_reset_email', value: body['email']);
+              final email = body['email'] as String?;
+              // Guardamos el email para el flujo de SetPin
+              if (email != null)
+                await storage.write(key: 'pin_reset_email', value: email);
+
+              final customToken = body['customToken'] as String?;
+              if (customToken != null && customToken.isNotEmpty) {
+                try {
+                  await FirebaseAuth.instance
+                      .signInWithCustomToken(customToken);
+                  try {
+                    final authSvc = AuthService();
+                    final uid = FirebaseAuth.instance.currentUser?.uid;
+                    final emailToSave = email ?? '';
+                    if (uid != null) {
+                      await authSvc.saveLoginState(emailToSave, uid: uid);
+                    } else if (emailToSave.isNotEmpty) {
+                      await authSvc.saveLoginState(emailToSave);
+                    }
+                  } catch (_) {}
+                } catch (e) {
+                  final contextForSnack =
+                      (_navigatorKey.currentState?.overlay?.context ?? context)
+                          as BuildContext;
+                  ScaffoldMessenger.of(contextForSnack).showSnackBar(const SnackBar(
+                      content: Text(
+                          'No se pudo autenticar con el token proporcionado')));
+                  return;
+                }
+              }
+
+              // Navegar a SetPinPage; si customToken no vino, igualmente permitimos continuar
               _navigatorKey.currentState
                   ?.push(MaterialPageRoute(builder: (_) => const SetPinPage()));
             } else {
               final contextForSnack =
                   (_navigatorKey.currentState?.overlay?.context ?? context)
                       as BuildContext;
-              ScaffoldMessenger.of(contextForSnack).showSnackBar(
-                  const SnackBar(content: Text('Token inválido')));
+              ScaffoldMessenger.of(contextForSnack).showSnackBar(const SnackBar(
+                  content: Text('Token inválido o ya consumido')));
             }
           } else {
             final contextForSnack =
                 (_navigatorKey.currentState?.overlay?.context ?? context)
                     as BuildContext;
             ScaffoldMessenger.of(contextForSnack).showSnackBar(SnackBar(
-                content: Text('Error al verificar token: ${resp.statusCode}')));
+                content: Text('Error al consumir token: ${resp.statusCode}')));
           }
         } catch (e) {
           final contextForSnack =
               (_navigatorKey.currentState?.overlay?.context ?? context)
                   as BuildContext;
-          ScaffoldMessenger.of(contextForSnack).showSnackBar(
-              const SnackBar(content: Text('No se pudo verificar el token')));
+          ScaffoldMessenger.of(contextForSnack).showSnackBar(const SnackBar(
+              content: Text('No se pudo verificar/consumir el token')));
         }
       }
     } catch (_) {}

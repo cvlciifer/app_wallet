@@ -50,9 +50,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
       final hasPinCheck =
           uidCheck != null && await pinServiceCheck.hasPin(accountId: uidCheck);
       if (hasPinCheck) {
-        // fall-through: save alias below and pop
       } else {
-        // Para nuevos usuarios sin PIN: ir a SetPinPage y pasar el alias capturado.
         Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (_) => SetPinPage(alias: normalized),
         ));
@@ -60,7 +58,6 @@ class _AliasInputPageState extends State<AliasInputPage> {
       }
     }
 
-    // Solo modo alias: guardar alias y luego ir a EnterPinPage para que el usuario aún deba ingresar el PIN
     final uid = AuthService().getCurrentUser()?.uid;
     if (uid == null) {
       if (!mounted) return;
@@ -70,15 +67,12 @@ class _AliasInputPageState extends State<AliasInputPage> {
     }
     final pinService = PinService();
     await pinService.setAlias(accountId: uid, alias: normalized ?? '');
-    // intenta sincronizar el alias al backend (no bloquea la UX)
+
     try {
       await AliasService().syncAliasForCurrentUser();
     } catch (_) {}
     if (!mounted) return;
-    // Después de guardar el alias en modo no-inicial, simplemente regresa a la
-    // pantalla anterior (Perfil). No fuerces la entrada del PIN.
-    // Devuelve el alias guardado al llamante para que la pantalla anterior
-    // pueda actualizar su UI inmediatamente.
+
     Navigator.of(context).pop(normalized);
   }
 

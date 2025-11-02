@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'pin_crypto.dart';
+import 'package:app_wallet/core/services/pin_crypto.dart';
 
 // Servicio para gestionar el PIN de seguridad
 class PinService {
@@ -19,14 +19,12 @@ class PinService {
   static const _kFailedAttempts = 'pin_failed_attempts';
   static const _kLockedUntil = 'pin_locked_until';
 
-  // Configuración global de seguridad: máximo intentos y duración de bloqueo
   static const int maxAttempts = 3;
   static const Duration lockDuration = Duration(minutes: 2);
 
   String _ns(String base, String? accountId) =>
       accountId == null ? base : '$base:$accountId';
 
-// si la app fue desinstalada y reinstalada, tiene que configurar nuevamente el alias y el pin
   static const _kInstallMarker = 'aw_install_marker_v1';
 
   Future<void> clearOnReinstallIfNeeded({required String accountId}) async {
@@ -49,7 +47,6 @@ class PinService {
     return h != null;
   }
 
-  // Establecer PIN con versión 2 (PBKDF2)
   Future<void> setPin({
     required String accountId,
     required String pin,
@@ -71,7 +68,6 @@ class PinService {
     await resetFailedAttempts(accountId: accountId);
   }
 
-// Quitar PIN y datos asociados
   Future<void> removePin({required String accountId}) async {
     await _storage.delete(key: _ns(_kHash, accountId));
     await _storage.delete(key: _ns(_kSalt, accountId));
@@ -81,14 +77,12 @@ class PinService {
     await resetFailedAttempts(accountId: accountId);
   }
 
-// Obtener número de dígitos del PIN (por defecto 4)
   Future<int> getDigits({required String accountId}) async {
     final v = await _storage.read(key: _ns(_kDigits, accountId));
     if (v == null) return 4;
     return int.tryParse(v) ?? 4;
   }
 
-// Obtener alias del PIN
   Future<String?> getAlias({required String accountId}) async {
     return await _storage.read(key: _ns(_kAlias, accountId));
   }
@@ -98,7 +92,6 @@ class PinService {
     await _storage.write(key: _ns(_kAlias, accountId), value: alias);
   }
 
-  // Verificar con migración: soporta legacy (v1) y v2 (PBKDF2).
   Future<bool> verifyPin(
       {required String accountId, required String pin}) async {
     if (await isLocked(accountId: accountId)) return false;
@@ -145,24 +138,20 @@ class PinService {
     }
   }
 
-  // Intentos fallidos y bloqueo
   Future<int> _getFailedAttempts({required String accountId}) async {
     final s = await _storage.read(key: _ns(_kFailedAttempts, accountId));
     return int.tryParse(s ?? '0') ?? 0;
   }
 
-  // Accessor público para intentos fallidos (usado por UI para mostrar estado)
   Future<int> getFailedAttempts({required String accountId}) async {
     return await _getFailedAttempts(accountId: accountId);
   }
 
-  // Resetear intentos fallidos
   Future<void> resetFailedAttempts({required String accountId}) async {
     await _storage.write(key: _ns(_kFailedAttempts, accountId), value: '0');
     await _storage.delete(key: _ns(_kLockedUntil, accountId));
   }
 
-  // Registrar intento fallido y posible bloqueo
   Future<void> recordFailedAttempt({required String accountId}) async {
     final attempts = await _getFailedAttempts(accountId: accountId);
     final newAttempts = attempts + 1;
@@ -174,14 +163,10 @@ class PinService {
           DateTime.now().toUtc().add(PinService.lockDuration).toIso8601String();
       await _storage.write(
           key: _ns(_kLockedUntil, accountId), value: lockedUntil);
-      // Al alcanzar el límite, reiniciamos el contador de intentos fallidos
-      // para que, una vez pasado el periodo de bloqueo, el usuario tenga
-      // nuevamente el número completo de intentos.
       await _storage.write(key: _ns(_kFailedAttempts, accountId), value: '0');
     }
   }
 
-  // Verificar si está bloqueado
   Future<bool> isLocked({required String accountId}) async {
     final s = await _storage.read(key: _ns(_kLockedUntil, accountId));
     if (s == null) return false;
@@ -190,7 +175,6 @@ class PinService {
     return DateTime.now().toUtc().isBefore(until);
   }
 
-  // Tiempo restante de bloqueo, o null si no está bloqueado
   Future<Duration?> lockedRemaining({required String accountId}) async {
     final s = await _storage.read(key: _ns(_kLockedUntil, accountId));
     if (s == null) return null;
@@ -200,6 +184,4 @@ class PinService {
     if (now.isBefore(until)) return until.difference(now);
     return null;
   }
-
-  // Nota: no sincronizamos el PIN al backend para mantener el PIN ligado al dispositivo.
 }

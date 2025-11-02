@@ -1,6 +1,3 @@
-// Pequeño wrapper con Express para ejecutar los handlers serverless de forma local sin Vercel CLI.
-// Uso: define las variables de entorno (FIREBASE_SERVICE_ACCOUNT, FRONTEND_HOST, etc.) y ejecuta: node dev-server.js
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -10,9 +7,9 @@ if (typeof fetch === 'undefined') {
   global.fetch = (...args) => import('node-fetch').then(m => m.default(...args));
 }
 
-const requestReset = require(path.join(__dirname, 'api', 'request-reset'));
-const validateReset = require(path.join(__dirname, 'api', 'validate-reset'));
-const consumeReset = require(path.join(__dirname, 'api', 'consume-reset'));
+const requestReset = require(path.join(__dirname, '..', 'api', 'request-reset'));
+const validateReset = require(path.join(__dirname, '..', 'api', 'validate-reset'));
+const consumeReset = require(path.join(__dirname, '..', 'api', 'consume-reset'));
 
 const app = express();
 app.use(bodyParser.json());
