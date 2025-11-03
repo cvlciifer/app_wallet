@@ -21,18 +21,38 @@
   </head>
   <body>
     <h1>Redirigiendo a la aplicación...</h1>
-    <p>Si la app no se abre automáticamente, toca el enlace a continuación:</p>
+    <p id="message">Validando enlace...</p>
     <p id="link"></p>
+
     <script>
-      (function(){
+      (async function(){
         const params = new URLSearchParams(window.location.search);
         const token = params.get('token');
+        const messageEl = document.getElementById('message');
+        const linkEl = document.getElementById('link');
 
-        const appLink = `adminwallet://resetPin?token=${encodeURIComponent(token || '')}`;
+        if (!token) {
+          messageEl.textContent = 'Falta el token en el enlace.';
+          return;
+        }
 
-        document.getElementById('link').innerHTML = `<a href="${appLink}">${appLink}</a>`;
+        const appLink = `adminwallet://resetPin?token=${encodeURIComponent(token)}`;
+        linkEl.innerHTML = `<a href="${appLink}">${appLink}</a>`;
 
-        window.location.replace(appLink);
+        try {
+          const resp = await fetch(`https://app-wallet-apis.vercel.app/api/validate-reset?token=${encodeURIComponent(token)}`);
+          const data = await resp.json();
+
+          if (data.valid) {
+            messageEl.textContent = 'Token válido. Abriendo la app...';
+            setTimeout(() => window.location.replace(appLink), 1000);
+          } else {
+            messageEl.textContent = 'El enlace de recuperación no es válido o ha expirado.';
+          }
+        } catch (e) {
+          console.error(e);
+          messageEl.textContent = 'Error al validar el enlace. Inténtalo más tarde.';
+        }
       })();
     </script>
   </body>
