@@ -1,5 +1,7 @@
 import 'package:app_wallet/login_section/presentation/providers/reset_password.dart' as local_auth;
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:app_wallet/core/app_init.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
@@ -13,6 +15,22 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  try {
+    final remoteConfig = FirebaseRemoteConfig.instance;
+    await remoteConfig.setConfigSettings(RemoteConfigSettings(
+      fetchTimeout: const Duration(seconds: 10),
+      minimumFetchInterval: const Duration(hours: 1),
+    ));
+    await remoteConfig.fetchAndActivate();
+    log('Remote Config inicializado');
+  } catch (e) {
+    log('Error inicializando Remote Config: $e');
+  }
+
+  // Señalizar a la app que las inicializaciones principales han terminado.
+  if (!appInitCompleter.isCompleted) {
+    appInitCompleter.complete();
+  }
 
   try {
     final databasesPath = await getDatabasesPath();
@@ -65,11 +83,11 @@ void main() async {
               ),
         ),
         themeMode: ThemeMode.light,
-        home: const AuthWrapper(),
+        home: const WelcomeScreen(),
         routes: {
           '/home-page': (ctx) => const WalletHomePage(),
           '/new-expense': (ctx) => const NewExpenseScreen(),
-          '/logIn': (ctx) => LoginScreen(),
+          '/logIn': (ctx) => const LoginScreen(),
           '/filtros': (ctx) => const FiltersScreen(),
           '/forgot-password': (ctx) => ForgotPasswordScreen(),
         },
