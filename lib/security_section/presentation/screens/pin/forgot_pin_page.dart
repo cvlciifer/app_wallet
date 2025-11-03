@@ -13,7 +13,7 @@ class ForgotPinPage extends StatefulWidget {
 
 const String _functionsUrl = String.fromEnvironment(
   'RESET_API_URL',
-  defaultValue: 'https://https://app-wallet-apis.vercel.app/request-reset',
+  defaultValue: 'https://app-wallet-apis.vercel.app/request-reset',
 );
 
 class _ForgotPinPageState extends State<ForgotPinPage> {
