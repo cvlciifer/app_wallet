@@ -105,7 +105,6 @@ module.exports = async function handler(req, res) {
   const isProd = process.env.NODE_ENV === 'production';
   const hasAdminCreds = !!process.env.FIREBASE_SERVICE_ACCOUNT;
 
-  // Fail fast in production if admin credentials are missing
   if (isProd && !hasAdminCreds) {
     console.error(JSON.stringify({ event: 'request-reset', level: 'error', message: 'Missing FIREBASE_SERVICE_ACCOUNT in production' }));
     return res.status(500).json({ success: false, reason: 'server_misconfigured', message: 'Server not configured' });

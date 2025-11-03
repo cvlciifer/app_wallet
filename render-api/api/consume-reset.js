@@ -75,7 +75,6 @@ module.exports = async function handler(req, res) {
 
       const userRef = userQuery.docs[0].ref;
 
-      // Transaction: re-read, validate token hash + expiry, then delete pinReset atomically
       let email;
       try {
         await db.runTransaction(async (tx) => {
@@ -85,7 +84,6 @@ module.exports = async function handler(req, res) {
           const pr = data.pinReset;
           if (!pr || pr.tokenHash !== tokenHash) throw new Error('Token inválido');
 
-          // supports both Firestore Timestamp and millis (in-memory/dev)
           const expiresAt = pr.expiresAt;
           const nowMillis = Date.now();
           const expiresMillis = typeof expiresAt === 'object' && expiresAt.toMillis ? expiresAt.toMillis() : expiresAt;
@@ -117,7 +115,6 @@ module.exports = async function handler(req, res) {
     } else if (inMemory) {
       const data = inMemory.get(tokenHash) || null;
       if (!data) return res.status(404).json({ success: false, reason: 'not_found', message: 'Token no encontrado en almacenamiento en memoria.' });
-      // check expiry stored as millis in in-memory store
       const now = Date.now();
       if (!data.expiresAt || data.expiresAt < now) {
         inMemory.delete(tokenHash);
