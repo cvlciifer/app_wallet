@@ -51,19 +51,67 @@ class AppRoot extends StatefulWidget {
   State<AppRoot> createState() => _AppRootState();
 }
 
-class _AppRootState extends State<AppRoot> {
+class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
   AppLinks? _appLinks;
+
+  bool _wasBackgrounded = false;
+  bool _navigatingToPin = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initUniLinks();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _wasBackgrounded = true;
+      return;
+    }
+
+    if (state == AppLifecycleState.resumed) {
+      if (!_wasBackgrounded) return;
+      _wasBackgrounded = false;
+
+      if (_navigatingToPin) return;
+      _navigatingToPin = true;
+
+      try {
+        final authSvc = AuthService();
+        final isLoggedIn = await authSvc.isUserLoggedIn();
+        if (!isLoggedIn) return;
+
+        final uid = authSvc.getCurrentUser()?.uid;
+        if (uid == null) return;
+
+        final pinService = PinService();
+        final hasPin = await pinService.hasPin(accountId: uid);
+        if (!hasPin) return;
+
+        final nav = _navigatorKey.currentState;
+        if (nav != null) {
+          nav.pushReplacement(
+            MaterialPageRoute(builder: (_) => EnterPinPage(accountId: uid)),
+          );
+        }
+      } catch (e, st) {
+        log('didChangeAppLifecycleState error: $e\n$st');
+      } finally {
+        _navigatingToPin = false;
+      }
+    }
   }
 
   Future<void> _initUniLinks() async {

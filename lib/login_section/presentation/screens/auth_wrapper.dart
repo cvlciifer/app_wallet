@@ -14,39 +14,12 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _checkAuthStatus();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      try {
-        final isLoggedIn = await _authService.isUserLoggedIn();
-        if (!isLoggedIn) return;
-
-        final uid = _authService.getCurrentUser()?.uid;
-        if (uid == null) return;
-
-        final pinService = PinService();
-        final hasPin = await pinService.hasPin(accountId: uid);
-        if (hasPin) {
-          if (mounted) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                  builder: (context) => EnterPinPage(accountId: uid)),
-            );
-          }
-        }
-      } catch (_) {}
-    }
   }
 
   Future<void> _checkAuthStatus() async {
