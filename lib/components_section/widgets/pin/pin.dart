@@ -114,7 +114,7 @@ class PinInputState extends State<PinInput> {
     return Column(
       children: [
         GestureDetector(
-          onTap: () => _focusNode.requestFocus(),
+          onTap: () => FocusScope.of(context).unfocus(),
           child: _buildDots(),
         ),
         AwSpacing.s,
@@ -124,7 +124,9 @@ class PinInputState extends State<PinInput> {
           child: TextField(
             controller: _controller,
             focusNode: _focusNode,
-            keyboardType: TextInputType.number,
+            readOnly: true,
+            showCursor: false,
+            enableInteractiveSelection: false,
             obscureText: true,
             enableSuggestions: false,
             autocorrect: false,
