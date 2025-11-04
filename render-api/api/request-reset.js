@@ -150,8 +150,8 @@ module.exports = async function handler(req, res) {
         ? `https://${process.env.VERCEL_URL}`
         : '');
     const webLink = frontendHost
-  ? `${frontendHost}/?token=${encodeURIComponent(token)}`
-  : null;
+    ? `${frontendHost}/?token=${encodeURIComponent(token)}`
+    : null;
 
     if (process.env.NODE_ENV !== 'production') {
       console.log('Generated resetLink (deep):', deepLink, ' webFallback:', webLink);

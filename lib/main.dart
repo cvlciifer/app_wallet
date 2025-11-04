@@ -15,7 +15,8 @@ import 'dart:convert';
 // Endpoint que consume un token de reseteo y puede devolver un custom token de Firebase
 const String _consumeResetUrl = String.fromEnvironment(
   'CONSUME_RESET_URL',
-  defaultValue: 'https://admin-wallet-chi.vercel.app/api/consume-reset',
+  // Default to the API deployment host where the reset endpoints live.
+  defaultValue: 'https://app-wallet-apis.vercel.app/api/consume-reset',
 );
 
 var kColorScheme = ColorScheme.fromSeed(
