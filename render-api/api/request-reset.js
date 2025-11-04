@@ -158,7 +158,6 @@ module.exports = async function handler(req, res) {
       console.log('Generated resetLink (deep):', deepLink, ' webFallback:', webLink);
     }
 
-
     const htmlBody = `
       <p>Haz click en el siguiente enlace para reconfigurar tu PIN (expira en 20 minutos):</p>
       <p><a href="${webLink}">${webLink}</a></p>
