@@ -8,9 +8,7 @@ import 'dart:developer';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'
-  hide ChangeNotifierProvider;
-import 'package:app_wallet/core/providers/global_loading_provider.dart';
-import 'package:app_wallet/components_section/widgets/loading/wallet_loading_overlay.dart';
+    hide ChangeNotifierProvider;
 import 'package:app_wallet/core/providers/reset_flow_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -284,16 +282,9 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
             create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
       ],
       child: MaterialApp(
+        // No global loading provider: render child directly.
         builder: (context, child) {
-          return Stack(
-            children: [
-              if (child != null) child,
-              Consumer(builder: (ctx, ref, _) {
-                final loading = ref.watch(globalLoadingProvider);
-                return WalletLoadingOverlay(visible: loading.visible);
-              }),
-            ],
-          );
+          return child ?? const SizedBox.shrink();
         },
         navigatorKey: _navigatorKey,
         debugShowCheckedModeBanner: false,
@@ -322,7 +313,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
               ),
         ),
         themeMode: ThemeMode.light,
-  home: const AuthWrapper(),
+        home: const AuthWrapper(),
         routes: {
           '/home-page': (ctx) => const WalletHomePage(),
           '/new-expense': (ctx) => const NewExpenseScreen(),
