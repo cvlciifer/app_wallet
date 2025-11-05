@@ -1,7 +1,6 @@
 import 'package:app_wallet/login_section/presentation/providers/reset_password.dart' as local_auth;
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:app_wallet/core/app_init.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
@@ -25,11 +24,6 @@ void main() async {
     log('Remote Config inicializado');
   } catch (e) {
     log('Error inicializando Remote Config: $e');
-  }
-
-  // Señalizar a la app que las inicializaciones principales han terminado.
-  if (!appInitCompleter.isCompleted) {
-    appInitCompleter.complete();
   }
 
   try {
