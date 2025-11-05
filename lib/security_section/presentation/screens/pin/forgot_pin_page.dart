@@ -32,12 +32,6 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
     final userEmail = AuthService().getCurrentUser()?.email ?? '';
     _emailController =
         TextEditingController(text: widget.initialEmail ?? userEmail);
-
-    if ((_emailController.text).isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _sendRecoveryEmail();
-      });
-    }
   }
 
   @override
@@ -164,7 +158,7 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AwSpacing.s12,
+              AwSpacing.s6,
               Builder(builder: (context) {
                 final email = _emailController.text.trim();
                 final primary =
@@ -174,9 +168,10 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
               AwSpacing.s12,
               Builder(builder: (context) {
                 final isDisabled = _isSending || _remainingSeconds > 0;
+                final hasSentBefore = _lastSentAt != null;
                 final buttonText = _remainingSeconds > 0
                     ? 'Reenviar ($_remainingSeconds s)'
-                    : 'Reenviar enlace';
+                    : (hasSentBefore ? 'Reenviar enlace' : 'Enviar enlace');
                 return WalletButton.iconButtonText(
                   buttonText: buttonText,
                   onPressed: isDisabled ? () {} : _sendRecoveryEmail,

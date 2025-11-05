@@ -32,7 +32,7 @@ function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-async function sendEmailSMTP(toEmail, subject, htmlBody) {
+async function sendEmailSMTP(toEmail, subject, htmlBody, textBody) {
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER)
     throw new Error('SMTP no configurado');
 
@@ -51,10 +51,11 @@ async function sendEmailSMTP(toEmail, subject, htmlBody) {
     to: toEmail,
     subject,
     html: htmlBody,
+    text: textBody || undefined,
   });
 }
 
-async function sendEmailEmailJS(toEmail, htmlBody) {
+async function sendEmailEmailJS(toEmail, htmlBody, textBody) {
   if (
     !process.env.EMAILJS_SERVICE_ID ||
     !process.env.EMAILJS_TEMPLATE_ID ||
@@ -69,6 +70,7 @@ async function sendEmailEmailJS(toEmail, htmlBody) {
     template_params: {
       to_email: toEmail,
       reset_links_html: htmlBody,
+      reset_links_text: textBody,
     },
   };
 
@@ -157,18 +159,26 @@ module.exports = async function handler(req, res) {
       console.log('Generated resetLink (deep):', deepLink, ' webFallback:', webLink);
     }
 
+    const displayLink = webLink || deepLink;
+
+    // Texto plano para clientes que muestran sólo el snippet (evita que Gmail oculte contenido)
+    const textBody = `Haz click en el siguiente enlace para reconfigurar tu PIN (expira en 20 minutos):\n\n${displayLink}\n\nSi ya tienes la app instalada, se abrirá automáticamente al abrir este enlace.\nEn caso contrario, puedes abrir la app manualmente e ingresar tu PIN nuevamente.\n\nSi no fuiste tu quien pidió recuperar el PIN, no hagas click en el enlace.`;
+
+    // HTML: poner la advertencia visible antes del enlace y usar un texto de ancla corto
     const htmlBody = `
+      <p><strong>Si no fuiste tú quien pidió recuperar el PIN, no hagas click en el enlace.</strong></p>
       <p>Haz click en el siguiente enlace para reconfigurar tu PIN (expira en 20 minutos):</p>
-      <p><a href="${webLink}">${webLink}</a></p>
-      <p>Si ya tienes la app instalada, se abrirá automáticamente al abrir este enlace.</p>
-      <p>En caso contrario, puedes abrir la app manualmente e ingresar tu PIN nuevamente.</p>
+      <p><a href="${displayLink}">Abrir enlace para reconfigurar tu PIN</a></p>
+      <p style="font-size:12px;color:#666;word-break:break-all;">${displayLink}</p>
+      <p>Si no fuiste tú quien solicitó la recuperación de PIN, ignora este correo y no hagas clic en el enlace.</p>
+      <p>Este enlace es de uso exclusivo para el titular de la cuenta y no debe compartirse con terceros.</p>
     `;
 
     let sent = false;
 
     try {
       if (process.env.EMAILJS_SERVICE_ID) {
-        await sendEmailEmailJS(email, htmlBody);
+        await sendEmailEmailJS(email, htmlBody, textBody);
         sent = true;
       }
     } catch (e) {
@@ -178,7 +188,7 @@ module.exports = async function handler(req, res) {
     if (!sent) {
       try {
         if (process.env.SMTP_HOST) {
-          await sendEmailSMTP(email, 'Recupera tu PIN', htmlBody);
+          await sendEmailSMTP(email, 'Recupera tu PIN', htmlBody, textBody);
           sent = true;
         }
       } catch (e) {
