@@ -6,14 +6,7 @@ class Chart extends StatelessWidget {
   final List<Expense> expenses;
 
   List<WalletExpenseBucket> get buckets {
-    return [
-      WalletExpenseBucket.forCategory(expenses, Category.comida),
-      WalletExpenseBucket.forCategory(expenses, Category.ocio),
-      WalletExpenseBucket.forCategory(expenses, Category.viajes),
-      WalletExpenseBucket.forCategory(expenses, Category.trabajo),
-      WalletExpenseBucket.forCategory(expenses, Category.salud),
-      WalletExpenseBucket.forCategory(expenses, Category.servicios),
-    ];
+    return Category.values.map((c) => WalletExpenseBucket.forCategory(expenses, c)).toList();
   }
 
   double get maxTotalExpense {
@@ -33,20 +26,7 @@ class Chart extends StatelessWidget {
   }
 
   Color getColorForCategory(Category category) {
-    switch (category) {
-      case Category.comida:
-        return AwColors.darkBlue;
-      case Category.ocio:
-        return AwColors.darkBlue;
-      case Category.viajes:
-        return AwColors.darkBlue;
-      case Category.trabajo:
-        return AwColors.darkBlue;
-      case Category.servicios:
-        return AwColors.darkBlue;
-      default:
-        return AwColors.darkBlue;
-    }
+    return category.color;
   }
 
   @override
@@ -58,23 +38,27 @@ class Chart extends StatelessWidget {
       height: AwSize.s300,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        // ignore: deprecated_member_use
-        color: AwColors.cyan.withOpacity(0.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromARGB(66, 73, 73, 73),
+            spreadRadius: 3,
+            blurRadius: 5,
+          ),
+        ],
+        color: AwColors.white,
       ),
       child: Column(
         children: [
-          // Título del gráfico
           const AwText.bold(
             'Categorías v/s Cantidad',
             color: AwColors.darkBlue,
             size: AwSize.s18,
           ),
-          AwSpacing.s10, // Espacio entre el título y el gráfico
+          AwSpacing.s10,
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Barra lateral con valores y más espacio
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -89,7 +73,6 @@ class Chart extends StatelessWidget {
                   ],
                 ),
                 AwSpacing.s,
-
                 Expanded(
                   child: Column(
                     children: [
@@ -119,7 +102,7 @@ class Chart extends StatelessWidget {
                               width: 40,
                               child: Icon(
                                 categoryIcons[bucket.category],
-                                color: AwColors.blue,
+                                color: bucket.category.color,
                               ),
                             ),
                           );
@@ -161,16 +144,13 @@ class ChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
-      // ignore: deprecated_member_use
       ..color = AwColors.grey.withOpacity(0.5)
       ..strokeWidth = 1.5;
 
-    // Determine the number of lines and their positions
-    int numLines = 7; // You can keep this as is
-    double heightStep = size.height / (numLines - 1); // Adjust to cover 0 to max
+    int numLines = 7;
+    double heightStep = size.height / (numLines - 1);
 
     for (int i = 0; i < numLines; i++) {
-      // Calculate the y position for each line based on the height
       double yPosition = size.height - (i * heightStep * (maxTotalExpense > 0 ? 1 : 0));
       canvas.drawLine(Offset(0, yPosition), Offset(size.width, yPosition), paint);
     }

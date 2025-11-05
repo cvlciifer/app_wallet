@@ -1,6 +1,6 @@
 import 'package:app_wallet/login_section/presentation/providers/reset_password.dart' as local_auth;
-import 'package:provider/provider.dart';
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
@@ -14,27 +14,38 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  try {
+    final remoteConfig = FirebaseRemoteConfig.instance;
+    await remoteConfig.setConfigSettings(RemoteConfigSettings(
+      fetchTimeout: const Duration(seconds: 10),
+      minimumFetchInterval: const Duration(hours: 1),
+    ));
+    await remoteConfig.fetchAndActivate();
+    log('Remote Config inicializado');
+  } catch (e) {
+    log('Error inicializando Remote Config: $e');
+  }
 
-  // DEBUG: Imprimir la ubicación de la base de datos
   try {
     final databasesPath = await getDatabasesPath();
     final dbPath = join(databasesPath, 'adminwallet.db');
     log('UBICACIÓN DE LA BASE DE DATOS: $dbPath');
   } catch (e) {
-    log('❌ Error obteniendo ruta de BD: $e');
+    log('Error obteniendo ruta de BD: $e');
   }
 
-  // Restringir la orientación a vertical
   await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp, // Solo permitir orientación vertical hacia arriba
+    DeviceOrientation.portraitUp,
   ]);
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => RegisterProvider()), // Agrega el RegisterProvider
-        ChangeNotifierProvider(create: (_) => LoginProvider()), // Agrega también el LoginProvider
-        ChangeNotifierProvider(create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
+        ChangeNotifierProvider(create: (_) => WalletExpensesController()),
+        ChangeNotifierProvider(create: (_) => BottomNavProvider()),
+        ChangeNotifierProvider(create: (_) => RegisterProvider()),
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
+        ChangeNotifierProvider(create: (_) => local_auth.AuthProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -66,11 +77,11 @@ void main() async {
               ),
         ),
         themeMode: ThemeMode.light,
-        home: const AuthWrapper(),
+        home: const WelcomeScreen(),
         routes: {
           '/home-page': (ctx) => const WalletHomePage(),
           '/new-expense': (ctx) => const NewExpenseScreen(),
-          '/logIn': (ctx) => LoginScreen(),
+          '/logIn': (ctx) => const LoginScreen(),
           '/filtros': (ctx) => const FiltersScreen(),
           '/forgot-password': (ctx) => ForgotPasswordScreen(),
         },

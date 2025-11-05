@@ -1,7 +1,8 @@
-import 'package:provider/provider.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 
 class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -25,7 +26,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Imagen de fondo
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -34,15 +34,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          // Contenido de la pantalla
           Center(
             child: SingleChildScrollView(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  // ignore: deprecated_member_use
-                  color: AwColors.white.withOpacity(0.9), // Color de fondo del cuadro con opacidad
+                  color: AwColors.white.withOpacity(0.9),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: const [
                     BoxShadow(
@@ -200,11 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               final String email = _emailController.text.trim();
                               final String username = _nameController.text.trim();
                               final String password = _passwordController.text.trim();
-
-                              // Obtén una instancia de RegisterProvider usando context.read
                               final registerProvider = context.read<RegisterProvider>();
-
-                              // Llama a registerUser con await y verifica el estado del widget
                               try {
                                 await registerProvider.registerUser(
                                   email: email,

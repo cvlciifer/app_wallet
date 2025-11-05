@@ -1,87 +1,98 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
-
 import '../core/data_base_local/local_crud.dart';
 import '../core/sync_service/sync_service.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
 
 class WalletExpensesController extends ChangeNotifier {
   final List<Expense> _allExpenses = [];
   List<Expense> _filteredExpenses = [];
   Map<Category, bool> _currentFilters = {
-    Category.comida: false,
-    Category.viajes: false,
-    Category.ocio: false,
-    Category.trabajo: false,
-    Category.salud: false,
-    Category.servicios: false,
+    for (var c in Category.values) c: false,
   };
 
   late final SyncService syncService;
 
   WalletExpensesController() {
-    // Inicializa el servicio de sincronización con el email real del usuario autenticado
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
-    print('Email usado para SyncService: $email');
+    log('Email usado para SyncService: $email');
     syncService = SyncService(
       localCrud: LocalCrud(),
       firestore: FirebaseFirestore.instance,
       userEmail: email,
     );
     syncService.startAutoSync();
+    loadExpensesSmart();
   }
 
   List<Expense> get allExpenses => List.unmodifiable(_allExpenses);
   List<Expense> get filteredExpenses => List.unmodifiable(_filteredExpenses);
   Map<Category, bool> get currentFilters => Map.unmodifiable(_currentFilters);
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
-  /// Carga los gastos desde la nube si hay internet, o desde la base local si no hay conexión
   Future<void> loadExpensesSmart() async {
-    print('loadExpensesSmart llamado');
+    log('loadExpensesSmart llamado');
     final connectivityResult = await Connectivity().checkConnectivity();
     final hasConnection = connectivityResult != ConnectivityResult.none;
 
     if (hasConnection) {
-      print('Hay internet, sincronizando con la nube...');
+      log('Hay internet, sincronizando con la nube...');
       await syncService.initializeLocalDbFromFirebase();
     } else {
-      print('Sin internet, mostrando solo base local');
+      log('Sin internet, mostrando solo base local');
     }
 
     List<Expense> gastosFromLocal = await syncService.localCrud.getAllExpenses();
-    print('Gastos obtenidos localmente: ${gastosFromLocal.length}');
+    log('Gastos obtenidos localmente: ${gastosFromLocal.length}');
+
+    final visibleExpenses = gastosFromLocal.where((e) => e.syncStatus != SyncStatus.pendingDelete).toList();
+    // Ordenar por fecha descendente: del más reciente al más antiguo
+    visibleExpenses.sort((a, b) => b.date.compareTo(a.date));
+
     _allExpenses.clear();
-    _allExpenses.addAll(gastosFromLocal);
+    _allExpenses.addAll(visibleExpenses);
     _filteredExpenses = List.from(_allExpenses);
     notifyListeners();
   }
 
   Future<void> addExpense(Expense expense, {required bool hasConnection}) async {
-    print('addExpense llamado con: ${expense.title}');
-    await syncService.createExpense(expense, hasConnection: hasConnection);
-    // Sincroniza la base local con la nube después de guardar
-    await syncService.initializeLocalDbFromFirebase();
-    await loadExpensesSmart();
+    log('addExpense llamado con: ${expense.title}');
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await syncService.createExpense(expense, hasConnection: hasConnection);
+      if (hasConnection) {
+        await syncService.initializeLocalDbFromFirebase();
+      }
+      await loadExpensesSmart();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> removeExpense(Expense expense, {required bool hasConnection}) async {
-    print('removeExpense llamado con: \\${expense.title}');
-    await syncService.deleteExpense(expense.id, hasConnection: hasConnection);
-    await loadExpensesSmart();
+    log('removeExpense llamado con: \\\${expense.title}');
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await syncService.deleteExpense(expense.id, hasConnection: hasConnection);
+      if (hasConnection) {
+        await syncService.initializeLocalDbFromFirebase();
+      }
+      await loadExpensesSmart();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void applyFilters(Map<Category, bool> filters) {
     _currentFilters = Map.from(filters);
     _filteredExpenses = _allExpenses.where((expense) {
-      if (filters[Category.comida] == true && expense.category == Category.comida) return true;
-      if (filters[Category.viajes] == true && expense.category == Category.viajes) return true;
-      if (filters[Category.ocio] == true && expense.category == Category.ocio) return true;
-      if (filters[Category.trabajo] == true && expense.category == Category.trabajo) return true;
-      if (filters[Category.salud] == true && expense.category == Category.salud) return true;
-      if (filters[Category.servicios] == true && expense.category == Category.servicios) return true;
-      return false;
+      return filters[expense.category] == true;
     }).toList();
+    _filteredExpenses.sort((a, b) => b.date.compareTo(a.date));
     notifyListeners();
   }
 }

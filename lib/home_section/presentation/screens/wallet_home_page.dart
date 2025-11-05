@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:provider/provider.dart';
 
 class WalletHomePage extends StatefulWidget {
   const WalletHomePage({super.key});
@@ -9,69 +8,70 @@ class WalletHomePage extends StatefulWidget {
 }
 
 class _WalletHomePageState extends State<WalletHomePage> {
-  int _currentBottomIndex = 0;
-  late WalletExpensesController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WalletExpensesController();
-    // Sincroniza con la nube solo una vez al entrar, luego carga local
-    _controller.syncService.initializeLocalDbFromFirebase().then((_) {
-      _controller.loadExpensesSmart();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onBottomNavTap(int index) {
-    setState(() {
-      _currentBottomIndex = index;
-    });
-    WalletNavigationService.handleBottomNavigation(context, index, _controller.allExpenses);
+  void _onBottomNavTap(int index) async {
+    final bottomNav = context.read<BottomNavProvider>();
+    bottomNav.setIndex(index);
+    final controller = context.read<WalletExpensesController>();
+    await WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
+    bottomNav.reset();
   }
 
   void _openAddExpenseOverlay() async {
     final expense = await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
-      // Aquí deberías detectar la conectividad real, por ahora se asume true
-      await _controller.addExpense(expense, hasConnection: true);
+      final connectivity = await Connectivity().checkConnectivity();
+      final hasConnection = connectivity != ConnectivityResult.none;
+      final controller = context.read<WalletExpensesController>();
+      await controller.addExpense(expense, hasConnection: hasConnection);
     }
   }
 
   void _openFilters() async {
-    final filters = await WalletNavigationService.openFiltersPage(context, _controller.currentFilters);
+    final controller = context.read<WalletExpensesController>();
+    final filters = await WalletNavigationService.openFiltersPage(context, controller.currentFilters);
     if (filters != null) {
-      _controller.applyFilters(filters);
+      controller.applyFilters(filters);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _controller,
-      child: Scaffold(
-        appBar: const WalletHomeAppbar(),
-        body: Consumer<WalletExpensesController>(
-          builder: (context, controller, child) {
-            return _buildBody(context, controller);
-          },
-        ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: AwColors.appBarColor,
-          onPressed: _openAddExpenseOverlay,
-          tooltip: 'Agregar gasto',
-          child: const Icon(Icons.add, color: AwColors.white),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: WalletBottomAppBar(
-          currentIndex: _currentBottomIndex,
-          onTap: _onBottomNavTap,
-        ),
+    return Scaffold(
+      backgroundColor: AwColors.greyLight,
+      appBar: const WalletHomeAppbar(),
+      body: Consumer<WalletExpensesController>(
+        builder: (context, controller, child) {
+          return Stack(
+            children: [
+              _buildBody(context, controller),
+              if (controller.isLoading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.4),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AwColors.appBarColor,
+        onPressed: _openAddExpenseOverlay,
+        tooltip: 'Agregar gasto',
+        child: const Icon(Icons.add, color: AwColors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: Consumer<BottomNavProvider>(
+        builder: (context, bottomNav, child) {
+          final selected = bottomNav.selectedIndex;
+          return WalletBottomAppBar(
+            currentIndex: selected,
+            onTap: _onBottomNavTap,
+          );
+        },
       ),
     );
   }
@@ -84,8 +84,9 @@ class _WalletHomePageState extends State<WalletHomePage> {
       mainContent = ExpensesList(
         expenses: controller.filteredExpenses,
         onRemoveExpense: (expense) async {
-          // Aquí deberías detectar la conectividad real, por ahora se asume true
-          await controller.removeExpense(expense, hasConnection: true);
+          final connectivity = await Connectivity().checkConnectivity();
+          final hasConnection = connectivity != ConnectivityResult.none;
+          await controller.removeExpense(expense, hasConnection: hasConnection);
         },
       );
     }

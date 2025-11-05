@@ -1,10 +1,6 @@
 import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:app_wallet/core/data_base_local/create_db.dart';
 import 'package:sqflite/sqflite.dart';
 
 class LoginProvider extends ChangeNotifier {
@@ -29,32 +25,25 @@ class LoginProvider extends ChangeNotifier {
       final User? user = userCredential.user;
       if (user != null) {
         if (user.emailVerified) {
-          // Guardar estado de login
           await _authService.saveLoginState(emailLower);
 
-          // Asegurar que la DB local exista y crear/actualizar el usuario local
           try {
-            // Fuerza inicialización/creación de la BD
             await DBHelper.instance.database;
 
-            // Verificar si el usuario ya existe en la BD local
             final existingUser = await DBHelper.instance.getUsuarioPorUid(user.uid);
 
             if (existingUser != null) {
               log('Usuario encontrado en BD local: ${existingUser['correo']}');
-              // El usuario ya existe, verificar si el email cambió
               if (existingUser['correo'] != emailLower) {
                 log('Email actualizado de ${existingUser['correo']} a $emailLower');
                 await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
               }
             } else {
               log('Usuario nuevo, guardando en BD local: $emailLower');
-              // Usuario nuevo, guardarlo
               await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
             }
           } catch (dbErr) {
             log('Error creando/verificando DB local: $dbErr');
-            // opcional: enviar onError si quieres detener el login por errores locales
           }
 
           onSuccess();
@@ -80,7 +69,6 @@ class LoginProvider extends ChangeNotifier {
     }
   }
 
-  // Método para iniciar sesión con Google
   Future<void> signInWithGoogle({
     required Function onSuccess,
     required Function(String) onError,
@@ -112,20 +100,16 @@ class LoginProvider extends ChangeNotifier {
           await _createUserProfile(user);
         }
 
-        // Guardar estado de login para Google
         final emailLower = (user.email ?? '').toLowerCase();
         await _authService.saveLoginState(emailLower);
 
-        // Asegurar DB local y upsert usuario
         try {
           await DBHelper.instance.database;
 
-          // Verificar si el usuario ya existe en la BD local
           final existingUser = await DBHelper.instance.getUsuarioPorUid(user.uid);
 
           if (existingUser != null) {
             log('Usuario Google encontrado en BD local: ${existingUser['correo']}');
-            // Verificar si el email cambió
             if (existingUser['correo'] != emailLower) {
               log('Email Google actualizado de ${existingUser['correo']} a $emailLower');
               await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
@@ -149,7 +133,6 @@ class LoginProvider extends ChangeNotifier {
     }
   }
 
-  // Método privado para crear el perfil del usuario en Firestore
   Future<void> _createUserProfile(User user) async {
     try {
       final emailLower = (user.email ?? '').toLowerCase();
@@ -169,7 +152,6 @@ class LoginProvider extends ChangeNotifier {
         'name': "Bienvenido a AdminWallet",
       });
 
-      // También almacena localmente (por si es newUser)
       try {
         await DBHelper.instance.database;
         await DBHelper.instance.upsertUsuario(uid: user.uid, correo: emailLower);
@@ -181,12 +163,10 @@ class LoginProvider extends ChangeNotifier {
     }
   }
 
-  // Método para cerrar sesión
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
       await _auth.signOut();
-      // Limpiar estado de login
       await _authService.clearLoginState();
     } catch (e) {
       log('Error al cerrar sesión: $e');
