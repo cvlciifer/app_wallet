@@ -1,13 +1,17 @@
 import 'package:app_wallet/login_section/presentation/providers/reset_password.dart'
     as local_auth;
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' hide Consumer;
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'
+  hide ChangeNotifierProvider;
+import 'package:app_wallet/core/providers/global_loading_provider.dart';
+import 'package:app_wallet/components_section/widgets/loading/wallet_loading_overlay.dart';
+import 'package:app_wallet/core/providers/reset_flow_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
@@ -15,7 +19,6 @@ import 'dart:convert';
 // Endpoint que consume un token de reseteo y puede devolver un custom token de Firebase
 const String _consumeResetUrl = String.fromEnvironment(
   'CONSUME_RESET_URL',
-  // Default to the API deployment host where the reset endpoints live.
   defaultValue: 'https://app-wallet-apis.vercel.app/api/consume-reset',
 );
 
@@ -44,7 +47,7 @@ void main() async {
         .portraitUp, // Solo permitir orientación vertical hacia arriba
   ]);
 
-  runApp(AppRoot());
+  runApp(ProviderScope(child: AppRoot()));
 }
 
 class AppRoot extends StatefulWidget {
@@ -87,6 +90,25 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       _wasBackgrounded = false;
 
       if (_navigatingToPin) return;
+
+      try {
+        final ctx = _navigatorKey.currentState?.overlay?.context;
+        if (ctx != null) {
+          final resetState = ProviderScope.containerOf(ctx, listen: false)
+              .read(resetFlowProvider);
+          if (resetState.status == ResetFlowStatus.allowed) {
+            final nav = _navigatorKey.currentState;
+            if (nav != null) {
+              _navigatingToPin = true;
+              nav.pushReplacement(
+                MaterialPageRoute(builder: (_) => const SetPinPage()),
+              );
+              _navigatingToPin = false;
+              return;
+            }
+          }
+        }
+      } catch (_) {}
       _navigatingToPin = true;
 
       try {
@@ -117,14 +139,12 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
 
   Future<void> _initUniLinks() async {
     try {
-      // inicializa AppLinks.
       _appLinks = AppLinks();
       final initialUri = await _appLinks!.getInitialAppLink();
       if (initialUri != null) {
         _handleIncomingLink(initialUri.toString());
       }
 
-      // Escuchar eventos de enlace subsiguientes
       try {
         _appLinks!.uriLinkStream.listen((Uri? uri) {
           if (uri != null) _handleIncomingLink(uri.toString());
@@ -135,24 +155,27 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
 
   Future<void> _handleIncomingLink(String link) async {
     try {
-      // Nuevo flujo basado en tokens: nuestro hosting redirige con ?token=abcd
       final uri = Uri.parse(link);
       final token = uri.queryParameters['token'] ?? uri.queryParameters['link'];
       if (token != null) {
+        bool success = false;
         try {
-          // Llamamos al endpoint consume-reset que consume el token y
-          // puede devolver un Firebase customToken para autenticar al usuario.
+          try {
+            final ctx = _navigatorKey.currentState?.overlay?.context;
+            if (ctx != null) {
+              ProviderScope.containerOf(ctx, listen: false)
+                  .read(resetFlowProvider.notifier)
+                  .setProcessing();
+            }
+          } catch (_) {}
+
           final consumeUrl =
               '$_consumeResetUrl?token=${Uri.encodeQueryComponent(token)}';
           final resp = await http.get(Uri.parse(consumeUrl));
           if (resp.statusCode == 200) {
             final body = jsonDecode(resp.body) as Map<String, dynamic>;
             if (body['success'] == true) {
-              final storage = const FlutterSecureStorage();
               final email = body['email'] as String?;
-              // Guardamos el email para el flujo de SetPin
-              if (email != null)
-                await storage.write(key: 'pin_reset_email', value: email);
 
               final customToken = body['customToken'] as String?;
               if (customToken != null && customToken.isNotEmpty) {
@@ -169,6 +192,16 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                       await authSvc.saveLoginState(emailToSave);
                     }
                   } catch (_) {}
+
+                  success = true;
+                  try {
+                    final ctx = _navigatorKey.currentState?.overlay?.context;
+                    if (ctx != null) {
+                      ProviderScope.containerOf(ctx, listen: false)
+                          .read(resetFlowProvider.notifier)
+                          .setAllowed(email);
+                    }
+                  } catch (_) {}
                 } catch (e) {
                   final contextForSnack =
                       (_navigatorKey.currentState?.overlay?.context ?? context)
@@ -176,13 +209,33 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                   ScaffoldMessenger.of(contextForSnack).showSnackBar(const SnackBar(
                       content: Text(
                           'No se pudo autenticar con el token proporcionado')));
+
+                  try {
+                    final ctx = _navigatorKey.currentState?.overlay?.context;
+                    if (ctx != null) {
+                      ProviderScope.containerOf(ctx, listen: false)
+                          .read(resetFlowProvider.notifier)
+                          .clear();
+                    }
+                  } catch (_) {}
                   return;
                 }
+              } else {
+                success = true;
+                try {
+                  final ctx = _navigatorKey.currentState?.overlay?.context;
+                  if (ctx != null) {
+                    ProviderScope.containerOf(ctx, listen: false)
+                        .read(resetFlowProvider.notifier)
+                        .setAllowed(email);
+                  }
+                } catch (_) {}
               }
 
-              // Navegar a SetPinPage; si customToken no vino, igualmente permitimos continuar
-              _navigatorKey.currentState
-                  ?.push(MaterialPageRoute(builder: (_) => const SetPinPage()));
+              if (success) {
+                _navigatorKey.currentState?.push(
+                    MaterialPageRoute(builder: (_) => const SetPinPage()));
+              }
             } else {
               final contextForSnack =
                   (_navigatorKey.currentState?.overlay?.context ?? context)
@@ -203,6 +256,17 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                   as BuildContext;
           ScaffoldMessenger.of(contextForSnack).showSnackBar(const SnackBar(
               content: Text('No se pudo verificar/consumir el token')));
+        } finally {
+          if (!success) {
+            try {
+              final ctx = _navigatorKey.currentState?.overlay?.context;
+              if (ctx != null) {
+                ProviderScope.containerOf(ctx, listen: false)
+                    .read(resetFlowProvider.notifier)
+                    .clear();
+              }
+            } catch (_) {}
+          }
         }
       }
     } catch (_) {}
@@ -220,6 +284,17 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
             create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
       ],
       child: MaterialApp(
+        builder: (context, child) {
+          return Stack(
+            children: [
+              if (child != null) child,
+              Consumer(builder: (ctx, ref, _) {
+                final loading = ref.watch(globalLoadingProvider);
+                return WalletLoadingOverlay(visible: loading.visible);
+              }),
+            ],
+          );
+        },
         navigatorKey: _navigatorKey,
         debugShowCheckedModeBanner: false,
         theme: ThemeData().copyWith(
@@ -247,7 +322,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
               ),
         ),
         themeMode: ThemeMode.light,
-        home: const AuthWrapper(),
+  home: const AuthWrapper(),
         routes: {
           '/home-page': (ctx) => const WalletHomePage(),
           '/new-expense': (ctx) => const NewExpenseScreen(),

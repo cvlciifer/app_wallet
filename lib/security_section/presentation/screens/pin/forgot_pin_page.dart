@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -80,9 +79,6 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
       _isSending = true;
     });
     try {
-      final storage = FlutterSecureStorage();
-      await storage.write(key: 'pin_reset_email', value: email);
-
       final functionsUrl = _functionsUrl;
 
       final parsed = Uri.tryParse(functionsUrl);

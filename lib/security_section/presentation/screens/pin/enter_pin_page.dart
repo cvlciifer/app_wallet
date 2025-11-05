@@ -1,8 +1,9 @@
-// ignore: unused_element
 import 'dart:async';
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app_wallet/core/providers/reset_flow_provider.dart';
 
-class EnterPinPage extends StatefulWidget {
+class EnterPinPage extends ConsumerStatefulWidget {
   final bool verifyOnly;
   final String? accountId;
 
@@ -10,23 +11,26 @@ class EnterPinPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<EnterPinPage> createState() => _EnterPinPageState();
+  ConsumerState<EnterPinPage> createState() => _EnterPinPageState();
 }
 
-class _EnterPinPageState extends State<EnterPinPage> {
+class _EnterPinPageState extends ConsumerState<EnterPinPage> {
   int _attempts = 0;
   String? _alias;
   final GlobalKey<PinEntryAreaState> _pinKey = GlobalKey<PinEntryAreaState>();
   Duration? _lockedRemaining;
-  // Controller que encapsula el polling de lockedRemaining por accountId
+
   LockStatusController? _lockCtrl;
   StreamSubscription<User?>? _authSub;
   late final EnterPinViewModel _viewModel;
   bool _hasConnection = true;
   bool _showFailurePopup = false;
   int _remainingAttempts = 0;
-  // (la bandera de Snack se delega al LockStatusController)
+
   StreamSubscription<ConnectivityResult>? _connectivitySub;
+  bool _isRedirecting = false;
+  Timer? _redirectTimeoutTimer;
+  bool _resetListenerAttached = false;
 
   @override
   void initState() {
@@ -36,7 +40,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
     _loadAttempts();
     _updateLockState();
     _checkConnection();
-    // Escuchar cambios de conectividad para que la UI se actualice mientras esta página está activa
+
     _connectivitySub = Connectivity().onConnectivityChanged.listen((result) {
       if (!mounted) return;
       setState(() {
@@ -44,16 +48,12 @@ class _EnterPinPageState extends State<EnterPinPage> {
       });
     });
 
-    // Mantener sincronizado el controller si el usuario cambia de cuenta.
-    // Si se pasó `accountId` explícitamente (por ejemplo desde logout), no necesitamos
-    // suscribirnos a authStateChanges porque trabajamos con ese id fijo.
     if (widget.accountId == null) {
       _authSub =
           FirebaseAuth.instance.authStateChanges().listen(_onAuthChanged);
-      // inicializar controller con usuario actual si existe
+
       _onAuthChanged(FirebaseAuth.instance.currentUser);
     } else {
-      // Crear y arrancar el LockStatusController para el accountId proporcionado
       () async {
         _lockCtrl = LockStatusController(accountId: widget.accountId!);
         await _lockCtrl!.start();
@@ -75,10 +75,35 @@ class _EnterPinPageState extends State<EnterPinPage> {
         });
       }();
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _watchResetFlags();
+    });
+  }
+
+  Future<void> _watchResetFlags() async {
+    try {
+      final current = ref.read(resetFlowProvider);
+      if (current.status == ResetFlowStatus.allowed) {
+        if (!mounted) return;
+        setState(() => _isRedirecting = true);
+        await Future.delayed(const Duration(milliseconds: 250));
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const SetPinPage()),
+        );
+        return;
+      }
+      if (current.status == ResetFlowStatus.processing) {
+        if (!mounted) return;
+        setState(() => _isRedirecting = true);
+      }
+    } catch (e) {
+      // ignore
+    }
   }
 
   Future<void> _onAuthChanged(User? user) async {
-    // Desechar el controlador anterior si existe
     if (_lockCtrl != null) {
       _lockCtrl!.dispose();
       _lockCtrl = null;
@@ -92,11 +117,9 @@ class _EnterPinPageState extends State<EnterPinPage> {
       return;
     }
 
-    // Crear e iniciar el controlador para el nuevo accountId
     _lockCtrl = LockStatusController(accountId: user.uid);
     await _lockCtrl!.start();
 
-    // Conectar los notifiers para actualizar el estado local
     _lockCtrl!.lockedRemaining.addListener(() {
       if (!mounted) return;
       setState(() {
@@ -134,14 +157,6 @@ class _EnterPinPageState extends State<EnterPinPage> {
     });
   }
 
-  @override
-  void dispose() {
-    _authSub?.cancel();
-    _lockCtrl?.dispose();
-    _connectivitySub?.cancel();
-    super.dispose();
-  }
-
   Future<void> _loadAlias() async {
     final uid = widget.accountId ?? AuthService().getCurrentUser()?.uid;
     if (uid == null) return;
@@ -157,8 +172,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
     final uid =
         accountId ?? widget.accountId ?? AuthService().getCurrentUser()?.uid;
     if (uid == null) return;
-    // Si hay controller, usarlo (polling ya centralizado). Si no, hacer una
-    // consulta puntual a PinService como fallback.
+
     if (_lockCtrl != null) {
       await _lockCtrl!.refresh();
       if (!mounted) return;
@@ -173,6 +187,46 @@ class _EnterPinPageState extends State<EnterPinPage> {
     setState(() {
       _lockedRemaining = remaining;
     });
+  }
+
+  void _attachResetListenerIfNeeded() {
+    if (_resetListenerAttached) return;
+    _resetListenerAttached = true;
+    ref.listen<ResetFlowState>(resetFlowProvider, (previous, next) {
+      if (next.status == ResetFlowStatus.processing) {
+        if (!mounted) return;
+        setState(() => _isRedirecting = true);
+        _redirectTimeoutTimer?.cancel();
+        _redirectTimeoutTimer = Timer(const Duration(seconds: 12), () {
+          if (!mounted) return;
+          setState(() => _isRedirecting = false);
+        });
+      } else if (next.status == ResetFlowStatus.allowed) {
+        if (!mounted) return;
+        setState(() => _isRedirecting = true);
+        Future.microtask(() async {
+          await Future.delayed(const Duration(milliseconds: 250));
+          _redirectTimeoutTimer?.cancel();
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const SetPinPage()),
+          );
+        });
+      } else if (next.status == ResetFlowStatus.idle) {
+        if (!mounted) return;
+        setState(() => _isRedirecting = false);
+        _redirectTimeoutTimer?.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _redirectTimeoutTimer?.cancel();
+    _connectivitySub?.cancel();
+    _authSub?.cancel();
+    _lockCtrl?.dispose();
+    super.dispose();
   }
 
   String _formatDuration(Duration d) {
@@ -206,24 +260,20 @@ class _EnterPinPageState extends State<EnterPinPage> {
           _attempts = _viewModel.attempts.value;
         });
       }
-      // Si ok es true, ya manejamos el éxito arriba; si es false, continuar manejando el fallo
       if (ok) return;
-      // Limpiar la entrada
+
       _pinKey.currentState?.clear();
 
-      // Comprobar si la cuenta quedó bloqueada por este intento fallido.
       final lockedNow =
           await PinService().lockedRemaining(accountId: accountId);
       if (!mounted) return;
       if (lockedNow != null) {
-        // Existe bloqueo: actualizar estado de bloqueo y no mostrar el popup de reintento
         await _updateLockState(accountId);
         if (!mounted) return;
         setState(() {
           _remainingAttempts = 0;
           _showFailurePopup = false;
         });
-        // Mostrar la notificación de bloqueo.
         if (_lockCtrl != null) {
           if (!_lockCtrl!.shownLockSnack) {
             ScaffoldMessenger.of(context).clearSnackBars();
@@ -241,7 +291,6 @@ class _EnterPinPageState extends State<EnterPinPage> {
         return;
       }
 
-      // Determinar los intentos restantes y mostrar un popup en pantalla
       final remaining = PinService.maxAttempts - _attempts;
       if (!mounted) return;
       setState(() {
@@ -255,6 +304,7 @@ class _EnterPinPageState extends State<EnterPinPage> {
 
   @override
   Widget build(BuildContext context) {
+    _attachResetListenerIfNeeded();
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -298,7 +348,6 @@ class _EnterPinPageState extends State<EnterPinPage> {
                                 onCompleted: (_) {},
                                 actions: Column(
                                   children: [
-                                    // Botón de confirmar: el usuario debe pulsarlo para enviar el PIN
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 16.0),
@@ -336,7 +385,6 @@ class _EnterPinPageState extends State<EnterPinPage> {
                                         );
                                       },
                                       onForgotPin: () async {
-                                        // Abrir la pantalla local de 'Olvidé mi PIN'
                                         final email = AuthService()
                                             .getCurrentUser()
                                             ?.email;
@@ -357,8 +405,6 @@ class _EnterPinPageState extends State<EnterPinPage> {
                     ),
                   ),
                 ),
-
-                // (Las acciones de PIN ahora se muestran justo debajo del teclado numérico)
               ],
             ),
             if (_showFailurePopup)
@@ -374,6 +420,11 @@ class _EnterPinPageState extends State<EnterPinPage> {
                   });
                 },
               ),
+            if (_isRedirecting) ...[
+              ModalBarrier(
+                  dismissible: false, color: Colors.black.withOpacity(0.45)),
+              Center(child: const WalletLoader()),
+            ],
           ],
         ),
       ),
