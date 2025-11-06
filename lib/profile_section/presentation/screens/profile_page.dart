@@ -1,15 +1,16 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class WalletProfilePage extends StatefulWidget {
+class WalletProfilePage extends ConsumerStatefulWidget {
   final String? userEmail;
 
   const WalletProfilePage({Key? key, this.userEmail}) : super(key: key);
 
   @override
-  State<WalletProfilePage> createState() => _WalletProfilePageState();
+  ConsumerState<WalletProfilePage> createState() => _WalletProfilePageState();
 }
 
-class _WalletProfilePageState extends State<WalletProfilePage> {
+class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
   final User? user = FirebaseAuth.instance.currentUser;
   late String? userEmail;
   late String? userName;
@@ -156,22 +157,56 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
               child: SettingsCard(
                 title: 'Restablecer mi PIN',
                 icon: Icons.lock_reset,
-                onTap: () {
-                  () async {
-                    try {
-                      final success = await Navigator.of(context).push<bool>(
-                          MaterialPageRoute(
-                              builder: (_) => const ForgotPinPage()));
-                      if (success == true)
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => const SetPinPage()));
-                    } catch (e, st) {
-                      if (kDebugMode)
-                        debugPrint('Restablecer PIN error: $e\n$st');
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text('No se pudo abrir restablecer PIN')));
+                onTap: () async {
+                  final loader = ref.read(globalLoaderProvider.notifier);
+                  loader.show();
+                  try {
+                    final uid = user?.uid;
+                    final pinService = PinService();
+                    final remaining = await pinService.pinChangeRemainingCount(
+                        accountId: uid ?? '');
+                    final blockedUntil = await pinService
+                        .pinChangeBlockedUntilNextDay(accountId: uid ?? '');
+
+                    final isBlocked = (remaining <= 0) ||
+                        (blockedUntil != null && blockedUntil > Duration.zero);
+
+                    if (isBlocked) {
+                      final remainingDuration =
+                          blockedUntil ?? const Duration(days: 1);
+                      if (!mounted) return;
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (_) => PinLockedPage(
+                                remaining: remainingDuration,
+                                accountId: uid,
+                                allowBack: true,
+                              )));
+                    } else {
+                      try {
+                        final success = await Navigator.of(context).push<bool>(
+                            MaterialPageRoute(
+                                builder: (_) => const ForgotPinPage()));
+                        if (success == true) {
+                          if (!mounted) return;
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const SetPinPage()));
+                        }
+                      } catch (e, st) {
+                        if (kDebugMode)
+                          debugPrint('Restablecer PIN error: $e\n$st');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'No se pudo abrir restablecer PIN')));
+                        }
+                      }
                     }
-                  }();
+                  } finally {
+                    try {
+                      ref.read(globalLoaderProvider.notifier).hide();
+                    } catch (_) {}
+                  }
                 },
               ),
             ),

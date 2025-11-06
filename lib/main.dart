@@ -9,9 +9,7 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'
     hide ChangeNotifierProvider;
-import 'package:app_wallet/core/providers/reset_flow_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
 
 // Endpoint que consume un token de reseteo y puede devolver un custom token de Firebase
@@ -282,9 +280,25 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
             create: (_) => local_auth.AuthProvider()), // Agrega el AuthProvider
       ],
       child: MaterialApp(
-        // No global loading provider: render child directly.
         builder: (context, child) {
-          return child ?? const SizedBox.shrink();
+          return Consumer(builder: (ctx, ref, _) {
+            final loaderCount = ref.watch(globalLoaderProvider);
+            final showLoader = loaderCount > 0;
+            return Stack(
+              children: [
+                child ?? const SizedBox.shrink(),
+                if (showLoader)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.45),
+                      child: const Center(
+                        child: WalletLoader(color: AwColors.appBarColor),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          });
         },
         navigatorKey: _navigatorKey,
         debugShowCheckedModeBanner: false,

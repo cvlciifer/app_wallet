@@ -194,7 +194,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
                   buttonText: 'Confirmar',
                   onPressed: _canContinue ? _continue : null,
                   backgroundColor:
-                      _canContinue ? AwColors.appBarColor : AwColors.grey,
+                      _canContinue ? AwColors.appBarColor : AwColors.blueGrey,
                   buttonTextColor: AwColors.white,
                 ),
               ),

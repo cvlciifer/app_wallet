@@ -1,14 +1,20 @@
 import 'dart:async';
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:app_wallet/components_section/widgets/pin/pin_page_scaffold.dart';
 
 class PinLockedPage extends StatefulWidget {
   final Duration remaining;
   final String? message;
   final bool allowBack;
+  final String? accountId;
 
-  const PinLockedPage(
-      {Key? key, required this.remaining, this.message, this.allowBack = false})
-      : super(key: key);
+  const PinLockedPage({
+    Key? key,
+    required this.remaining,
+    this.message,
+    this.allowBack = false,
+    this.accountId,
+  }) : super(key: key);
 
   @override
   State<PinLockedPage> createState() => _PinLockedPageState();
@@ -59,20 +65,10 @@ class _PinLockedPageState extends State<PinLockedPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: widget.allowBack
-          ? WalletAppBar(
-              showBackArrow: false,
-              title: ' ',
-              barColor: Colors.transparent,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios,
-                    color: AwColors.appBarColor),
-                onPressed: () => Navigator.pop(context),
-              ),
-            )
-          : null,
-      body: Center(
+    return PinPageScaffold(
+      transparentAppBar: widget.allowBack,
+      allowBack: widget.allowBack,
+      child: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -99,9 +95,19 @@ class _PinLockedPageState extends State<PinLockedPage> {
                     : 'Volver cuando esté desbloqueado',
                 onPressed: _remaining == Duration.zero
                     ? () {
-                        final uid = AuthService().getCurrentUser()?.uid;
-                        Navigator.of(context).pushReplacement(MaterialPageRoute(
-                            builder: (_) => EnterPinPage(accountId: uid)));
+                        final preferredUid = widget.accountId ??
+                            AuthService().getCurrentUser()?.uid;
+                        if (preferredUid != null) {
+                          Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      EnterPinPage(accountId: preferredUid)));
+                        } else {
+                          // If there's no known uid, send them to login.
+                          Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                  builder: (_) => const LoginScreen()));
+                        }
                       }
                     : null,
                 backgroundColor: AwColors.appBarColor,

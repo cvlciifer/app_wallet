@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:app_wallet/core/providers/reset_flow_provider.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 
 class ConfirmPinPage extends StatefulWidget {
@@ -17,9 +16,24 @@ class ConfirmPinPage extends StatefulWidget {
 }
 
 class _ConfirmPinPageState extends State<ConfirmPinPage> {
+  String? _alias;
   String? _secondPin;
-  final GlobalKey<PinInputState> _pinKey = GlobalKey<PinInputState>();
-  bool _isWorking = false;
+  final GlobalKey<PinEntryAreaState> _pinKey = GlobalKey<PinEntryAreaState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _alias = widget.alias;
+    if (_alias == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          final a = await AliasService().getAliasForCurrentUser();
+          if (!mounted) return;
+          setState(() => _alias = a);
+        } catch (_) {}
+      });
+    }
+  }
 
   void _onCompleted(String pin) {
     setState(() {
@@ -28,6 +42,8 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
   }
 
   Future<void> _save() async {
+    _secondPin = _pinKey.currentState?.currentPin ?? _secondPin;
+
     if (_secondPin == null || _secondPin != widget.firstPin) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Los PIN no coinciden')));
@@ -41,6 +57,12 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
     }
     final pinService = PinService();
     try {
+      try {
+        ProviderScope.containerOf(context, listen: false)
+            .read(globalLoaderProvider.notifier)
+            .show();
+      } catch (_) {}
+
       await pinService.setPin(
           accountId: uid,
           pin: _secondPin!,
@@ -48,6 +70,12 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           alias: widget.alias);
     } catch (e) {
       final msg = e.toString();
+
+      try {
+        ProviderScope.containerOf(context, listen: false)
+            .read(globalLoaderProvider.notifier)
+            .hide();
+      } catch (_) {}
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       return;
     }
@@ -58,9 +86,6 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           .clear();
     } catch (_) {}
     try {
-      setState(() {
-        _isWorking = true;
-      });
       final aliasOk = await AliasService().syncAliasForCurrentUser();
       log('ConfirmPinPage: syncAliasForCurrentUser result=$aliasOk',
           name: 'ConfirmPinPage');
@@ -87,8 +112,8 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
+    return PinPageScaffold(
+      child: Stack(
         children: [
           Center(
             child: Padding(
@@ -98,57 +123,70 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   AwSpacing.s12,
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: AwText.bold(
-                        widget.alias != null && widget.alias!.isNotEmpty
-                            ? 'Hola ${widget.alias!}...'
-                            : 'Hola...',
-                        size: AwSize.s16,
-                        color: AwColors.boldBlack),
-                  ),
+                  GreetingHeader(alias: _alias ?? widget.alias),
                   AwSpacing.s12,
                   const AwText.bold('Confirma tu PIN',
-                      size: AwSize.s20, color: AwColors.appBarColor),
+                      size: AwSize.s16, color: AwColors.appBarColor),
                   AwSpacing.s12,
-                  PinInput(
-                      key: _pinKey,
-                      digits: widget.digits,
-                      onCompleted: _onCompleted),
-                  AwSpacing.s20,
-                  NumericKeypad(
-                    onDigit: (d) {
-                      _pinKey.currentState?.appendDigit(d);
+                  PinEntryArea(
+                    key: _pinKey,
+                    digits: widget.digits,
+                    autoComplete: false,
+                    onCompleted: _onCompleted,
+                    onChanged: (len) {
+                      if (!mounted) return;
                       setState(() {});
                     },
-                    onBackspace: () {
-                      _pinKey.currentState?.deleteDigit();
-                      setState(() {});
-                    },
-                  ),
-                  AwSpacing.s20,
-                  Center(
-                    child: Builder(builder: (context) {
-                      final len = _pinKey.currentState?.currentLength ?? 0;
-                      final ready = len == widget.digits;
-                      return WalletButton.primaryButton(
-                        buttonText: 'Guardar PIN',
-                        onPressed: ready ? _save : null,
-                        backgroundColor:
-                            ready ? AwColors.appBarColor : AwColors.greyLight,
-                        buttonTextColor:
-                            ready ? AwColors.white : AwColors.boldBlack,
-                      );
-                    }),
+                    actions: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Builder(builder: (context) {
+                              final len =
+                                  _pinKey.currentState?.currentLength ?? 0;
+                              final ready = len == widget.digits;
+                              return ElevatedButton(
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      // ignore: deprecated_member_use
+                                      MaterialStateProperty.resolveWith(
+                                          (states) => states.contains(
+                                                  // ignore: deprecated_member_use
+                                                  MaterialState.disabled)
+                                              ? AwColors.blueGrey
+                                              : AwColors.appBarColor),
+                                  foregroundColor:
+                                      // ignore: deprecated_member_use
+                                      MaterialStateProperty.resolveWith(
+                                          (states) => Colors.white),
+                                ),
+                                onPressed: ready
+                                    ? () {
+                                        _secondPin =
+                                            _pinKey.currentState?.currentPin ??
+                                                '';
+                                        _save();
+                                      }
+                                    : null,
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 14.0),
+                                  child: AwText.bold('Guardar PIN',
+                                      color: Colors.white),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          if (_isWorking) ...[
-            ModalBarrier(dismissible: false, color: AwColors.black54),
-            Center(child: WalletLoader(color: AwColors.appBarColor)),
-          ],
         ],
       ),
     );

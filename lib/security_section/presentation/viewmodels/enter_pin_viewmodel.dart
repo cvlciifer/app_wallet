@@ -3,7 +3,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 class EnterPinViewModel {
   final PinService _pinService;
 
-  /// Notifier con intentos actuales (útil para la UI)
+  /// Notifier con intentos actuales
   final ValueNotifier<int> attempts = ValueNotifier<int>(0);
 
   EnterPinViewModel({PinService? pinService})
@@ -14,7 +14,6 @@ class EnterPinViewModel {
     attempts.value = a;
   }
 
-  /// Verifica el PIN; actualiza attempts si falla y devuelve true/false.
   Future<bool> verifyPin(
       {required String accountId, required String pin}) async {
     final ok = await _pinService.verifyPin(accountId: accountId, pin: pin);

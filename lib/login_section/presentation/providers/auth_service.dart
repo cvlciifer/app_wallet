@@ -44,10 +44,22 @@ class AuthService {
       await prefs.remove(_userEmailKey);
       await prefs.remove(_userUidKey);
 
-      await prefs.remove(_lastUserUidKey);
       log('Estado de login limpiado');
     } catch (e) {
       log('Error limpiando estado de login: $e');
+    }
+  }
+
+  Future<void> clearAllLoginState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_isLoggedInKey);
+      await prefs.remove(_userEmailKey);
+      await prefs.remove(_userUidKey);
+      await prefs.remove(_lastUserUidKey);
+      log('Estado de login totalmente limpiado');
+    } catch (e) {
+      log('Error limpiando todo el estado de login: $e');
     }
   }
 

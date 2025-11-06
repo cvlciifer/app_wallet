@@ -10,9 +10,25 @@ class SetPinPage extends StatefulWidget {
 }
 
 class _SetPinPageState extends State<SetPinPage> {
+  String? _alias;
   String? _firstPin;
   final int _digits = 4;
-  final GlobalKey<PinInputState> _pinKey = GlobalKey<PinInputState>();
+  final GlobalKey<PinEntryAreaState> _pinKey = GlobalKey<PinEntryAreaState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _alias = widget.alias;
+    if (_alias == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          final a = await AliasService().getAliasForCurrentUser();
+          if (!mounted) return;
+          setState(() => _alias = a);
+        } catch (_) {}
+      });
+    }
+  }
 
   void _onCompleted(String pin) {
     setState(() {
@@ -33,8 +49,8 @@ class _SetPinPageState extends State<SetPinPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
+    return PinPageScaffold(
+      child: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -42,15 +58,7 @@ class _SetPinPageState extends State<SetPinPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AwSpacing.s12,
-              Align(
-                alignment: Alignment.centerLeft,
-                child: AwText.bold(
-                    widget.alias != null && widget.alias!.isNotEmpty
-                        ? 'Hola ${widget.alias!}...'
-                        : 'Hola...',
-                    size: AwSize.s30,
-                    color: AwColors.appBarColor),
-              ),
+              GreetingHeader(alias: _alias ?? widget.alias),
               AwSpacing.s12,
               const AwText.bold('Configura tu PIN de seguridad',
                   size: AwSize.s16, color: AwColors.appBarColor),
@@ -62,33 +70,61 @@ class _SetPinPageState extends State<SetPinPage> {
                 textAlign: TextAlign.center,
               ),
               AwSpacing.s20,
-              PinInput(
-                  key: _pinKey, digits: _digits, onCompleted: _onCompleted),
-              AwSpacing.s20,
-              NumericKeypad(
-                onDigit: (d) {
-                  _pinKey.currentState?.appendDigit(d);
-                  setState(() {});
+              PinEntryArea(
+                key: _pinKey,
+                digits: _digits,
+                autoComplete: false,
+                onCompleted: _onCompleted,
+                onChanged: (len) {
+                  if (!mounted) return;
+                  setState(() {
+                    // update UI when length changes; _firstPin stays set by onCompleted
+                  });
                 },
-                onBackspace: () {
-                  _pinKey.currentState?.deleteDigit();
-                  setState(() {});
-                },
-              ),
-              AwSpacing.s20,
-              Center(
-                child: Builder(builder: (context) {
-                  final len = _pinKey.currentState?.currentLength ?? 0;
-                  final ready = len == _digits;
-                  return WalletButton.primaryButton(
-                    buttonText: 'Continuar',
-                    onPressed: ready ? _confirm : null,
-                    backgroundColor:
-                        ready ? AwColors.appBarColor : AwColors.blueGrey,
-                    buttonTextColor:
-                        ready ? AwColors.white : AwColors.boldBlack,
-                  );
-                }),
+                actions: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Builder(builder: (context) {
+                          final len = _pinKey.currentState?.currentLength ?? 0;
+                          final ready = len == _digits;
+                          return ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  // ignore: deprecated_member_use
+                                  MaterialStateProperty.resolveWith((states) =>
+                                      states.contains(
+                                              // ignore: deprecated_member_use
+                                              MaterialState.disabled)
+                                          ? AwColors.blueGrey
+                                          : AwColors.appBarColor),
+                              foregroundColor:
+                                  // ignore: deprecated_member_use
+                                  MaterialStateProperty.resolveWith(
+                                      (states) => Colors.white),
+                            ),
+                            onPressed: ready
+                                ? () {
+                                    final pin =
+                                        _pinKey.currentState?.currentPin ?? '';
+                                    _firstPin = pin;
+                                    _confirm();
+                                  }
+                                : null,
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 14.0),
+                              child:
+                                  AwText.bold('Continuar', color: Colors.white),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

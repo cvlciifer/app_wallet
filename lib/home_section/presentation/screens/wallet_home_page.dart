@@ -1,5 +1,6 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 
 class WalletHomePage extends StatefulWidget {
   const WalletHomePage({super.key});
@@ -11,16 +12,41 @@ class WalletHomePage extends StatefulWidget {
 class _WalletHomePageState extends State<WalletHomePage> {
   int _currentBottomIndex = 0;
   late WalletExpensesController _controller;
+  bool _initialLoaderHidden = false;
 
   @override
   void initState() {
     super.initState();
     _controller = WalletExpensesController();
+    _controller.addListener(() {
+      try {
+        if (!_initialLoaderHidden && !_controller.isLoadingExpenses) {
+          _initialLoaderHidden = true;
+          final ctx = context;
+          try {
+            riverpod.ProviderScope.containerOf(ctx, listen: false)
+                .read(globalLoaderProvider.notifier)
+                .hide();
+          } catch (_) {}
+        }
+      } catch (_) {}
+    });
     // Sincroniza con la nube solo una vez al entrar, luego carga local
     _controller.syncService.initializeLocalDbFromFirebase().then((_) {
       // Evitar llamar al controlador si el widget ya fue desmontado.
       if (!mounted) return;
       _controller.loadExpensesSmart();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_initialLoaderHidden && !_controller.isLoadingExpenses) {
+        _initialLoaderHidden = true;
+        try {
+          riverpod.ProviderScope.containerOf(context, listen: false)
+              .read(globalLoaderProvider.notifier)
+              .hide();
+        } catch (_) {}
+      }
     });
   }
 

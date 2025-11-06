@@ -45,34 +45,17 @@ class LogOutDialog extends StatelessWidget {
                   final loginProvider =
                       Provider.of<LoginProvider>(context, listen: false);
 
-                  // Capturar uid y comprobar si hay PIN antes de cerrar sesión.
-                  final uid = FirebaseAuth.instance.currentUser?.uid;
-                  bool hasPin = false;
-                  if (uid != null) {
-                    try {
-                      final pinService = PinService();
-                      hasPin = await pinService.hasPin(accountId: uid);
-                    } catch (_) {
-                      // ignore errors y tratar como no tiene pin
-                      hasPin = false;
-                    }
-                  }
-
                   await loginProvider.signOut();
 
+                  try {
+                    await AuthService().clearAllLoginState();
+                  } catch (_) {}
+
                   if (context.mounted) {
-                    if (hasPin) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                            builder: (context) => EnterPinPage(accountId: uid)),
-                        (Route<dynamic> route) => false,
-                      );
-                    } else {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => LoginScreen()),
-                        (Route<dynamic> route) => false,
-                      );
-                    }
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                      (Route<dynamic> route) => false,
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(

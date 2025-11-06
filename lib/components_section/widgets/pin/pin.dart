@@ -3,6 +3,8 @@ import 'package:app_wallet/library_section/main_library.dart';
 class PinInput extends StatefulWidget {
   final int digits;
   final ValueChanged<String> onCompleted;
+  final bool autoComplete;
+  final ValueChanged<int>? onChanged;
   // Configuracion de pin visual
   final double dotSize;
   final double dotSpacing;
@@ -13,6 +15,8 @@ class PinInput extends StatefulWidget {
     Key? key,
     this.digits = 4,
     required this.onCompleted,
+    this.autoComplete = true,
+    this.onChanged,
     this.dotSize = AwSize.s16,
     this.dotSpacing = AwSize.s12,
     this.filledColor = AwColors.appBarColor,
@@ -43,11 +47,14 @@ class PinInputState extends State<PinInput> {
         _controller.text = pin;
         _controller.selection = TextSelection.collapsed(offset: pin.length);
       }
-      Future.microtask(() {
-        if (mounted) widget.onCompleted(pin);
-      });
+      if (widget.autoComplete) {
+        Future.microtask(() {
+          if (mounted) widget.onCompleted(pin);
+        });
+      }
     }
     setState(() {});
+    widget.onChanged?.call(_controller.text.length);
   }
 
   void clear() {
@@ -56,7 +63,7 @@ class PinInputState extends State<PinInput> {
     setState(() {});
   }
 
-  /// Añade un dígito al PIN (usado por el teclado numérico en pantalla)
+  /// Añade un dígito al PIN
   void appendDigit(String d) {
     if (_controller.text.length >= widget.digits) return;
     _controller.text = '${_controller.text}$d';
@@ -65,7 +72,7 @@ class PinInputState extends State<PinInput> {
     setState(() {});
   }
 
-  /// Elimina el último dígito (retroceso)
+  /// Elimina el último dígito
   void deleteDigit() {
     if (_controller.text.isEmpty) return;
     _controller.text =
