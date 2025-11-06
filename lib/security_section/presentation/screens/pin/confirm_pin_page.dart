@@ -40,11 +40,17 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
       return;
     }
     final pinService = PinService();
-    await pinService.setPin(
-        accountId: uid,
-        pin: _secondPin!,
-        digits: widget.digits,
-        alias: widget.alias);
+    try {
+      await pinService.setPin(
+          accountId: uid,
+          pin: _secondPin!,
+          digits: widget.digits,
+          alias: widget.alias);
+    } catch (e) {
+      final msg = e.toString();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      return;
+    }
 
     try {
       ProviderScope.containerOf(context, listen: false)
@@ -92,13 +98,18 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   AwSpacing.s12,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: AwText.bold(
+                        widget.alias != null && widget.alias!.isNotEmpty
+                            ? 'Hola ${widget.alias!}...'
+                            : 'Hola...',
+                        size: AwSize.s16,
+                        color: AwColors.boldBlack),
+                  ),
+                  AwSpacing.s12,
                   const AwText.bold('Confirma tu PIN',
                       size: AwSize.s20, color: AwColors.appBarColor),
-                  AwSpacing.s12,
-                  if (widget.alias != null && widget.alias!.isNotEmpty) ...[
-                    AwText.normal('Ya casi estamos ${widget.alias!}...'),
-                    AwSpacing.s12,
-                  ],
                   AwSpacing.s12,
                   PinInput(
                       key: _pinKey,
@@ -135,7 +146,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
             ),
           ),
           if (_isWorking) ...[
-            ModalBarrier(dismissible: false, color: Colors.black45),
+            ModalBarrier(dismissible: false, color: AwColors.black54),
             Center(child: WalletLoader(color: AwColors.appBarColor)),
           ],
         ],

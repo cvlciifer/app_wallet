@@ -84,8 +84,17 @@ class _WalletHomePageState extends State<WalletHomePage> {
   Widget _buildBody(BuildContext context, WalletExpensesController controller) {
     final width = MediaQuery.of(context).size.width;
 
-    Widget mainContent = const EmptyState();
-    if (controller.filteredExpenses.isNotEmpty) {
+    Widget mainContent;
+
+    if (controller.isLoadingExpenses) {
+      // While loading, show a centered loader in the content area (replaces list/empty state)
+      mainContent = const Center(
+        child: SizedBox(
+          height: AwSize.s48,
+          child: WalletLoader(color: AwColors.appBarColor),
+        ),
+      );
+    } else if (controller.filteredExpenses.isNotEmpty) {
       mainContent = ExpensesList(
         expenses: controller.filteredExpenses,
         onRemoveExpense: (expense) async {
@@ -93,6 +102,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
           await controller.removeExpense(expense, hasConnection: true);
         },
       );
+    } else {
+      mainContent = const EmptyState();
     }
 
     return width < 600
@@ -108,6 +119,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
             children: [
               Expanded(child: Chart(expenses: controller.filteredExpenses)),
               Expanded(child: mainContent),
+              const SizedBox(width: AwSize.s60),
             ],
           );
   }

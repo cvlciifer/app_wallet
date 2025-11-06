@@ -9,9 +9,6 @@ class WalletProfilePage extends StatefulWidget {
   State<WalletProfilePage> createState() => _WalletProfilePageState();
 }
 
-// SettingsCard ahora contiene su propia animación de presión y onTap,
-// por lo que no necesitamos un wrapper _PressableCard local.
-
 class _WalletProfilePageState extends State<WalletProfilePage> {
   final User? user = FirebaseAuth.instance.currentUser;
   late String? userEmail;
@@ -87,7 +84,7 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                         AwText.bold(
                           alias != null && alias!.isNotEmpty
                               ? 'Hola, $alias 👋'
-                              : 'Hola 👋',
+                              : 'Hola...👋',
                           color: AwColors.modalPurple,
                           size: AwSize.s16,
                           textOverflow: TextOverflow.ellipsis,

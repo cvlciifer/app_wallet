@@ -42,8 +42,18 @@ class _SetPinPageState extends State<SetPinPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AwSpacing.s12,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: AwText.bold(
+                    widget.alias != null && widget.alias!.isNotEmpty
+                        ? 'Hola ${widget.alias!}...'
+                        : 'Hola...',
+                    size: AwSize.s30,
+                    color: AwColors.appBarColor),
+              ),
+              AwSpacing.s12,
               const AwText.bold('Configura tu PIN de seguridad',
-                  size: AwSize.s20, color: AwColors.appBarColor),
+                  size: AwSize.s16, color: AwColors.appBarColor),
               AwSpacing.s,
               const AwText.normal(
                 'Este PIN protegerá el acceso local de la app en este dispositivo.',

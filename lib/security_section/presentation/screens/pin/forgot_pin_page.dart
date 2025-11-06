@@ -1,4 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'pin_locked_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -23,6 +24,9 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
   final Duration _resendCooldown = const Duration(seconds: 60);
   int _remainingSeconds = 0;
   Timer? _countdownTimer;
+  String? _alias;
+  int _remainingAttempts = PinService.maxAttempts;
+  Timer? _primaryMessageTimer;
 
   @override
   void initState() {
@@ -31,11 +35,56 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
     final userEmail = AuthService().getCurrentUser()?.email ?? '';
     _emailController =
         TextEditingController(text: widget.initialEmail ?? userEmail);
+    _loadAliasAndAttempts();
+  }
+
+  Future<void> _loadAliasAndAttempts() async {
+    final uid = AuthService().getCurrentUser()?.uid;
+    if (uid == null) return;
+    try {
+      final pinService = PinService();
+      final a = await pinService.getAlias(accountId: uid);
+      final remainingCount =
+          await pinService.pinChangeRemainingCount(accountId: uid);
+      final cooldown =
+          await pinService.pinChangeCooldownRemaining(accountId: uid);
+      final blockedUntil =
+          await pinService.pinChangeBlockedUntilNextDay(accountId: uid);
+      if (cooldown != null) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (_) => PinLockedPage(
+                remaining: cooldown,
+                message:
+                    'Debes esperar ${cooldown.inMinutes} min antes de cambiar el PIN nuevamente.',
+                allowBack: true)));
+        return;
+      }
+      if (blockedUntil != null) {
+        if (!mounted) return;
+        final mins = blockedUntil.inMinutes;
+        final msg = blockedUntil >= const Duration(hours: 1)
+            ? 'Has alcanzado el límite de 3 cambios de PIN por día. Intenta mañana.'
+            : 'Has alcanzado el límite de cambios. Debes esperar ${mins} min antes de cambiar el PIN nuevamente.';
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (_) => PinLockedPage(
+                remaining: blockedUntil, message: msg, allowBack: true)));
+        return;
+      }
+      if (!mounted) return;
+      setState(() {
+        _alias = (a != null && a.isNotEmpty)
+            ? a
+            : (AuthService().getCurrentUser()?.email ?? 'Usuario');
+        _remainingAttempts = remainingCount;
+      });
+    } catch (_) {}
   }
 
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _primaryMessageTimer?.cancel();
     _emailController.dispose();
     super.dispose();
   }
@@ -111,9 +160,10 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
           return;
         } else {
           _markSent();
+          final masked = _maskEmail(email);
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(
-                  'Se envió un enlace a: $email. Ábrelo desde este dispositivo.')));
+                  'Se envió un enlace a: $masked. Ábrelo desde este dispositivo.')));
           return;
         }
       } else {
@@ -135,7 +185,6 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
               ? 'Error al solicitar enlace: $code — $msg'
               : 'Error al solicitar enlace: $msg')));
     } finally {
-      // Ensure the sending flag is always cleared so the resend button works.
       if (mounted) {
         setState(() {
           _isSending = false;
@@ -144,35 +193,98 @@ class _ForgotPinPageState extends State<ForgotPinPage> {
     }
   }
 
+  String _maskEmail(String email) {
+    try {
+      final parts = email.split('@');
+      if (parts.length != 2) return email;
+      final local = parts[0];
+      final domain = parts[1];
+      final show = local.length <= 2 ? local : local.substring(0, 2);
+      final starsCount = local.length - show.length;
+      final stars = starsCount > 0 ? List.filled(starsCount, '*').join() : '';
+      return '$show$stars@$domain';
+    } catch (_) {
+      return email;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Olvidé mi PIN')),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (_alias != null && _alias!.isNotEmpty) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: AwText.bold(
+                    'Hola ${_alias!}, ¿no recuerdas tu PIN?',
+                    size: AwSize.s30,
+                    color: AwColors.appBarColor,
+                  ),
+                ),
+                AwSpacing.s12,
+              ],
+              if (!(_alias != null && _alias!.isNotEmpty)) ...[
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: AwText.bold('Hola, ¿no recuerdas tu PIN?',
+                      size: AwSize.s30, color: AwColors.appBarColor),
+                ),
+                AwSpacing.s12,
+              ],
+              const Align(
+                  alignment: Alignment.centerLeft,
+                  child: AwText.normal(
+                      'No te preocupes, te ayudaremos a crear uno nuevo.',
+                      color: AwColors.boldBlack,
+                      size: AwSize.s14)),
               AwSpacing.s6,
+              const Align(
+                  alignment: Alignment.centerLeft,
+                  child: AwText.normal(
+                      'Para continuar, debes abrir ese enlace desde este mismo dispositivo.',
+                      color: AwColors.boldBlack,
+                      size: AwSize.s14)),
+              SizedBox(
+                height: 80,
+                child: Container(color: Colors.white),
+              ),
               Builder(builder: (context) {
-                final email = _emailController.text.trim();
-                final primary =
-                    'Se enviará un enlace de recuperación al correo asociado a tu cuenta: $email';
-                return Center(child: AwText.normal(primary));
-              }),
-              AwSpacing.s12,
-              Builder(builder: (context) {
-                final isDisabled = _isSending || _remainingSeconds > 0;
                 final hasSentBefore = _lastSentAt != null;
                 final buttonText = _remainingSeconds > 0
                     ? 'Reenviar ($_remainingSeconds s)'
                     : (hasSentBefore ? 'Reenviar enlace' : 'Enviar enlace');
-                return WalletButton.iconButtonText(
-                  buttonText: buttonText,
-                  onPressed: isDisabled ? () {} : _sendRecoveryEmail,
-                  backgroundColor:
-                      isDisabled ? AwColors.blueGrey : AwColors.appBarColor,
+
+                final isResendLabel =
+                    buttonText.toLowerCase().startsWith('reenviar');
+                final isDisabled =
+                    _isSending || _remainingSeconds > 0 || isResendLabel;
+
+                return Column(
+                  children: [
+                    WalletButton.iconButtonText(
+                      buttonText: buttonText,
+                      onPressed: () {
+                        if (isDisabled) return;
+                        _sendRecoveryEmail();
+                      },
+                      backgroundColor: isResendLabel
+                          ? AwColors.blueGrey
+                          : AwColors.appBarColor,
+                    ),
+                    AwSpacing.s6,
+                    // Remaining attempts text below the button (always visible)
+                    AwText.normal(
+                      'Hoy tienes $_remainingAttempts intento(s) para cambiar tu PIN.',
+                      size: AwSize.s14,
+                      color: AwColors.grey,
+                    ),
+                    AwSpacing.s12,
+                  ],
                 );
               }),
               AwSpacing.s12,

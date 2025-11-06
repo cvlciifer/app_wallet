@@ -2,6 +2,9 @@ import 'dart:async';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/core/providers/reset_flow_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:app_wallet/core/sync_service/sync_service.dart';
+import 'package:app_wallet/core/data_base_local/local_crud.dart';
 
 class EnterPinPage extends ConsumerStatefulWidget {
   final bool verifyOnly;
@@ -15,17 +18,23 @@ class EnterPinPage extends ConsumerStatefulWidget {
 }
 
 class _EnterPinPageState extends ConsumerState<EnterPinPage> {
-  int _attempts = 0;
   String? _alias;
   final GlobalKey<PinEntryAreaState> _pinKey = GlobalKey<PinEntryAreaState>();
   Duration? _lockedRemaining;
+  bool _navigatedToLocked = false;
+  int _attempts = 0;
+  bool _showFailurePopup = false;
+  int _remainingAttempts = 0;
+  VoidCallback? _attemptsListener;
+  Timer? _failurePopupTimer;
+  bool _showSuccessPopup = false;
+  Timer? _successPopupTimer;
+  bool _isWorking = false;
 
   LockStatusController? _lockCtrl;
   StreamSubscription<User?>? _authSub;
   late final EnterPinViewModel _viewModel;
   bool _hasConnection = true;
-  bool _showFailurePopup = false;
-  int _remainingAttempts = 0;
 
   StreamSubscription<ConnectivityResult>? _connectivitySub;
   bool _isRedirecting = false;
@@ -36,6 +45,16 @@ class _EnterPinPageState extends ConsumerState<EnterPinPage> {
   void initState() {
     super.initState();
     _viewModel = EnterPinViewModel();
+    _attemptsListener = () {
+      if (!mounted) return;
+      setState(() {
+        _attempts = _viewModel.attempts.value;
+        final rem = PinService.maxAttempts - _attempts;
+        _remainingAttempts = rem >= 0 ? rem : 0;
+        _showFailurePopup = _attempts > 0;
+      });
+    };
+    _viewModel.attempts.addListener(_attemptsListener!);
     _loadAlias();
     _loadAttempts();
     _updateLockState();
@@ -222,17 +241,19 @@ class _EnterPinPageState extends ConsumerState<EnterPinPage> {
 
   @override
   void dispose() {
+    _failurePopupTimer?.cancel();
+    _successPopupTimer?.cancel();
     _redirectTimeoutTimer?.cancel();
     _connectivitySub?.cancel();
     _authSub?.cancel();
     _lockCtrl?.dispose();
+    if (_attemptsListener != null) {
+      try {
+        _viewModel.attempts.removeListener(_attemptsListener!);
+      } catch (_) {}
+      _attemptsListener = null;
+    }
     super.dispose();
-  }
-
-  String _formatDuration(Duration d) {
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
   }
 
   Future<void> _onCompleted(String pin) async {
@@ -244,13 +265,35 @@ class _EnterPinPageState extends ConsumerState<EnterPinPage> {
         Navigator.of(context).pop(true);
         return;
       }
-      await Flushbar(
-        message: 'PIN correcto',
-        duration: const Duration(seconds: 1),
-        backgroundColor: Colors.green,
-        flushbarPosition: FlushbarPosition.TOP,
-      ).show(context);
+
+      _failurePopupTimer?.cancel();
       if (!mounted) return;
+      setState(() {
+        _showSuccessPopup = true;
+        _isWorking = true;
+      });
+
+      final email = FirebaseAuth.instance.currentUser?.email ?? '';
+      final syncService = SyncService(
+        localCrud: LocalCrud(),
+        firestore: FirebaseFirestore.instance,
+        userEmail: email,
+      );
+
+      final initFuture =
+          syncService.initializeLocalDbFromFirebase().catchError((e) {
+        if (kDebugMode) print('init error: $e');
+      });
+
+      final waitFuture = Future.delayed(const Duration(seconds: 2));
+
+      await Future.wait([initFuture, waitFuture]);
+
+      if (!mounted) return;
+      setState(() {
+        _showSuccessPopup = false;
+        _isWorking = false;
+      });
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const WalletHomePage()),
       );
@@ -274,20 +317,13 @@ class _EnterPinPageState extends ConsumerState<EnterPinPage> {
           _remainingAttempts = 0;
           _showFailurePopup = false;
         });
-        if (_lockCtrl != null) {
-          if (!_lockCtrl!.shownLockSnack) {
-            ScaffoldMessenger.of(context).clearSnackBars();
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(
+
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (_) => PinLockedPage(
+                remaining: lockedNow,
+                message:
                     'Demasiados intentos fallidos. Intenta nuevamente en ${PinService.lockDuration.inMinutes} minutos.')));
-            _lockCtrl!.markShownLockSnack();
-          }
-        } else {
-          ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  'Demasiados intentos fallidos. Intenta nuevamente en ${PinService.lockDuration.inMinutes} minutos.')));
-        }
         return;
       }
 
@@ -296,6 +332,13 @@ class _EnterPinPageState extends ConsumerState<EnterPinPage> {
       setState(() {
         _remainingAttempts = remaining >= 0 ? remaining : 0;
         _showFailurePopup = true;
+        _failurePopupTimer?.cancel();
+        _failurePopupTimer = Timer(const Duration(seconds: 2), () {
+          if (!mounted) return;
+          setState(() {
+            _showFailurePopup = false;
+          });
+        });
       });
 
       await _updateLockState();
@@ -320,27 +363,35 @@ class _EnterPinPageState extends ConsumerState<EnterPinPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const SizedBox(height: 0),
-                          if (_alias != null && _alias!.isNotEmpty) ...[
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Transform.translate(
-                                offset: const Offset(0, -6),
-                                child: AwText.bold('Hola ${_alias!}...',
-                                    size: AwSize.s30,
-                                    color: AwColors.appBarColor),
-                              ),
-                            ),
-                            AwSpacing.s12,
-                          ],
-                          const AwText.normal('Ingresa tu PIN'),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: AwText.bold(
+                                _alias != null && _alias!.isNotEmpty
+                                    ? 'Hola ${_alias!}...'
+                                    : 'Hola...',
+                                size: AwSize.s30,
+                                color: AwColors.appBarColor),
+                          ),
+                          AwSpacing.s12,
+                          const AwText.normal('Ingresa tu PIN',
+                              size: AwSize.s18, color: AwColors.boldBlack),
                           AwSpacing.s12,
                           if (_lockedRemaining != null) ...[
-                            const AwText.bold('Cuenta bloqueada',
-                                color: AwColors.red),
-                            AwSpacing.s,
-                            AwText.normal(
-                                'Intenta nuevamente en ${_formatDuration(_lockedRemaining!)}'),
-                            AwSpacing.s20,
+                            Builder(builder: (ctx) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (!mounted) return;
+                                if (_navigatedToLocked) return;
+                                _navigatedToLocked = true;
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                      builder: (_) => PinLockedPage(
+                                          remaining: _lockedRemaining!,
+                                          message:
+                                              'Demasiados intentos fallidos. Intenta nuevamente en ${PinService.lockDuration.inMinutes} minutos.')),
+                                );
+                              });
+                              return const SizedBox.shrink();
+                            }),
                           ] else ...[
                             PinEntryArea(
                                 key: _pinKey,
@@ -407,19 +458,17 @@ class _EnterPinPageState extends ConsumerState<EnterPinPage> {
                 ),
               ],
             ),
-            if (_showFailurePopup)
-              FailureOverlay(
-                visible: _showFailurePopup,
-                remainingAttempts: _remainingAttempts,
-                onRetry: () {
-                  try {
-                    _pinKey.currentState?.clear();
-                  } catch (_) {}
-                  setState(() {
-                    _showFailurePopup = false;
-                  });
-                },
-              ),
+            if (_showFailurePopup) ...[
+              EnterPinFailed(remainingAttempts: _remainingAttempts),
+            ],
+            if (_showSuccessPopup) ...[
+              const EnterPinSuccessful(),
+            ],
+            if (_isWorking) ...[
+              ModalBarrier(
+                  dismissible: false, color: Colors.black.withOpacity(0.45)),
+              Center(child: WalletLoader(color: AwColors.appBarColor)),
+            ],
             if (_isRedirecting) ...[
               ModalBarrier(
                   dismissible: false, color: Colors.black.withOpacity(0.45)),

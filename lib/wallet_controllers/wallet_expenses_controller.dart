@@ -19,6 +19,7 @@ class WalletExpensesController extends ChangeNotifier {
   };
 
   late final SyncService syncService;
+  bool isLoadingExpenses = false;
 
   WalletExpensesController() {
     // Inicializa el servicio de sincronización con el email real del usuario autenticado
@@ -40,6 +41,8 @@ class WalletExpensesController extends ChangeNotifier {
 
   /// Carga los gastos desde la nube si hay internet, o desde la base local si no hay conexión
   Future<void> loadExpensesSmart() async {
+    isLoadingExpenses = true;
+    if (!_isDisposed) notifyListeners();
     print('loadExpensesSmart llamado');
     final connectivityResult = await Connectivity().checkConnectivity();
     final hasConnection = connectivityResult != ConnectivityResult.none;
@@ -57,6 +60,7 @@ class WalletExpensesController extends ChangeNotifier {
     _allExpenses.clear();
     _allExpenses.addAll(gastosFromLocal);
     _filteredExpenses = List.from(_allExpenses);
+    isLoadingExpenses = false;
     if (!_isDisposed) notifyListeners();
   }
 

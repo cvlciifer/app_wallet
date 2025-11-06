@@ -25,6 +25,7 @@ class PinActions extends StatelessWidget {
                   child: UnderlinedButton(
                     text: '¿No eres tú?',
                     onTap: onNotYou,
+                    color: AwColors.blue,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -32,6 +33,7 @@ class PinActions extends StatelessWidget {
                   child: UnderlinedButton(
                     text: 'Olvidé mi PIN',
                     icon: Icons.lock_reset,
+                    color: AwColors.blue,
                     onTap: () async {
                       await onForgotPin();
                     },

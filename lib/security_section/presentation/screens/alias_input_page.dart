@@ -69,8 +69,18 @@ class _AliasInputPageState extends State<AliasInputPage> {
     await pinService.setAlias(accountId: uid, alias: normalized ?? '');
 
     try {
-      await AliasService().syncAliasForCurrentUser();
-    } catch (_) {}
+      final ok = await AliasService().syncAliasForCurrentUser();
+      if (!ok && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+                'Alias guardado localmente, pero no se pudo sincronizar')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error sincronizando alias: $e')));
+      }
+    }
     if (!mounted) return;
 
     Navigator.of(context).pop(normalized);
@@ -85,14 +95,12 @@ class _AliasInputPageState extends State<AliasInputPage> {
     super.dispose();
   }
 
-  // Compara los alias exactamente (case-sensitive)
   bool _aliasesMatch() {
     final a = _controller.text.trim();
     final b = _confirmController.text.trim();
     return a.isNotEmpty && b.isNotEmpty && a == b;
   }
 
-  // Valida que el alias contenga sólo letras (incluye acentos) y espacios, y longitud <= 15
   bool _isAliasValid(String s) {
     final v = s.trim();
     if (v.isEmpty) return false;
@@ -191,16 +199,13 @@ class _AliasInputPageState extends State<AliasInputPage> {
                 ),
               ),
               AwSpacing.s12,
-              // Opción para configurar más tarde
               WalletButton.textButton(
                 buttonText: 'Configurar más tarde',
                 onPressed: () {
                   if (widget.initialSetup) {
-                    // Usuario nuevo: forzar continuar a la configuración del PIN.
                     Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (_) => const SetPinPage()));
                   } else {
-                    // Usuario existente: solo cerrar y devolver null.
                     Navigator.of(context).pop(null);
                   }
                 },

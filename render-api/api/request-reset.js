@@ -161,22 +161,29 @@ module.exports = async function handler(req, res) {
 
     const displayLink = webLink || deepLink;
 
-    // Texto plano para clientes que muestran sólo el snippet (evita que Gmail oculte contenido)
     const textBody = `Haz click en el siguiente enlace para reconfigurar tu PIN (expira en 20 minutos):\n\n${displayLink}\n\nSi ya tienes la app instalada, se abrirá automáticamente al abrir este enlace.\nEn caso contrario, puedes abrir la app manualmente e ingresar tu PIN nuevamente.\n\nSi no fuiste tu quien pidió recuperar el PIN, no hagas click en el enlace.`;
 
-    // HTML: poner la advertencia visible antes del enlace y usar un texto de ancla corto
     const htmlBody = `
-      <p><strong>Si no fuiste tú quien pidió recuperar el PIN, no hagas click en el enlace.</strong></p>
-      <p>Haz click en el siguiente enlace para reconfigurar tu PIN (expira en 20 minutos):</p>
-      <p><a href="${displayLink}">Abrir enlace para reconfigurar tu PIN</a></p>
-      <p style="font-size:12px;color:#666;word-break:break-all;">${displayLink}</p>
-      <p>Si no fuiste tú quien solicitó la recuperación de PIN, ignora este correo y no hagas clic en el enlace.</p>
-      <p>Este enlace es de uso exclusivo para el titular de la cuenta y no debe compartirse con terceros.</p>
-    `;
+     <p><strong>Si no solicitaste recuperar tu PIN, ignora este mensaje.</strong></p>
+     
+     <p>Para crear un nuevo PIN, por favor abre el siguiente enlace
+     <strong>desde el mismo dispositivo donde tienes instalada la app</strong>:</p>
 
-    let sent = false;
+     <p><a href="${displayLink}" style="font-size:16px;">Reconfigurar mi PIN</a></p>
+     
+     <p style="font-size:12px;color:#666;word-break:break-all;">
+     ${displayLink}
+     </p>
+     
+     <p style="margin-top:24px;">
+     Este enlace expira en <strong>20 minutos</strong> y es de uso personal.  
+     <strong>No lo compartas con terceros.</strong>
+     </p>
+     `;
+     
+     let sent = false;
 
-    try {
+     try {
       if (process.env.EMAILJS_SERVICE_ID) {
         await sendEmailEmailJS(email, htmlBody, textBody);
         sent = true;
