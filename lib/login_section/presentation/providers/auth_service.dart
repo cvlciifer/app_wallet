@@ -6,6 +6,7 @@ class AuthService {
   static const String _userEmailKey = 'userEmail';
   static const String _userUidKey = 'userUid';
   static const String _lastUserUidKey = 'lastUserUid';
+  static const String _rememberSessionKey = 'rememberSession';
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -26,6 +27,7 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_isLoggedInKey, true);
       await prefs.setString(_userEmailKey, email);
+      await prefs.setBool(_rememberSessionKey, true);
       if (uid != null) await prefs.setString(_userUidKey, uid);
 
       if (uid != null) await prefs.setString(_lastUserUidKey, uid);
@@ -55,9 +57,29 @@ class AuthService {
       await prefs.remove(_userEmailKey);
       await prefs.remove(_userUidKey);
       await prefs.remove(_lastUserUidKey);
+      await prefs.remove(_rememberSessionKey);
       log('Estado de login totalmente limpiado');
     } catch (e) {
       log('Error limpiando todo el estado de login: $e');
+    }
+  }
+
+  Future<void> setRememberSessionFlag(bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_rememberSessionKey, value);
+    } catch (e) {
+      log('Error guardando flag rememberSession: $e');
+    }
+  }
+
+  Future<bool> getRememberSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_rememberSessionKey) ?? false;
+    } catch (e) {
+      log('Error leyendo flag rememberSession: $e');
+      return false;
     }
   }
 

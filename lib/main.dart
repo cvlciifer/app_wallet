@@ -72,6 +72,12 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initUniLinks();
+    // Check at startup whether we should show the PIN screen if a session
+    // is remembered (useful when offline or Firebase auth state isn't yet
+    // available). Run after first frame so navigator is ready.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeNavigateToPinOnStartup();
+    });
   }
 
   @override
@@ -119,10 +125,11 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
 
       try {
         final authSvc = AuthService();
-        // Prefer FirebaseAuth's current user, but if not available (offline or auth state
-        // not yet restored) fall back to persisted saved uid.
         String? uid = authSvc.getCurrentUser()?.uid;
         if (uid == null) {
+          final remember = await authSvc.getRememberSession();
+          if (!remember) return;
+
           uid = await authSvc.getSavedUid() ?? await authSvc.getLastSavedUid();
           if (uid == null) return;
         }
@@ -159,6 +166,36 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
         });
       } catch (_) {}
     } catch (_) {}
+  }
+
+  Future<void> _maybeNavigateToPinOnStartup() async {
+    if (_navigatingToPin) return;
+    _navigatingToPin = true;
+    try {
+      final authSvc = AuthService();
+      String? uid = authSvc.getCurrentUser()?.uid;
+      if (uid == null) {
+        final remember = await authSvc.getRememberSession();
+        if (!remember) return;
+        uid = await authSvc.getSavedUid() ?? await authSvc.getLastSavedUid();
+        if (uid == null) return;
+      }
+
+      final pinService = PinService();
+      final hasPin = await pinService.hasPin(accountId: uid);
+      if (!hasPin) return;
+
+      final nav = _navigatorKey.currentState;
+      if (nav != null) {
+        nav.pushReplacement(
+          MaterialPageRoute(builder: (_) => EnterPinPage(accountId: uid)),
+        );
+      }
+    } catch (e, st) {
+      log('startup PIN navigation error: $e\n$st');
+    } finally {
+      _navigatingToPin = false;
+    }
   }
 
   Future<void> _handleIncomingLink(String link) async {
