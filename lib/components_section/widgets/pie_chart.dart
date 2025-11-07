@@ -118,7 +118,6 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
     final total = widget.data.fold<double>(0.0, (sum, it) => sum + ((it['amount'] as double?) ?? 0.0));
     final percent = total == 0.0 ? 0.0 : (amount / total) * 100;
     final percentStr = '${percent.toStringAsFixed(1)}%';
-    final amountStr = amount.toStringAsFixed(2);
 
     showDialog(
       context: context,
@@ -244,13 +243,58 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
   }
 
   List<PieChartSectionData> _getPieChartSections(List<Map<String, dynamic>> data) {
-    return data.map((item) {
+    final labels = data.map((d) => (d['label'] as String)).toList();
+
+    final Map<String, Color> labelColor = {};
+    for (final item in data) {
+      final label = item['label'] as String;
+      final Color? c = item['color'] as Color?;
+      labelColor[label] = c ?? WalletCategoryHelper.getCategoryColor(label);
+    }
+
+    final List<Color> palette = [
+      Colors.blue,
+      Colors.pink,
+      Colors.green,
+      Colors.brown,
+      Colors.indigo,
+      Colors.orange,
+      Colors.deepPurple,
+      Colors.teal,
+      Colors.red,
+      Colors.cyan,
+      Colors.lime,
+      Colors.amber,
+    ];
+
+    final Set<int> usedColorValues = {};
+    int paletteIndex = 0;
+
+    for (final label in labels) {
+      final current = labelColor[label]!;
+      final int value = current.value;
+      if (!usedColorValues.contains(value)) {
+        usedColorValues.add(value);
+        continue;
+      }
+      Color pick = palette[paletteIndex % palette.length];
+      paletteIndex++;
+      while (usedColorValues.contains(pick.value)) {
+        pick = palette[paletteIndex % palette.length];
+        paletteIndex++;
+      }
+      labelColor[label] = pick;
+      usedColorValues.add(pick.value);
+    }
+
+    final List<PieChartSectionData> sections = [];
+    for (final item in data) {
       final label = item['label'] as String;
       final amount = item['amount'] as double;
-      final Color? color = item['color'] as Color?;
+      final color = labelColor[label]!;
 
-      return PieChartSectionData(
-        color: color ?? WalletCategoryHelper.getCategoryColor(label),
+      sections.add(PieChartSectionData(
+        color: color,
         value: amount,
         title: '',
         radius: 100,
@@ -259,7 +303,9 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
           fontWeight: FontWeight.bold,
           color: AwColors.white,
         ),
-      );
-    }).toList();
+      ));
+    }
+
+    return sections;
   }
 }
