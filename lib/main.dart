@@ -119,14 +119,10 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
 
       try {
         final authSvc = AuthService();
-        final prefs = await SharedPreferences.getInstance();
-        final prefLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-        final currentUser = authSvc.getCurrentUser();
-        String? uid = currentUser?.uid;
-        if (!prefLoggedIn && uid == null) return;
-
+        // Prefer FirebaseAuth's current user, but if not available (offline or auth state
+        // not yet restored) fall back to persisted saved uid.
+        String? uid = authSvc.getCurrentUser()?.uid;
         if (uid == null) {
-          // try saved uid values
           uid = await authSvc.getSavedUid() ?? await authSvc.getLastSavedUid();
           if (uid == null) return;
         }

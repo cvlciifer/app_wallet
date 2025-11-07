@@ -11,11 +11,10 @@ class AuthService {
 
   Future<bool> isUserLoggedIn() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final isLoggedIn = prefs.getBool(_isLoggedInKey) ?? false;
+      // Rely primarily on FirebaseAuth's currentUser for session persistence.
+      // SharedPreferences flags are advisory, but FirebaseAuth is the source of truth.
       final currentUser = _auth.currentUser;
-
-      return isLoggedIn && currentUser != null;
+      return currentUser != null;
     } catch (e) {
       log('Error verificando estado de login: $e');
       return false;

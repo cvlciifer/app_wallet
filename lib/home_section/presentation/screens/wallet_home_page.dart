@@ -1,5 +1,6 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
+import 'package:provider/provider.dart';
 import 'package:app_wallet/components_section/widgets/month_selector.dart';
 
 class WalletHomePage extends StatefulWidget {
@@ -10,64 +11,61 @@ class WalletHomePage extends StatefulWidget {
 }
 
 class _WalletHomePageState extends State<WalletHomePage> {
-  // _currentBottomIndex removed (unused)
-  late WalletExpensesController _controller;
+  // Use the controller provided by Provider (MultiProvider in main)
   bool _initialLoaderHidden = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = WalletExpensesController();
-    _controller.addListener(() {
-      try {
-        if (!_initialLoaderHidden && !_controller.isLoadingExpenses) {
-          _initialLoaderHidden = true;
-          final ctx = context;
-          try {
-            riverpod.ProviderScope.containerOf(ctx, listen: false)
-                .read(globalLoaderProvider.notifier)
-                .state = false;
-          } catch (_) {}
-        }
-      } catch (_) {}
-    });
-    // Sincroniza con la nube solo una vez al entrar, luego carga local
-    _controller.syncService.initializeLocalDbFromFirebase().then((_) {
-      // Evitar llamar al controlador si el widget ya fue desmontado.
-      if (!mounted) return;
-      _controller.loadExpensesSmart();
-    });
-
+    // Attach to the provided controller after the first frame so context is available
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_initialLoaderHidden && !_controller.isLoadingExpenses) {
-        _initialLoaderHidden = true;
-        try {
-          riverpod.ProviderScope.containerOf(context, listen: false)
-              .read(globalLoaderProvider.notifier)
-              .state = false;
-        } catch (_) {}
-      }
+      try {
+        final provController = context.read<WalletExpensesController>();
+        provController.addListener(() {
+          try {
+            if (!_initialLoaderHidden && !provController.isLoadingExpenses) {
+              _initialLoaderHidden = true;
+              final ctx = context;
+              try {
+        riverpod.ProviderScope.containerOf(ctx, listen: false)
+          .read(globalLoaderProvider.notifier)
+          .state = false;
+              } catch (_) {}
+            }
+          } catch (_) {}
+        });
+
+        // Sincroniza con la nube solo una vez al entrar, luego carga local
+        provController.syncService.initializeLocalDbFromFirebase().then((_) {
+          if (!mounted) return;
+          provController.loadExpensesSmart();
+        });
+      } catch (_) {}
     });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    // Do not dispose the provided controller (managed by Provider)
     super.dispose();
   }
 
   void _onBottomNavTap(int index) {
     // don't keep local index state here; bottom nav state is provided by BottomNavProvider
-    WalletNavigationService.handleBottomNavigation(
-        context, index, _controller.allExpenses);
+  final controller = context.read<WalletExpensesController>();
+  WalletNavigationService.handleBottomNavigation(
+    context, index, controller.allExpenses);
   }
 
   void _openAddExpenseOverlay() async {
     final expense =
         await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
-      // Aquí deberías detectar la conectividad real, por ahora se asume true
-      await _controller.addExpense(expense, hasConnection: true);
+      // Detectar conectividad real antes de intentar crear el gasto
+      final conn = await Connectivity().checkConnectivity();
+      final hasConnection = conn != ConnectivityResult.none;
+      final controller = context.read<WalletExpensesController>();
+      await controller.addExpense(expense, hasConnection: hasConnection);
     }
   }
 

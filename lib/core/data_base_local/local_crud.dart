@@ -16,7 +16,7 @@ class LocalCrud {
 }
 
 Future<List<Expense>> getAllExpensesImpl() async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) return [];
   final db = await _db();
   final rows = await db.query('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
@@ -33,17 +33,36 @@ Future<List<Expense>> getAllExpensesImpl() async {
       .toList();
 }
 
-String? getUserUid() => FirebaseAuth.instance.currentUser?.uid;
+Future<String?> getUserUid() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid != null && uid.isNotEmpty) return uid;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('userUid') ?? prefs.getString('lastUserUid');
+    return saved;
+  } catch (_) {
+    return null;
+  }
+}
 
-String? getUserEmail() => FirebaseAuth.instance.currentUser?.email;
+Future<String?> getUserEmail() async {
+  final email = FirebaseAuth.instance.currentUser?.email;
+  if (email != null && email.isNotEmpty) return email;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userEmail');
+  } catch (_) {
+    return null;
+  }
+}
 
 Future<Database> _db() => DBHelper.instance.database;
 
 String _categoryToString(dynamic category) => category.toString().split('.').last;
 
 Future<void> _ensureUserExists() async {
-  final uid = getUserUid();
-  final email = getUserEmail();
+  final uid = await getUserUid();
+  final email = await getUserEmail();
 
   if (uid == null || email == null) {
     throw Exception('No se encontró el usuario autenticado');
@@ -67,7 +86,7 @@ Future<void> _ensureUserExists() async {
 }
 
 Future<List<Map<String, dynamic>>> getGastosLocal() async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) {
     log('Error: No se encontró el usuario autenticado');
     return [];
@@ -93,7 +112,7 @@ Future<void> createExpenseLocal(Expense expense) async {
 }
 
 Future<void> insertExpenseImpl(Expense expense) async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) {
     log('Error: No se encontró el usuario autenticado');
     return;
@@ -113,7 +132,7 @@ Future<void> insertExpenseImpl(Expense expense) async {
 }
 
 Future<void> updateExpenseImpl(Expense expense) async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
   await db.update(
@@ -132,7 +151,7 @@ Future<void> updateExpenseImpl(Expense expense) async {
 }
 
 Future<void> updateSyncStatusImpl(String expenseId, SyncStatus status) async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
   await db.update(
@@ -144,14 +163,14 @@ Future<void> updateSyncStatusImpl(String expenseId, SyncStatus status) async {
 }
 
 Future<void> deleteExpenseImpl(String expenseId, {bool localOnly = false}) async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
   await db.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expenseId, uid]);
 }
 
 Future<List<Expense>> getPendingExpensesImpl() async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) return [];
   final db = await _db();
   final rows =
@@ -170,7 +189,7 @@ Future<List<Expense>> getPendingExpensesImpl() async {
 }
 
 Future<void> replaceAllExpensesImpl(List<Expense> expenses) async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
   await db.delete('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
@@ -190,7 +209,7 @@ Category _mapCategory(String tipo) {
 }
 
 Future<void> deleteExpenseLocal(Expense expense) async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) {
     log('Error: No se encontró el usuario autenticado');
     return;
@@ -223,7 +242,7 @@ Future<void> deleteExpenseLocal(Expense expense) async {
 }
 
 Future<void> updateExpenseLocal(int uidGasto, Expense expense) async {
-  final uid = getUserUid();
+  final uid = await getUserUid();
   if (uid == null) {
     log('Error: No se encontró el usuario autenticado');
     return;
