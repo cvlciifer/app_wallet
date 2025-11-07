@@ -83,7 +83,7 @@ class WalletButton {
           child: Text.rich(
             TextSpan(
               style: TextStyle(
-                fontSize: AwSize.s14,
+                fontSize: AwSize.s16,
                 fontWeight: FontWeight.bold,
                 color: colorText,
                 decorationColor: colorText,
@@ -112,8 +112,7 @@ class WalletButton {
     double iconSize = 24.0,
     double fontSize = AwSize.s14,
     FontWeight fontWeight = FontWeight.bold,
-    EdgeInsetsGeometry padding =
-        const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
   }) {
     return SizedBox(
       height: height,
