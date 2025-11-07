@@ -12,6 +12,7 @@ export 'package:intl/intl.dart' hide TextDirection;
 export 'package:uuid/uuid.dart';
 export 'dart:io';
 export 'package:another_flushbar/flushbar.dart';
+export 'package:connectivity_plus/connectivity_plus.dart';
 
 // Archivos locales del proyecto o rutas
 export 'package:app_wallet/home_section/presentation/new_expense/presentation/models/expense.dart';
@@ -72,6 +73,36 @@ export 'package:app_wallet/core/data_base_local/create_db.dart';
 export 'package:app_wallet/components_section/modals/wallet_pop_up.dart';
 export 'package:app_wallet/monthly_report_section/presentation/screens/monthly_report.dart';
 export 'package:app_wallet/components_section/utils/text_formatters.dart';
+export 'package:app_wallet/core/services/pin_service.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/configure_pin.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/enter_pin_page.dart';
+export 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
+export 'package:app_wallet/security_section/presentation/screens/alias_input_page.dart';
+export 'package:app_wallet/core/services/alias_service.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/confirm_pin_page.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/set_pin_page.dart';
+// moved security-related reusable widgets into components_section/widgets/pin
+export 'package:app_wallet/components_section/widgets/pin/pin.dart';
+export 'package:app_wallet/components_section/widgets/pin/numeric_keypad.dart';
+export 'package:app_wallet/components_section/widgets/pin/pin_failure_popup.dart';
+export 'package:app_wallet/components_section/widgets/pin/pin_entry_area.dart';
+export 'package:app_wallet/components_section/widgets/pin/pin_actions.dart';
+export 'package:app_wallet/components_section/widgets/pin/failure_overlay.dart';
+export 'package:app_wallet/security_section/presentation/controllers/lock_status_controller.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/forgot_pin_page.dart';
+export 'package:app_wallet/components_section/buttons/underlined_button.dart';
+export 'package:app_wallet/components_section/widgets/settings_card.dart';
+export 'package:app_wallet/components_section/buttons/enter_pin_failed.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/pin_locked_page.dart';
+export 'package:app_wallet/components_section/buttons/enter_pin_successful.dart';
+export 'package:app_wallet/components_section/widgets/pin/greeting_header.dart';
+export 'package:app_wallet/components_section/widgets/pin/pin_page_scaffold.dart';
+export 'package:app_wallet/core/providers/security/enter_pin_notifier.dart';
+export 'package:app_wallet/core/models/security/enter_pin_state.dart';
+export 'package:app_wallet/core/providers/reset_flow_provider.dart';
+export 'package:app_wallet/core/providers/global_loader_provider.dart';
+export 'package:app_wallet/core/providers/security/forgot_pin_notifier.dart';
+export 'package:app_wallet/core/models/security/forgot_pin_state.dart';
 
 export 'package:app_wallet/components_section/components/ticket_card.dart';
 export 'package:app_wallet/components_section/components/form_header.dart';

@@ -1,4 +1,6 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:app_wallet/components_section/widgets/month_selector.dart';
 
 class WalletHomePage extends StatefulWidget {
@@ -9,17 +11,74 @@ class WalletHomePage extends StatefulWidget {
 }
 
 class _WalletHomePageState extends State<WalletHomePage> {
-  void _onBottomNavTap(int index) async {
-    final bottomNav = context.read<BottomNavProvider>();
-    bottomNav.setIndex(index);
-    final controller = context.read<WalletExpensesController>();
-    await WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
-    bottomNav.reset();
+  int _currentBottomIndex = 0;
+  late WalletExpensesController _controller;
+  bool _initialLoaderHidden = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WalletExpensesController();
+    _controller.addListener(() {
+      try {
+        if (!_initialLoaderHidden && !_controller.isLoadingExpenses) {
+          _initialLoaderHidden = true;
+          final ctx = context;
+          try {
+            riverpod.ProviderScope.containerOf(ctx, listen: false)
+                .read(globalLoaderProvider.notifier)
+                .hide();
+          } catch (_) {}
+        }
+      } catch (_) {}
+    });
+    // Sincroniza con la nube solo una vez al entrar, luego carga local
+    _controller.syncService.initializeLocalDbFromFirebase().then((_) {
+      // Evitar llamar al controlador si el widget ya fue desmontado.
+      if (!mounted) return;
+      _controller.loadExpensesSmart();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_initialLoaderHidden && !_controller.isLoadingExpenses) {
+        _initialLoaderHidden = true;
+        try {
+          riverpod.ProviderScope.containerOf(context, listen: false)
+              .read(globalLoaderProvider.notifier)
+              .hide();
+        } catch (_) {}
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onBottomNavTap(int index) {
+    setState(() {
+      _currentBottomIndex = index;
+    });
+    WalletNavigationService.handleBottomNavigation(
+        context, index, _controller.allExpenses);
   }
 
   void _openAddExpenseOverlay() async {
-    final expense = await WalletNavigationService.openAddExpenseOverlay(context);
+    final expense =
+        await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
+      // Aquí deberías detectar la conectividad real, por ahora se asume true
+      await _controller.addExpense(expense, hasConnection: true);
+    }
+  }
+
+  void _openFilters() async {
+    final filters = await WalletNavigationService.openFiltersPage(
+        context, _controller.currentFilters);
+    if (filters != null) {
+      _controller.applyFilters(filters);
       final connectivity = await Connectivity().checkConnectivity();
       final hasConnection = connectivity != ConnectivityResult.none;
       final controller = context.read<WalletExpensesController>();
@@ -72,6 +131,17 @@ class _WalletHomePageState extends State<WalletHomePage> {
   Widget _buildBody(BuildContext context, WalletExpensesController controller) {
     final width = MediaQuery.of(context).size.width;
 
+    Widget mainContent;
+
+    if (controller.isLoadingExpenses) {
+      // While loading, show a centered loader in the content area (replaces list/empty state)
+      mainContent = const Center(
+        child: SizedBox(
+          height: AwSize.s48,
+          child: WalletLoader(color: AwColors.appBarColor),
+        ),
+      );
+    } else if (controller.filteredExpenses.isNotEmpty) {
     Widget monthButtons = _buildMonthButtons(context, controller);
 
     Widget mainContent = const EmptyState();
@@ -84,6 +154,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
           await controller.removeExpense(expense, hasConnection: hasConnection);
         },
       );
+    } else {
+      mainContent = const EmptyState();
     }
 
     return width < 600
@@ -105,6 +177,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
                 ),
               ),
               Expanded(child: mainContent),
+              const SizedBox(width: AwSize.s60),
             ],
           );
   }

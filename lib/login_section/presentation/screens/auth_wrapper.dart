@@ -1,5 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
+import 'dart:developer';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({Key? key}) : super(key: key);
@@ -8,13 +8,18 @@ class AuthWrapper extends StatefulWidget {
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
     _checkAuthStatus();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   Future<void> _checkAuthStatus() async {
@@ -24,13 +29,63 @@ class _AuthWrapperState extends State<AuthWrapper> {
       final isLoggedIn = await _authService.isUserLoggedIn();
 
       if (mounted) {
+        log('AuthWrapper: isLoggedIn=$isLoggedIn');
         if (isLoggedIn) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const WalletHomePage(),
-            ),
-          );
+          final uid = _authService.getCurrentUser()?.uid;
+          if (uid == null) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+            );
+            return;
+          }
+          final pinService = PinService();
+          await pinService.clearOnReinstallIfNeeded(accountId: uid);
+          final hasPin = await pinService.hasPin(accountId: uid);
+          log('AuthWrapper: uid=$uid hasPin=$hasPin');
+
+          if (hasPin) {
+            // Si el pin
+            final alias = await pinService.getAlias(accountId: uid);
+            if (alias == null || alias.isEmpty) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        const AliasInputPage(initialSetup: false)),
+              );
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const EnterPinPage()),
+              );
+            }
+          } else {
+            // Si no hay PIN configurado, primero pedir alias y luego crear el PIN
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                  builder: (context) =>
+                      const AliasInputPage(initialSetup: true)),
+            );
+          }
         } else {
+          String? candidateUid = await _authService.getSavedUid();
+          if (candidateUid == null) {
+            candidateUid = await _authService.getLastSavedUid();
+          }
+
+          if (candidateUid != null) {
+            try {
+              final pinService = PinService();
+              final hasPin = await pinService.hasPin(accountId: candidateUid);
+              if (hasPin) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          EnterPinPage(accountId: candidateUid)),
+                );
+                return;
+              }
+            } catch (_) {}
+          }
+
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => LoginScreen(),
@@ -59,11 +114,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
               width: MediaQuery.of(context).size.width * 0.8,
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
+                // ignore: deprecated_member_use
+                color: AwColors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(20.0),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    // ignore: deprecated_member_use
+                    color: AwColors.black.withOpacity(0.2),
                     blurRadius: 10.0,
                     offset: const Offset(0, 5),
                   ),

@@ -11,6 +11,7 @@ class WalletExpensesController extends ChangeNotifier {
   };
 
   late final SyncService syncService;
+  bool isLoadingExpenses = false;
 
   WalletExpensesController() {
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
@@ -28,6 +29,8 @@ class WalletExpensesController extends ChangeNotifier {
     loadExpensesSmart();
   }
 
+  bool _isDisposed = false;
+
   List<Expense> get allExpenses => List.unmodifiable(_allExpenses);
   List<Expense> get filteredExpenses => List.unmodifiable(_filteredExpenses);
   Map<Category, bool> get currentFilters => Map.unmodifiable(_currentFilters);
@@ -37,7 +40,9 @@ class WalletExpensesController extends ChangeNotifier {
   DateTime? get monthFilter => _monthFilter;
 
   Future<void> loadExpensesSmart() async {
-    log('loadExpensesSmart llamado');
+    isLoadingExpenses = true;
+    if (!_isDisposed) notifyListeners();
+    print('loadExpensesSmart llamado');
     final connectivityResult = await Connectivity().checkConnectivity();
     final hasConnection = connectivityResult != ConnectivityResult.none;
 

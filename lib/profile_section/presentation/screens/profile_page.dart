@@ -1,72 +1,53 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class WalletProfilePage extends StatefulWidget {
+class WalletProfilePage extends ConsumerStatefulWidget {
   final String? userEmail;
-  final int totalExpenses;
-  final double totalAmount;
-  final List<Expense> expenses;
 
-  const WalletProfilePage({
-    Key? key,
-    this.userEmail,
-    this.totalExpenses = 0,
-    this.totalAmount = 0,
-    this.expenses = const [],
-  }) : super(key: key);
+  const WalletProfilePage({Key? key, this.userEmail}) : super(key: key);
 
   @override
-  State<WalletProfilePage> createState() => _WalletProfilePageState();
+  ConsumerState<WalletProfilePage> createState() => _WalletProfilePageState();
 }
 
-List<Map<String, dynamic>> getCategoriasConTotal(List<Expense> expenses) {
-  final Map<String, double> totales = {};
-  for (var e in expenses) {
-    String nombre = e.category.toString().split('.').last;
-    totales[nombre] = (totales[nombre] ?? 0) + e.amount;
-  }
-  final List<Map<String, dynamic>> categorias = [];
-  totales.forEach((nombre, total) {
-    IconData icono;
-    switch (nombre.toLowerCase()) {
-      case 'viajes':
-        icono = Icons.flight;
-        break;
-      case 'comida':
-        icono = Icons.restaurant;
-        break;
-      case 'hogar':
-        icono = Icons.home;
-        break;
-      case 'transporte':
-        icono = Icons.directions_bus;
-        break;
-      case 'salud':
-        icono = Icons.local_hospital;
-        break;
-      case 'educacion':
-        icono = Icons.school;
-        break;
-      case 'entretenimiento':
-        icono = Icons.movie;
-        break;
-      default:
-        icono = Icons.category;
-    }
-    categorias.add({'nombre': nombre, 'icono': icono, 'total': total});
-  });
-  return categorias;
-}
-
-class _WalletProfilePageState extends State<WalletProfilePage> {
+class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
   final User? user = FirebaseAuth.instance.currentUser;
   late String? userEmail;
   late String? userName;
+  String? alias;
 
   @override
   void initState() {
     super.initState();
+
     userEmail = user?.email;
     userName = user?.displayName;
+    _loadAlias();
+    _checkConnection();
+  }
+
+  Future<void> _checkConnection() async {
+    try {
+      await Connectivity().checkConnectivity();
+    } catch (_) {
+      // ignorar
+    }
+  }
+
+  Future<void> _loadAlias() async {
+    final uid = user?.uid;
+    if (uid == null) return;
+    try {
+      final pinService = PinService();
+      final a = await pinService.getAlias(accountId: uid);
+      if (a != null && a.isNotEmpty) {
+        setState(() {
+          alias = a;
+        });
+      }
+    } catch (_) {
+      // ignorar errores al leer el alias
+    }
   }
 
   String getFirstName(String? fullName) {
@@ -77,12 +58,10 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AwColors.white,
+      backgroundColor: AwColors.greyLight,
       appBar: const WalletAppBar(
-        title: AwText.bold(
-          'Mi Perfil',
-          color: AwColors.white,
-        ),
+        title: AwText.normal('Mi Wallet', color: AwColors.white),
+        actions: [],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -104,15 +83,31 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         AwText.bold(
-                          '¡Hola, ${getFirstName(userName)}!',
+                          alias != null && alias!.isNotEmpty
+                              ? 'Hola, $alias 👋'
+                              : 'Hola...👋',
                           color: AwColors.modalPurple,
-                          size: AwSize.s20,
+                          size: AwSize.s16,
+                          textOverflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         AwSpacing.s6,
                         AwText.bold(
                           userEmail ?? 'correo@ejemplo.com',
                           color: AwColors.boldBlack,
                           size: AwSize.s16,
+                          textOverflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                        AwSpacing.s6,
+                        UnderlinedButton(
+                          text: 'Cerrar sesión',
+                          icon: Icons.logout,
+                          color: AwColors.red,
+                          alignment: Alignment.centerLeft,
+                          onTap: () {
+                            LogOutDialog.showLogOutDialog(context);
+                          },
                         ),
                       ],
                     ),
@@ -120,67 +115,108 @@ class _WalletProfilePageState extends State<WalletProfilePage> {
                 ],
               ),
             ),
-            const Divider(height: 32),
-            AwSpacing.s12,
-            Row(
-              children: [
-                const Icon(Icons.receipt_long, color: AwColors.blue, size: 32),
-                const SizedBox(width: 12),
-                const AwText.large('Cantidad de gastos:', color: AwColors.boldBlack, size: AwSize.s20),
-                const SizedBox(width: 8),
-                AwText.large('${widget.totalExpenses}', color: AwColors.modalPurple, size: AwSize.s20),
-              ],
-            ),
-            AwSpacing.s18,
-            const AwText.normal('Categorías', color: AwColors.boldBlack, size: AwSize.s16),
-            AwSpacing.s,
-            Column(
-              children: getCategoriasConTotal(widget.expenses)
-                  .map((cat) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Row(
-                          children: [
-                            Icon(cat['icono'], color: AwColors.blue, size: 24),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: AwText.normal(cat['nombre'], color: AwColors.boldBlack, size: AwSize.s16),
-                            ),
-                            AwText.bold(formatNumber(cat['total']), color: AwColors.modalPurple, size: AwSize.s16),
-                          ],
-                        ),
-                      ))
-                  .toList(),
-            ),
-            AwSpacing.s18,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const AwText.bold('Total de gastos:', color: AwColors.boldBlack, size: AwSize.s18),
-                const SizedBox(width: 8),
-                AwText.bold(formatNumber(widget.totalAmount), color: AwColors.red, size: AwSize.s20),
-              ],
-            ),
-            const Divider(height: 32),
-            WalletButton.iconButtonText(
-              icon: Icons.settings,
-              buttonText: 'Configuración',
-              iconColor: AwColors.white,
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Configuración próximamente')),
-                );
-              },
-            ),
             AwSpacing.s20,
-            WalletButton.iconButtonText(
-              icon: Icons.logout,
-              buttonText: 'Cerrar sesión',
-              iconColor: AwColors.white,
-              backgroundColor: AwColors.red,
-              onPressed: () {
-                LogOutDialog.showLogOutDialog(context);
-              },
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: AwText.bold('Configuraciones',
+                  color: AwColors.blue, size: AwSize.s18),
             ),
+            AwSpacing.s12,
+            SizedBox(
+              width: double.infinity,
+              child: SettingsCard(
+                title: 'Actualizar alias',
+                icon: Icons.person_outline,
+                onTap: () {
+                  () async {
+                    try {
+                      final result = await Navigator.of(context).push<String>(
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  const AliasInputPage(initialSetup: false)));
+                      if (result != null && result.isNotEmpty) {
+                        setState(() {
+                          alias = result;
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text('Alias actualizado: $result')));
+                        }
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('No se pudo abrir cambiar alias')));
+                    }
+                  }();
+                },
+              ),
+            ),
+            AwSpacing.s,
+            SizedBox(
+              width: double.infinity,
+              child: SettingsCard(
+                title: 'Restablecer mi PIN',
+                icon: Icons.lock_reset,
+                onTap: () async {
+                  final loader = ref.read(globalLoaderProvider.notifier);
+                  loader.show();
+                  try {
+                    final uid = user?.uid;
+                    final pinService = PinService();
+                    final remaining = await pinService.pinChangeRemainingCount(
+                        accountId: uid ?? '');
+                    final blockedUntil = await pinService
+                        .pinChangeBlockedUntilNextDay(accountId: uid ?? '');
+
+                    final isBlocked = (remaining <= 0) ||
+                        (blockedUntil != null && blockedUntil > Duration.zero);
+
+                    try {
+                      loader.hide();
+                    } catch (_) {}
+
+                    if (isBlocked) {
+                      final remainingDuration =
+                          blockedUntil ?? const Duration(days: 1);
+                      if (!mounted) return;
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (_) => PinLockedPage(
+                                remaining: remainingDuration,
+                                accountId: uid,
+                                allowBack: true,
+                              )));
+                    } else {
+                      try {
+                        final success = await Navigator.of(context).push<bool>(
+                            MaterialPageRoute(
+                                builder: (_) => const ForgotPinPage()));
+                        if (success == true) {
+                          if (!mounted) return;
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const SetPinPage()));
+                        }
+                      } catch (e, st) {
+                        if (kDebugMode)
+                          debugPrint('Restablecer PIN error: $e\n$st');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'No se pudo abrir restablecer PIN')));
+                        }
+                      }
+                    }
+                  } catch (e, st) {
+                    if (kDebugMode)
+                      debugPrint('Error checking PIN state: $e\n$st');
+                    try {
+                      loader.hide();
+                    } catch (_) {}
+                  }
+                },
+              ),
+            ),
+            AwSpacing.s18,
           ],
         ),
       ),

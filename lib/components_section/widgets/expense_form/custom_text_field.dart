@@ -9,6 +9,8 @@ class CustomTextField extends StatelessWidget {
   final Function(String)? onChanged;
   final String? prefixText;
   final bool hideCounter;
+  final TextAlign? textAlign;
+  final TextAlignVertical? textAlignVertical;
   final bool flat;
 
   const CustomTextField({
@@ -21,6 +23,8 @@ class CustomTextField extends StatelessWidget {
     this.onChanged,
     this.prefixText,
     this.hideCounter = false,
+    this.textAlign,
+    this.textAlignVertical,
     this.flat = false,
   });
 
@@ -42,8 +46,8 @@ class CustomTextField extends StatelessWidget {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         onChanged: onChanged,
-        // centrar verticalmente el texto dentro del campo
-        textAlignVertical: TextAlignVertical.center,
+        textAlign: textAlign ?? TextAlign.start,
+        textAlignVertical: textAlignVertical,
         decoration: InputDecoration(
           // usar labelText en lugar de label widget para que el comportamiento del
           // label (flotante) sea consistente con el campo de categoría

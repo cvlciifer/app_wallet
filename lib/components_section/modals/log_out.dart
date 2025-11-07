@@ -1,68 +1,91 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:provider/provider.dart';
 
-// esto debe estar con parametros dinamicos
 class LogOutDialog extends StatelessWidget {
   const LogOutDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const AwText.bold(
-        'Vas a cerrar sesión',
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
       ),
-      content: const Row(
+      title: const Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.warning,
+            Icons.logout,
             color: AwColors.orange,
             size: AwSize.s24,
           ),
-          AwSpacing.s10,
-          Expanded(
-            child: AwText(
-              text: '¿Estás seguro?',
-              color: AwColors.black,
-              size: AwSize.s16,
-            ),
+          SizedBox(width: AwSize.s10),
+          AwText.bold(
+            'Cerrar sesión',
+            size: AwSize.s16,
           ),
         ],
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0), // Bordes redondeados
-      ),
-      actions: [
-        WalletButton.textButton(
-          buttonText: 'Cancelar',
-          onPressed: () {
-            Navigator.of(context).pop(); // Cerrar el diálogo
-          },
+      content: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+        child: AwText(
+          text: '¿Seguro que quieres salir de tu cuenta?',
+          color: AwColors.black,
+          size: AwSize.s16,
         ),
-        // hacer componente ElevatedButton
-        ElevatedButton(
-          onPressed: () async {
-            final loginProvider = Provider.of<LoginProvider>(context, listen: false);
-            await loginProvider.signOut();
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  final loginProvider =
+                      Provider.of<LoginProvider>(context, listen: false);
 
-            // Redirigir al usuario a la pantalla de inicio de sesión
-            if (context.mounted) {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-                (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
-              );
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AwColors.red, // Color de fondo del botón
-            foregroundColor: AwColors.white, // Color del texto
-          ),
-          child: const AwText(text: 'Cerrar sesión'),
+                  await loginProvider.signOut();
+
+                  try {
+                    await AuthService().clearAllLoginState();
+                  } catch (_) {}
+
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                      (Route<dynamic> route) => false,
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AwColors.red,
+                  foregroundColor: AwColors.white,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 10.0, horizontal: 25.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const AwText(
+                  text: 'Sí, cerrar sesión',
+                  color: AwColors.white,
+                  size: AwSize.s14,
+                ),
+              ),
+            ),
+            const SizedBox(height: AwSize.s10),
+            WalletButton.textButton(
+              buttonText: 'Cancelar',
+              alignment: MainAxisAlignment.center,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  // Método para mostrar el diálogo en cualquier parte de tu app
   static void showLogOutDialog(BuildContext context) {
     showDialog(
       context: context,

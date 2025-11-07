@@ -4,7 +4,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 class WalletButton {
   static Widget primaryButton({
     required String buttonText,
-    required Function() onPressed,
+    required Function()? onPressed,
     double? height = AwSize.s48,
     Color? backgroundColor = AwColors.appBarColor,
     Color? buttonTextColor = AwColors.white,
@@ -34,7 +34,7 @@ class WalletButton {
 
   static Widget secondaryButton({
     required String buttonText,
-    required Function() onPressed,
+    required Function()? onPressed,
   }) {
     return SizedBox(
       height: AwSize.s48,
@@ -63,7 +63,7 @@ class WalletButton {
 
   static Widget textButton({
     required String buttonText,
-    required Function() onPressed,
+    required Function()? onPressed,
     MainAxisAlignment? alignment,
     Color colorText = AwColors.blue,
   }) {
@@ -112,7 +112,8 @@ class WalletButton {
     double iconSize = 24.0,
     double fontSize = AwSize.s14,
     FontWeight fontWeight = FontWeight.bold,
-    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    EdgeInsetsGeometry padding =
+        const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
   }) {
     return SizedBox(
       height: height,
