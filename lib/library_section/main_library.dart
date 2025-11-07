@@ -101,9 +101,9 @@ export 'package:app_wallet/security_section/presentation/screens/pin/pin_locked_
 export 'package:app_wallet/components_section/buttons/enter_pin_successful.dart';
 export 'package:app_wallet/components_section/widgets/pin/greeting_header.dart';
 export 'package:app_wallet/components_section/widgets/pin/pin_page_scaffold.dart';
-export 'package:app_wallet/security_section/presentation/viewmodels/enter_pin_notifier.dart';
-export 'package:app_wallet/security_section/presentation/viewmodels/enter_pin_state.dart';
+export 'package:app_wallet/core/providers/security/enter_pin_notifier.dart';
+export 'package:app_wallet/core/models/security/enter_pin_state.dart';
 export 'package:app_wallet/core/providers/reset_flow_provider.dart';
 export 'package:app_wallet/core/providers/global_loader_provider.dart';
-export 'package:app_wallet/security_section/presentation/viewmodels/forgot_pin_notifier.dart';
-export 'package:app_wallet/security_section/presentation/viewmodels/forgot_pin_state.dart';
+export 'package:app_wallet/core/providers/security/forgot_pin_notifier.dart';
+export 'package:app_wallet/core/models/security/forgot_pin_state.dart';

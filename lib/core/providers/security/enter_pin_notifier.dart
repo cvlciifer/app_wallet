@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'enter_pin_state.dart';
 
-/// StateNotifier que maneja la lógica de ingresar PIN para una cuenta
 class EnterPinNotifier extends StateNotifier<EnterPinState> {
   final Ref ref;
   final String accountId;
@@ -30,7 +28,6 @@ class EnterPinNotifier extends StateNotifier<EnterPinState> {
         final res = await Connectivity().checkConnectivity();
         hasConn = res != ConnectivityResult.none;
       } catch (_) {}
-      // subscribe to connectivity changes
       _connectivitySub = Connectivity().onConnectivityChanged.listen((r) {
         state = state.copyWith(hasConnection: r != ConnectivityResult.none);
       });

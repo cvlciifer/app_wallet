@@ -28,9 +28,18 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
 
   Future<void> _onCompleted(String pin) async {
     final notifier = ref.read(enterPinProvider(widget.accountId).notifier);
-    ref.read(globalLoaderProvider.notifier).show();
+    final loader = ref.read(globalLoaderProvider.notifier);
+    loader.show();
     setState(() {});
-    final ok = await notifier.verifyPin(pin: pin);
+    bool ok = false;
+    try {
+      ok = await notifier.verifyPin(pin: pin);
+    } finally {
+      try {
+        loader.hide();
+      } catch (_) {}
+    }
+
     if (!mounted) return;
 
     if (ok) {
@@ -48,10 +57,6 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
         setState(() => _showFailurePopup = false);
         _pinKey.currentState?.clear();
       });
-
-      try {
-        ref.read(globalLoaderProvider.notifier).hide();
-      } catch (_) {}
     }
   }
 
@@ -180,6 +185,11 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                                   (blockedUntil != null &&
                                       blockedUntil > Duration.zero);
 
+                              // hide loader before navigating
+                              try {
+                                loader.hide();
+                              } catch (_) {}
+
                               if (isBlocked) {
                                 final remainingDuration =
                                     blockedUntil ?? const Duration(days: 1);
@@ -199,9 +209,11 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                                   ),
                                 ));
                               }
-                            } finally {
+                            } catch (e, st) {
+                              if (kDebugMode)
+                                debugPrint('Forgot PIN error: $e\n$st');
                               try {
-                                ref.read(globalLoaderProvider.notifier).hide();
+                                loader.hide();
                               } catch (_) {}
                             }
                           },

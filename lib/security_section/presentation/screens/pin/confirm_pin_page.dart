@@ -68,15 +68,20 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           pin: _secondPin!,
           digits: widget.digits,
           alias: widget.alias);
-    } catch (e) {
-      final msg = e.toString();
 
       try {
         ProviderScope.containerOf(context, listen: false)
             .read(globalLoaderProvider.notifier)
             .hide();
       } catch (_) {}
+    } catch (e) {
+      final msg = e.toString();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      try {
+        ProviderScope.containerOf(context, listen: false)
+            .read(globalLoaderProvider.notifier)
+            .hide();
+      } catch (_) {}
       return;
     }
 

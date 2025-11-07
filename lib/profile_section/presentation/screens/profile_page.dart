@@ -171,6 +171,10 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                     final isBlocked = (remaining <= 0) ||
                         (blockedUntil != null && blockedUntil > Duration.zero);
 
+                    try {
+                      loader.hide();
+                    } catch (_) {}
+
                     if (isBlocked) {
                       final remainingDuration =
                           blockedUntil ?? const Duration(days: 1);
@@ -202,9 +206,11 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                         }
                       }
                     }
-                  } finally {
+                  } catch (e, st) {
+                    if (kDebugMode)
+                      debugPrint('Error checking PIN state: $e\n$st');
                     try {
-                      ref.read(globalLoaderProvider.notifier).hide();
+                      loader.hide();
                     } catch (_) {}
                   }
                 },

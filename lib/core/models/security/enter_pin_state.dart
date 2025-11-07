@@ -1,4 +1,3 @@
-/// Estado inmutable para EnterPin
 class EnterPinState {
   final String? alias;
   final int attempts;
