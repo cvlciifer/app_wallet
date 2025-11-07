@@ -1,13 +1,9 @@
 import 'dart:developer';
-import 'package:app_wallet/core/data_base_local/create_db.dart';
-import '../../home_section/presentation/new_expense/presentation/models/expense.dart';
 import '../sync_service/sync_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
 
-// Clase para exponer los métodos de la base local como instancia
 class LocalCrud {
   Future<List<Expense>> getAllExpenses() => getAllExpensesImpl();
   Future<void> insertExpense(Expense expense) => insertExpenseImpl(expense);
@@ -31,14 +27,11 @@ Future<List<Expense>> getAllExpensesImpl() async {
             amount: (row['cantidad'] as num).toDouble(),
             date: DateTime.fromMillisecondsSinceEpoch(row['fecha'] as int),
             category: _mapCategory(row['categoria'] as String),
+            subcategoryId: row['subcategoria'] as String?,
             syncStatus: row['sync_status'] != null ? SyncStatus.values[row['sync_status'] as int] : SyncStatus.synced,
           ))
       .toList();
 }
-
-// ==========================
-// Helpers
-// ==========================
 
 String? getUserUid() => FirebaseAuth.instance.currentUser?.uid;
 
@@ -46,10 +39,8 @@ String? getUserEmail() => FirebaseAuth.instance.currentUser?.email;
 
 Future<Database> _db() => DBHelper.instance.database;
 
-// Normaliza la categoría igual que en Firestore (enum.toString().split('.') .last)
 String _categoryToString(dynamic category) => category.toString().split('.').last;
 
-// Verifica que el usuario esté registrado en la base de datos local
 Future<void> _ensureUserExists() async {
   final uid = getUserUid();
   final email = getUserEmail();
@@ -67,7 +58,6 @@ Future<void> _ensureUserExists() async {
   );
 
   if (existingUser.isEmpty) {
-    // El usuario no existe en la BD local, lo insertamos
     await db.insert('usuarios', {
       'uid': uid,
       'correo': email,
@@ -76,10 +66,6 @@ Future<void> _ensureUserExists() async {
   }
 }
 
-// ==========================
-// CRUD READ: Leer gastos del usuario autenticado (equivalente a getGastos de Firestore)
-// Retorna una lista de mapas con las mismas keys: id, name, fecha, cantidad, tipo
-// ==========================
 Future<List<Map<String, dynamic>>> getGastosLocal() async {
   final uid = getUserUid();
   if (uid == null) {
@@ -95,21 +81,13 @@ Future<List<Map<String, dynamic>>> getGastosLocal() async {
     orderBy: 'fecha DESC',
   );
 
-  // fecha en SQLite está en ms epoch. Si arriba quieres imitar Firestore Timestamp, puedes convertir aquí
-  // pero para mantener "lo mismo" dejamos el entero de ms. Si necesitas DateTime usa DateTime.fromMillisecondsSinceEpoch(row['fecha'])
   return rows;
 }
 
-// ==========================
-// CRUD CREATE: Restaurar un gasto (equivalente a restoreExpense)
-// ==========================
 Future<void> restoreExpenseLocal(Expense expense) async {
   await insertExpenseImpl(expense);
 }
 
-// ==========================
-// CRUD CREATE: Crear un nuevo gasto (equivalente a createExpense)
-// ==========================
 Future<void> createExpenseLocal(Expense expense) async {
   await insertExpenseImpl(expense);
 }
@@ -128,6 +106,7 @@ Future<void> insertExpenseImpl(Expense expense) async {
     'fecha': expense.date.millisecondsSinceEpoch,
     'cantidad': expense.amount,
     'categoria': _categoryToString(expense.category),
+    'subcategoria': expense.subcategoryId,
     'sync_status': expense.syncStatus.index,
     'id': expense.id,
   });
@@ -144,6 +123,7 @@ Future<void> updateExpenseImpl(Expense expense) async {
       'fecha': expense.date.millisecondsSinceEpoch,
       'cantidad': expense.amount,
       'categoria': _categoryToString(expense.category),
+      'subcategoria': expense.subcategoryId,
       'sync_status': expense.syncStatus.index,
     },
     where: 'id = ? AND uid_correo = ?',
@@ -183,6 +163,7 @@ Future<List<Expense>> getPendingExpensesImpl() async {
             amount: (row['cantidad'] as num).toDouble(),
             date: DateTime.fromMillisecondsSinceEpoch(row['fecha'] as int),
             category: _mapCategory(row['categoria'] as String),
+            subcategoryId: row['subcategoria'] as String?,
             syncStatus: SyncStatus.values[row['sync_status'] as int],
           ))
       .toList();
@@ -199,27 +180,15 @@ Future<void> replaceAllExpensesImpl(List<Expense> expenses) async {
 }
 
 Category _mapCategory(String tipo) {
-  switch (tipo) {
-    case 'trabajo':
-      return Category.trabajo;
-    case 'ocio':
-      return Category.ocio;
-    case 'comida':
-      return Category.comida;
-    case 'viajes':
-      return Category.viajes;
-    case 'salud':
-      return Category.salud;
-    case 'servicios':
-      return Category.servicios;
-    default:
-      return Category.comida;
+  for (final c in Category.values) {
+    final enumName = c.toString().split('.').last;
+    if (enumName == tipo) return c;
+    if (c.displayName == tipo) return c;
   }
+
+  return Category.comidaBebida;
 }
 
-// ==========================
-// CRUD DELETE: Eliminar un gasto
-// ==========================
 Future<void> deleteExpenseLocal(Expense expense) async {
   final uid = getUserUid();
   if (uid == null) {
@@ -228,7 +197,6 @@ Future<void> deleteExpenseLocal(Expense expense) async {
   }
   final db = await _db();
 
-  // Localizamos posibles coincidencias (puede haber varias)
   final rows = await db.query(
     'gastos',
     columns: ['uid_gasto'],
@@ -254,9 +222,6 @@ Future<void> deleteExpenseLocal(Expense expense) async {
   }
 }
 
-// ==========================
-// CRUD UPDATE: Editar un gasto existente
-// ==========================
 Future<void> updateExpenseLocal(int uidGasto, Expense expense) async {
   final uid = getUserUid();
   if (uid == null) {

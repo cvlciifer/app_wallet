@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/monthly_report_section/presentation/screens/monthly_report.dart';
 
 class FiltersScreen extends StatefulWidget {
   const FiltersScreen({super.key});
@@ -10,7 +9,6 @@ class FiltersScreen extends StatefulWidget {
 
 class _FiltersScreenState extends State<FiltersScreen> {
   late Map<Category, bool> _filters;
-  int _currentBottomNavIndex = 0; // Filtros está en el índice 0
 
   @override
   void didChangeDependencies() {
@@ -31,34 +29,34 @@ class _FiltersScreenState extends State<FiltersScreen> {
     return _filters;
   }
 
-  void _handleBottomNavTap(int index) {
-    setState(() {
-      _currentBottomNavIndex = index;
-    });
+  void _handleBottomNavTap(int index) async {
+    final bottomNav = context.read<BottomNavProvider>();
+    bottomNav.setIndex(index);
 
     switch (index) {
-      case 0: // Filtros (ya estamos aquí)
+      case 0:
         break;
-      case 1: // Estadísticas
-        Navigator.of(context).pushReplacement(
+      case 1:
+        await Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (ctx) => EstadisticasScreen(
-              expenses: [], // Necesitarás pasar los expenses desde donde sea apropiado
+              expenses: [],
             ),
           ),
         );
+        bottomNav.reset();
         break;
       case 2: // Informes
-        Navigator.of(context).pushReplacement(
+        await Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (ctx) => InformeMensualScreen(
-              expenses: [], // Necesitarás pasar los expenses desde donde sea apropiado
+              expenses: [],
             ),
           ),
         );
+        bottomNav.reset();
         break;
-      case 3: // MiWallet
-        // Navigator.of(context).pushNamed('/mi-wallet');
+      case 3:
         break;
     }
   }
@@ -88,30 +86,33 @@ class _FiltersScreenState extends State<FiltersScreen> {
               });
             },
             title: Text(
-              category.name.toUpperCase(),
+              category.displayName.toUpperCase(),
               style: Theme.of(context).textTheme.titleLarge!.copyWith(
                     color: Theme.of(context).colorScheme.onBackground,
                   ),
             ),
             subtitle: Text(
-              'Solo incluye gastos relacionados con ${category.name}.',
+              'Solo incluye gastos relacionados con ${category.displayName}.',
               style: Theme.of(context).textTheme.labelMedium!.copyWith(
                     color: Theme.of(context).colorScheme.onBackground,
                   ),
             ),
-            secondary: Icon(categoryIcons[category], color: Theme.of(context).colorScheme.onBackground),
+            secondary: Icon(categoryIcons[category], color: category.color),
             activeColor: Theme.of(context).colorScheme.tertiary,
             contentPadding: const EdgeInsets.only(left: 34, right: 22),
           );
         }).toList(),
       ),
-      bottomNavigationBar: WalletBottomAppBar(
-        currentIndex: _currentBottomNavIndex,
-        onTap: _handleBottomNavTap,
+      bottomNavigationBar: Consumer<BottomNavProvider>(
+        builder: (context, bottomNav, child) {
+          return WalletBottomAppBar(
+            currentIndex: bottomNav.selectedIndex,
+            onTap: _handleBottomNavTap,
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Acción para agregar nuevo gasto
           Navigator.of(context).pushNamed('/add-expense');
         },
         backgroundColor: AwColors.appBarColor,

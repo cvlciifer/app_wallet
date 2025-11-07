@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 class ForgotPasswordScreen extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
 
+  ForgotPasswordScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +29,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                 color: Colors.white
                     .withOpacity(0.9), // Fondo blanco semi-transparente
                 borderRadius: BorderRadius.circular(15.0),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.black26,
                     blurRadius: 8.0,

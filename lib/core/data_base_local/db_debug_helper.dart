@@ -4,14 +4,12 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DBDebugHelper {
-  /// Imprime la ubicación de la base de datos
   static Future<void> printDatabasePath() async {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'adminwallet.db');
     log('Ubicación de la BD: $path');
   }
 
-  /// Muestra todos los usuarios en la base de datos
   static Future<void> showAllUsers() async {
     try {
       final db = await DBHelper.instance.database;
@@ -28,7 +26,6 @@ class DBDebugHelper {
     }
   }
 
-  /// Muestra todos los gastos en la base de datos
   static Future<void> showAllExpenses() async {
     try {
       final db = await DBHelper.instance.database;
@@ -46,7 +43,6 @@ class DBDebugHelper {
     }
   }
 
-  /// Función completa de debug - muestra todo
   static Future<void> debugDatabase() async {
     log('=== DEBUG DE BASE DE DATOS ===');
     await printDatabasePath();
@@ -55,7 +51,6 @@ class DBDebugHelper {
     log('=== FIN DEBUG ===');
   }
 
-  /// Cuenta los registros en cada tabla
   static Future<void> showTableCounts() async {
     try {
       final db = await DBHelper.instance.database;

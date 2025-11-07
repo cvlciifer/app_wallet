@@ -1,21 +1,21 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/monthly_report_section/presentation/screens/monthly_report.dart';
 
 class WalletNavigationService {
   static void handleBottomNavigation(
       BuildContext context, int index, List<Expense> expenses) {
     switch (index) {
-      case 0: // Home/Filtros (ya estamos aquí)
-        break;
-      case 1: // Estadísticas
-        Navigator.of(context).push(
+      case 0:
+        return Future.value();
+      case 1:
+        await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (ctx) => EstadisticasScreen(
               expenses: expenses,
             ),
           ),
         );
-        break;
+        return;
+
       case 2: // Informes
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -26,12 +26,13 @@ class WalletNavigationService {
         );
         break;
       case 3: // MiWallet
-        Navigator.of(context).push(
+        double totalAmount = expenses.fold(0, (sum, expense) => sum + expense.amount);
+        await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (ctx) => const WalletProfilePage(),
           ),
         );
-        break;
+        return;
     }
   }
 

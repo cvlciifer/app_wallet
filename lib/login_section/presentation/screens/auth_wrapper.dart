@@ -95,7 +95,6 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
       }
     } catch (e) {
       if (mounted) {
-        // En caso de error, ir al login
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => LoginScreen(),

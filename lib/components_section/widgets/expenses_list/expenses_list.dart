@@ -10,7 +10,6 @@ class ExpensesList extends StatelessWidget {
   final List<Expense> expenses;
   final void Function(Expense expense) onRemoveExpense;
 
-// transformar esto a un componente independiente y que se pueda llamar el dialog y sea customizable desde la llamada
   void _showDeleteConfirmationDialog(BuildContext context, Expense expense) {
     showDialog(
       context: context,
@@ -34,12 +33,6 @@ class ExpensesList extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   onRemoveExpense(expense);
-                  Flushbar(
-                    message: 'Gasto eliminado correctamente',
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 2),
-                    flushbarPosition: FlushbarPosition.TOP,
-                  ).show(context);
                 },
                 backgroundColor: AwColors.red,
               ),

@@ -14,6 +14,7 @@ class Expense {
     required this.amount,
     required this.date,
     required this.category,
+    this.subcategoryId,
     String? id,
     this.syncStatus = SyncStatus.synced,
   }) : id = id ?? uuid.v4();
@@ -23,6 +24,7 @@ class Expense {
   final double amount;
   final DateTime date;
   final Category category;
+  final String? subcategoryId;
   final SyncStatus syncStatus;
 
   String get formattedDate {
@@ -43,6 +45,7 @@ class Expense {
       amount: amount ?? this.amount,
       date: date ?? this.date,
       category: category ?? this.category,
+      subcategoryId: subcategoryId ?? this.subcategoryId,
       syncStatus: syncStatus ?? this.syncStatus,
     );
   }
@@ -60,8 +63,9 @@ class Expense {
               : DateTime.now(),
       category: Category.values.firstWhere(
         (c) => c.toString().split('.').last == (data['tipo'] ?? ''),
-        orElse: () => Category.comida,
+        orElse: () => Category.comidaBebida,
       ),
+      subcategoryId: data['subcategoria'] as String?,
       syncStatus: SyncStatus.synced,
     );
   }
@@ -72,6 +76,7 @@ class Expense {
       'cantidad': amount,
       'fecha': date,
       'tipo': category.toString().split('.').last,
+      'subcategoria': subcategoryId,
     };
   }
 }

@@ -1,35 +1,34 @@
 import 'package:flutter/material.dart';
+import 'category.dart';
 
 class WalletCategoryHelper {
-  static const Map<String, IconData> categoryIcons = {
-    'comida': Icons.lunch_dining,
-    'viajes': Icons.flight_takeoff,
-    'ocio': Icons.movie,
-    'trabajo': Icons.work,
-    'salud': Icons.health_and_safety,
-    'servicios': Icons.design_services,
-  };
+  static IconData getCategoryIcon(String categoryOrSubcategory) {
+    for (final entry in subcategoriesByCategory.entries) {
+      for (final sub in entry.value) {
+        if (sub.id == categoryOrSubcategory || sub.name.toLowerCase() == categoryOrSubcategory.toLowerCase()) {
+          return sub.icon;
+        }
+      }
+    }
 
-  static IconData getCategoryIcon(String category) {
-    return categoryIcons[category] ?? Icons.category;
+    for (final c in Category.values) {
+      if (c.displayName.toLowerCase() == categoryOrSubcategory.toLowerCase() ||
+          c.toString().split('.').last == categoryOrSubcategory) {
+        return categoryIcons[c] ?? Icons.category;
+      }
+    }
+
+    return Icons.category;
   }
 
-  static Color getCategoryColor(String category) {
-    switch (category) {
-      case 'comida':
-        return Colors.blue;
-      case 'viajes':
-        return Colors.red;
-      case 'ocio':
-        return Colors.green;
-      case 'trabajo':
-        return Colors.orange;
-      case 'salud':
-        return Colors.purple;
-      case 'servicios':
-        return Colors.amber;
-      default:
-        return Colors.grey;
+  static Color getCategoryColor(String categoryOrSubcategory) {
+    for (final c in Category.values) {
+      if (c.displayName.toLowerCase() == categoryOrSubcategory.toLowerCase() ||
+          c.toString().split('.').last == categoryOrSubcategory) {
+        return c.color;
+      }
     }
+
+    return Colors.grey;
   }
 }

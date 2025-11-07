@@ -1,6 +1,7 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
+import 'package:app_wallet/components_section/widgets/month_selector.dart';
 
 class WalletHomePage extends StatefulWidget {
   const WalletHomePage({super.key});
@@ -78,31 +79,51 @@ class _WalletHomePageState extends State<WalletHomePage> {
         context, _controller.currentFilters);
     if (filters != null) {
       _controller.applyFilters(filters);
+      final connectivity = await Connectivity().checkConnectivity();
+      final hasConnection = connectivity != ConnectivityResult.none;
+      final controller = context.read<WalletExpensesController>();
+      await controller.addExpense(expense, hasConnection: hasConnection);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _controller,
-      child: Scaffold(
-        appBar: const WalletHomeAppbar(),
-        body: Consumer<WalletExpensesController>(
-          builder: (context, controller, child) {
-            return _buildBody(context, controller);
-          },
-        ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: AwColors.appBarColor,
-          onPressed: _openAddExpenseOverlay,
-          tooltip: 'Agregar gasto',
-          child: const Icon(Icons.add, color: AwColors.white),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: WalletBottomAppBar(
-          currentIndex: _currentBottomIndex,
-          onTap: _onBottomNavTap,
-        ),
+    return Scaffold(
+      backgroundColor: AwColors.greyLight,
+      appBar: const WalletHomeAppbar(),
+      body: Consumer<WalletExpensesController>(
+        builder: (context, controller, child) {
+          return Stack(
+            children: [
+              _buildBody(context, controller),
+              if (controller.isLoading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.4),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AwColors.appBarColor,
+        onPressed: _openAddExpenseOverlay,
+        tooltip: 'Agregar gasto',
+        child: const Icon(Icons.add, color: AwColors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: Consumer<BottomNavProvider>(
+        builder: (context, bottomNav, child) {
+          final selected = bottomNav.selectedIndex;
+          return WalletBottomAppBar(
+            currentIndex: selected,
+            onTap: _onBottomNavTap,
+          );
+        },
       ),
     );
   }
@@ -121,11 +142,16 @@ class _WalletHomePageState extends State<WalletHomePage> {
         ),
       );
     } else if (controller.filteredExpenses.isNotEmpty) {
+    Widget monthButtons = _buildMonthButtons(context, controller);
+
+    Widget mainContent = const EmptyState();
+    if (controller.filteredExpenses.isNotEmpty) {
       mainContent = ExpensesList(
         expenses: controller.filteredExpenses,
         onRemoveExpense: (expense) async {
-          // Aquí deberías detectar la conectividad real, por ahora se asume true
-          await controller.removeExpense(expense, hasConnection: true);
+          final connectivity = await Connectivity().checkConnectivity();
+          final hasConnection = connectivity != ConnectivityResult.none;
+          await controller.removeExpense(expense, hasConnection: hasConnection);
         },
       );
     } else {
@@ -136,17 +162,72 @@ class _WalletHomePageState extends State<WalletHomePage> {
         ? Column(
             children: [
               Chart(expenses: controller.filteredExpenses),
-              const AwDivider(),
-              WalletFiltersButton(onTap: _openFilters),
+              monthButtons,
               Expanded(child: mainContent),
             ],
           )
         : Row(
             children: [
-              Expanded(child: Chart(expenses: controller.filteredExpenses)),
+              Expanded(
+                child: Column(
+                  children: [
+                    monthButtons,
+                    Expanded(child: Chart(expenses: controller.filteredExpenses)),
+                  ],
+                ),
+              ),
               Expanded(child: mainContent),
               const SizedBox(width: AwSize.s60),
             ],
           );
+  }
+
+  Widget _buildMonthButtons(BuildContext context, WalletExpensesController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 4),
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            WalletButton.filterButton(
+              buttonText: 'Mes actual',
+              onPressed: () {
+                final now = DateTime.now();
+                controller.setMonthFilter(DateTime(now.year, now.month));
+              },
+              selected: controller.monthFilter != null &&
+                  controller.monthFilter!.year == DateTime.now().year &&
+                  controller.monthFilter!.month == DateTime.now().month,
+            ),
+            const Spacer(),
+            WalletButton.filterButton(
+              buttonText: 'Filtrar por mes',
+              onPressed: () {
+                _handleOpenSelector(controller);
+              },
+              selected: controller.monthFilter != null &&
+                  !(controller.monthFilter!.year == DateTime.now().year &&
+                      controller.monthFilter!.month == DateTime.now().month),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleOpenSelector(WalletExpensesController controller) async {
+    final available = controller.getAvailableMonths(excludeCurrent: true);
+    if (available.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('No hay meses disponibles para filtrar')));
+      }
+      return;
+    }
+
+    final selected = await showMonthSelector(context, available);
+    if (selected != null) {
+      controller.setMonthFilter(selected);
+    }
   }
 }

@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,7 +29,6 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginScreenState createState() => _LoginScreenState();
 }
 
@@ -61,7 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              // ignore: deprecated_member_use
                               color: AwColors.grey.withOpacity(0.1),
                               blurRadius: 8,
                               offset: const Offset(0, 4),

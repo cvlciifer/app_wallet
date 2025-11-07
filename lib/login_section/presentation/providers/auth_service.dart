@@ -1,6 +1,5 @@
 import 'dart:developer';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app_wallet/library_section/main_library.dart';
 
 class AuthService {
   static const String _isLoggedInKey = 'isLoggedIn';

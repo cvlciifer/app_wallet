@@ -155,4 +155,44 @@ class WalletButton {
       ),
     );
   }
+
+  static Widget filterButton({
+    required String buttonText,
+    required Function() onPressed,
+    MainAxisAlignment? alignment,
+    Color colorText = AwColors.appBarColor,
+    bool selected = false,
+  }) {
+    return Row(
+      mainAxisAlignment: alignment ?? MainAxisAlignment.end,
+      children: [
+        GestureDetector(
+          onTap: onPressed,
+          child: Container(
+            padding: EdgeInsets.only(bottom: selected ? 0.5 : 0.0),
+            decoration: selected
+                ? BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: colorText,
+                        width: 1.5,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                  )
+                : null,
+            child: Text(
+              buttonText,
+              style: TextStyle(
+                fontSize: AwSize.s14,
+                fontWeight: FontWeight.bold,
+                color: colorText,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
