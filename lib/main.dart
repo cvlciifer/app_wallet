@@ -117,10 +117,8 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       } catch (_) {}
       _navigatingToPin = true;
 
-        try {
+      try {
         final authSvc = AuthService();
-        // Prefer persisted login flag + firebase user; but if firebase hasn't
-        // restored yet, fall back to the saved uid so we can show PIN screen.
         final prefs = await SharedPreferences.getInstance();
         final prefLoggedIn = prefs.getBool('isLoggedIn') ?? false;
         final currentUser = authSvc.getCurrentUser();
