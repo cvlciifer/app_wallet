@@ -34,6 +34,7 @@ class WalletExpensesController extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
   DateTime? _monthFilter;
+  DateTime? get monthFilter => _monthFilter;
 
   Future<void> loadExpensesSmart() async {
     log('loadExpensesSmart llamado');

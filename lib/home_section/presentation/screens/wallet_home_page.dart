@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/components_section/widgets/month_action_button.dart';
 import 'package:app_wallet/components_section/widgets/month_selector.dart';
 
 class WalletHomePage extends StatefulWidget {
@@ -112,24 +111,30 @@ class _WalletHomePageState extends State<WalletHomePage> {
 
   Widget _buildMonthButtons(BuildContext context, WalletExpensesController controller) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 4),
       child: Center(
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            MonthActionButton(
-              label: 'Mes actual',
-              onTap: () {
+            WalletButton.filterButton(
+              buttonText: 'Mes actual',
+              onPressed: () {
                 final now = DateTime.now();
                 controller.setMonthFilter(DateTime(now.year, now.month));
               },
+              selected: controller.monthFilter != null &&
+                  controller.monthFilter!.year == DateTime.now().year &&
+                  controller.monthFilter!.month == DateTime.now().month,
             ),
-            const SizedBox(width: 8),
-            MonthActionButton(
-              label: 'Filtrar por mes',
-              onTap: () {
+            const Spacer(),
+            WalletButton.filterButton(
+              buttonText: 'Filtrar por mes',
+              onPressed: () {
                 _handleOpenSelector(controller);
               },
+              selected: controller.monthFilter != null &&
+                  !(controller.monthFilter!.year == DateTime.now().year &&
+                      controller.monthFilter!.month == DateTime.now().month),
             ),
           ],
         ),
