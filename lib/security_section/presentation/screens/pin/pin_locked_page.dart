@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/components_section/widgets/pin/pin_page_scaffold.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 
 class PinLockedPage extends StatefulWidget {
   final Duration remaining;
@@ -29,6 +30,14 @@ class _PinLockedPageState extends State<PinLockedPage> {
     super.initState();
     _remaining = widget.remaining;
     _startTimer();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final ctx = context;
+        riverpod.ProviderScope.containerOf(ctx, listen: false)
+            .read(globalLoaderProvider.notifier)
+            .state = false;
+      } catch (_) {}
+    });
   }
 
   void _startTimer() {

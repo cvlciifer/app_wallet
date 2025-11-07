@@ -38,58 +38,6 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
     final uid = AuthService().getCurrentUser()?.uid;
     final state = ref.watch(forgotPinProvider(uid));
 
-    ref.listen<ForgotPinState>(forgotPinProvider(uid), (previous, next) {
-      final prevAttempts = previous?.remainingAttempts ?? -1;
-      final nextAttempts = next.remainingAttempts;
-      if (prevAttempts != 0 && nextAttempts == 0) {
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!mounted) return;
-          try {
-            final pinService = PinService();
-            final blocked = await pinService.pinChangeBlockedUntilNextDay(
-                accountId: uid ?? '');
-            final remaining = blocked ?? const Duration(days: 1);
-            if (!mounted) return;
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (_) => PinLockedPage(
-                      remaining: remaining,
-                      accountId: uid,
-                      allowBack: true,
-                    )));
-          } catch (_) {
-            if (!mounted) return;
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (_) => PinLockedPage(
-                      remaining: const Duration(days: 1),
-                      accountId: uid,
-                      allowBack: true,
-                    )));
-          }
-        });
-      }
-    });
-
-    if (state.remainingAttempts <= 0 || state.remainingSeconds > 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final remaining = state.remainingSeconds > 0
-            ? Duration(seconds: state.remainingSeconds)
-            : const Duration(days: 1);
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (_) => PinLockedPage(
-                  remaining: remaining,
-                  accountId: uid,
-                  allowBack: true,
-                )));
-      });
-
-      return PinPageScaffold(
-        transparentAppBar: true,
-        allowBack: true,
-        child: const Center(child: WalletLoader()),
-      );
-    }
-
     return PinPageScaffold(
       transparentAppBar: true,
       allowBack: true,
@@ -155,6 +103,7 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
           buttonText: buttonText,
           onPressed: () async {
             if (isDisabled) return;
+            // send recovery email (UI will reflect cooldown via state)
             final email = _emailController.text.trim();
             final uid = AuthService().getCurrentUser()?.uid;
             final msg = await ref

@@ -204,6 +204,15 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       final token = uri.queryParameters['token'] ?? uri.queryParameters['link'];
       if (token != null) {
         bool success = false;
+        final ctxForLoader = _navigatorKey.currentState?.overlay?.context;
+        if (ctxForLoader != null) {
+          try {
+            riverpod.ProviderScope.containerOf(ctxForLoader, listen: false)
+                .read(globalLoaderProvider.notifier)
+                .state = true;
+          } catch (_) {}
+        }
+
         try {
           try {
             final ctx = _navigatorKey.currentState?.overlay?.context;
@@ -310,6 +319,14 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                     .read(resetFlowProvider.notifier)
                     .clear();
               }
+            } catch (_) {}
+          }
+
+          if (ctxForLoader != null) {
+            try {
+              riverpod.ProviderScope.containerOf(ctxForLoader, listen: false)
+                  .read(globalLoaderProvider.notifier)
+                  .state = false;
             } catch (_) {}
           }
         }
