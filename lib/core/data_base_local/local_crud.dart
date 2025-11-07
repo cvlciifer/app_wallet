@@ -13,13 +13,54 @@ class LocalCrud {
       deleteExpenseImpl(expenseId, localOnly: localOnly);
   Future<List<Expense>> getPendingExpenses() => getPendingExpensesImpl();
   Future<void> replaceAllExpenses(List<Expense> expenses) => replaceAllExpensesImpl(expenses);
+  Future<Map<String, int>> getGastosCountByUid() => getGastosCountByUidImpl();
 }
 
 Future<List<Expense>> getAllExpensesImpl() async {
-  final uid = await getUserUid();
-  if (uid == null) return [];
+  var uid = await getUserUid();
+  if (uid == null) {
+    // Intentar resolver UID usando el email persistido en la BD local
+    uid = await _resolveUidFromSavedEmail();
+  }
+  if (uid == null) {
+    log('getAllExpensesImpl: no se pudo resolver UID, devolviendo lista vacía');
+    return [];
+  }
   final db = await _db();
   final rows = await db.query('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
+  log('getAllExpensesImpl: uid=$uid, filas encontradas=${rows.length}');
+  // Si no encontramos filas para el UID resuelto, intentar usar un UID alternativo
+  // que tenga gastos en la BD local (esto maneja casos donde las inserciones
+  // se guardaron bajo un uid distinto al que ahora resolvemos).
+  if (rows.isEmpty) {
+    try {
+      final alt = await getGastosCountByUidImpl();
+      if (alt.isNotEmpty) {
+        // Elegir el UID con más filas
+        final altUid = alt.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+        if (altUid != uid) {
+          log('getAllExpensesImpl: no hay filas para uid=$uid, usando uid alternativo=$altUid (counts=$alt)');
+          final altRows = await db.query('gastos', where: 'uid_correo = ?', whereArgs: [altUid]);
+          if (altRows.isNotEmpty) {
+            log('getAllExpensesImpl: filas encontradas para uid alternativo=$altUid -> ${altRows.length}');
+            return altRows
+                .map((row) => Expense(
+                      id: row['id'] as String,
+                      title: row['nombre'] as String,
+                      amount: (row['cantidad'] as num).toDouble(),
+                      date: DateTime.fromMillisecondsSinceEpoch(row['fecha'] as int),
+                      category: _mapCategory(row['categoria'] as String),
+                      subcategoryId: row['subcategoria'] as String?,
+                      syncStatus: row['sync_status'] != null ? SyncStatus.values[row['sync_status'] as int] : SyncStatus.synced,
+                    ))
+                .toList();
+          }
+        }
+      }
+    } catch (e, st) {
+      log('getAllExpensesImpl: fallback por uid alternativo falló: $e\n$st');
+    }
+  }
   return rows
       .map((row) => Expense(
             id: row['id'] as String,
@@ -39,10 +80,56 @@ Future<String?> getUserUid() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('userUid') ?? prefs.getString('lastUserUid');
-    return saved;
-  } catch (_) {
+    if (saved != null && saved.isNotEmpty) return saved;
+    // si no está en prefs, intentamos resolver con el email guardado
+    final savedEmail = prefs.getString('userEmail');
+    if (savedEmail != null && savedEmail.isNotEmpty) {
+      final usuario = await DBHelper.instance.getUsuarioPorEmail(savedEmail);
+      if (usuario != null && usuario['uid'] != null) {
+        final resolved = usuario['uid'] as String;
+        log('getUserUid: resuelto desde email guardado -> $resolved');
+        return resolved;
+      }
+    }
+    // Si aún no tenemos UID, buscar un UID fallback persistido localmente.
+    final fallback = prefs.getString('localFallbackUid');
+    if (fallback != null && fallback.isNotEmpty) {
+      log('getUserUid: usando localFallbackUid -> $fallback');
+      return fallback;
+    }
+    // Crear un UID local consistente para permitir operaciones offline persistentes.
+    final newLocalUid = Uuid().v4();
+    await prefs.setString('localFallbackUid', newLocalUid);
+    // Guardar en la tabla usuarios para satisfacer la FK y permitir consultas.
+    try {
+      final emailForUser = (prefs.getString('userEmail') ?? '${newLocalUid}@local').toLowerCase();
+      await DBHelper.instance.upsertUsuario(uid: newLocalUid, correo: emailForUser);
+      log('getUserUid: creado localFallbackUid y usuario local -> $newLocalUid (email: $emailForUser)');
+    } catch (e, st) {
+      log('getUserUid: error insertando usuario placeholder: $e\n$st');
+    }
+    return newLocalUid;
+  } catch (e, st) {
+    log('getUserUid error: $e\n$st');
     return null;
   }
+}
+
+Future<String?> _resolveUidFromSavedEmail() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('userEmail');
+    if (savedEmail == null || savedEmail.isEmpty) return null;
+    final usuario = await DBHelper.instance.getUsuarioPorEmail(savedEmail);
+    if (usuario != null && usuario['uid'] != null) {
+      final uid = usuario['uid'] as String;
+      log('UID resuelto por email guardado: $uid (email: $savedEmail)');
+      return uid;
+    }
+  } catch (e, st) {
+    log('Error resolviendo UID desde email guardado: $e\n$st');
+  }
+  return null;
 }
 
 Future<String?> getUserEmail() async {
@@ -62,11 +149,15 @@ String _categoryToString(dynamic category) => category.toString().split('.').las
 
 Future<void> _ensureUserExists() async {
   final uid = await getUserUid();
-  final email = await getUserEmail();
-
-  if (uid == null || email == null) {
-    throw Exception('No se encontró el usuario autenticado');
+  if (uid == null) {
+    throw Exception('No se encontró el usuario autenticado (uid)');
   }
+
+  final email = await getUserEmail();
+  // If we don't have a real email (offline scenario), use a placeholder
+  // based on uid so that the 'usuarios' table can be populated and the
+  // foreign key constraint on 'gastos.uid_correo' is satisfied.
+  final emailToSave = (email != null && email.isNotEmpty) ? email : '${uid}@local';
 
   final db = await _db();
   final existingUser = await db.query(
@@ -79,9 +170,9 @@ Future<void> _ensureUserExists() async {
   if (existingUser.isEmpty) {
     await db.insert('usuarios', {
       'uid': uid,
-      'correo': email,
+      'correo': emailToSave,
     });
-    log('Usuario insertado en BD local: $uid');
+    log('Usuario insertado en BD local: $uid (correo: $emailToSave)');
   }
 }
 
@@ -103,6 +194,20 @@ Future<List<Map<String, dynamic>>> getGastosLocal() async {
   return rows;
 }
 
+/// Devuelve un mapa { uid_correo: count } para diagnosticar si existen gastos
+/// asociados a UIDs distintos en la BD local.
+Future<Map<String, int>> getGastosCountByUidImpl() async {
+  final db = await _db();
+  final rows = await db.rawQuery('SELECT uid_correo, COUNT(*) as cnt FROM gastos GROUP BY uid_correo');
+  final Map<String, int> result = {};
+  for (final r in rows) {
+    final uid = r['uid_correo'] as String? ?? '<null>';
+    final cnt = (r['cnt'] as int?) ?? (r['COUNT(*)'] as int? ?? 0);
+    result[uid] = cnt;
+  }
+  return result;
+}
+
 Future<void> restoreExpenseLocal(Expense expense) async {
   await insertExpenseImpl(expense);
 }
@@ -117,9 +222,38 @@ Future<void> insertExpenseImpl(Expense expense) async {
     log('Error: No se encontró el usuario autenticado');
     return;
   }
-  await _ensureUserExists();
+  try {
+    await _ensureUserExists();
+  } catch (e, st) {
+    log('Warning: _ensureUserExists failed, continuing insert. $e\n$st');
+  }
   final db = await _db();
-  await db.insert('gastos', {
+  // Evitar duplicados: eliminar cualquier fila existente con el mismo id y uid_correo
+  try {
+    // Ejecutar delete + insert en una transacción para evitar race conditions
+    final inserted = await db.transaction<int>((txn) async {
+      try {
+        await txn.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expense.id, uid]);
+      } catch (_) {}
+      final rowId = await txn.insert('gastos', {
+        'uid_correo': uid,
+        'nombre': expense.title,
+        'fecha': expense.date.millisecondsSinceEpoch,
+        'cantidad': expense.amount,
+        'categoria': _categoryToString(expense.category),
+        'subcategoria': expense.subcategoryId,
+        'sync_status': expense.syncStatus.index,
+        'id': expense.id,
+      });
+      return rowId;
+    });
+    log('Gasto insertado localmente: ${expense.id} (uid_correo: $uid) -> inserted rowId: $inserted');
+    return;
+  } catch (e, st) {
+    log('Warning: transacción insert fallida, intentando insert simple: $e\n$st');
+  }
+  // Fallback: intento simple si la transacción falla
+  final inserted = await db.insert('gastos', {
     'uid_correo': uid,
     'nombre': expense.title,
     'fecha': expense.date.millisecondsSinceEpoch,
@@ -129,6 +263,7 @@ Future<void> insertExpenseImpl(Expense expense) async {
     'sync_status': expense.syncStatus.index,
     'id': expense.id,
   });
+  log('Gasto insertado localmente: ${expense.id} (uid_correo: $uid) -> inserted rowId: $inserted');
 }
 
 Future<void> updateExpenseImpl(Expense expense) async {
@@ -148,25 +283,28 @@ Future<void> updateExpenseImpl(Expense expense) async {
     where: 'id = ? AND uid_correo = ?',
     whereArgs: [expense.id, uid],
   );
+  log('Gasto actualizado localmente: ${expense.id} (uid_correo: $uid)');
 }
 
 Future<void> updateSyncStatusImpl(String expenseId, SyncStatus status) async {
   final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
-  await db.update(
+  final count = await db.update(
     'gastos',
     {'sync_status': status.index},
     where: 'id = ? AND uid_correo = ?',
     whereArgs: [expenseId, uid],
   );
+  log('Sync status actualizado localmente: ${expenseId} -> ${status.toString()} (uid_correo: $uid). Rows affected: $count');
 }
 
 Future<void> deleteExpenseImpl(String expenseId, {bool localOnly = false}) async {
   final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
-  await db.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expenseId, uid]);
+  final count = await db.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expenseId, uid]);
+  log('Gasto eliminado localmente: $expenseId (uid_correo: $uid). Rows deleted: $count');
 }
 
 Future<List<Expense>> getPendingExpensesImpl() async {
@@ -192,10 +330,22 @@ Future<void> replaceAllExpensesImpl(List<Expense> expenses) async {
   final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
-  await db.delete('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
-  for (final expense in expenses) {
-    await insertExpenseImpl(expense);
-  }
+  // Ejecutar reemplazo completo en una transacción para evitar estados intermedios
+  await db.transaction((txn) async {
+    await txn.delete('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
+    for (final expense in expenses) {
+      await txn.insert('gastos', {
+        'uid_correo': uid,
+        'nombre': expense.title,
+        'fecha': expense.date.millisecondsSinceEpoch,
+        'cantidad': expense.amount,
+        'categoria': _categoryToString(expense.category),
+        'subcategoria': expense.subcategoryId,
+        'sync_status': expense.syncStatus.index,
+        'id': expense.id,
+      });
+    }
+  });
 }
 
 Category _mapCategory(String tipo) {

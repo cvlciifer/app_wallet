@@ -103,10 +103,9 @@ const Map<Category, List<Subcategory>> subcategoriesByCategory = {
   ],
   Category.salud: [
     Subcategory(id: 'farmacia', name: 'Farmacia', icon: Icons.local_pharmacy, parent: Category.salud),
-    Subcategory(id: 'arriendo_hipoteca', name: 'Arriendo / Hipoteca', icon: Icons.home_work, parent: Category.salud),
-    Subcategory(id: 'mantenimiento', name: 'Mantenimiento', icon: Icons.build, parent: Category.salud),
-    Subcategory(id: 'seguros', name: 'Seguros', icon: Icons.health_and_safety, parent: Category.salud),
-    Subcategory(id: 'servicios', name: 'Servicios', icon: Icons.miscellaneous_services, parent: Category.salud),
+    Subcategory(id: 'examenes', name: 'Exámenes', icon: Icons.science, parent: Category.salud),
+    Subcategory(id: 'tratamientos', name: 'Tratamientos', icon: Icons.healing, parent: Category.salud),
+    Subcategory(id: 'emergencias', name: 'Emergencias', icon: Icons.local_hospital, parent: Category.salud),
   ],
   Category.hogarVivienda: [
     Subcategory(id: 'cuentas', name: 'Cuentas', icon: Icons.receipt, parent: Category.hogarVivienda),

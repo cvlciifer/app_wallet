@@ -35,11 +35,10 @@ class _WalletHomePageState extends State<WalletHomePage> {
           } catch (_) {}
         });
 
-        // Sincroniza con la nube solo una vez al entrar, luego carga local
-        provController.syncService.initializeLocalDbFromFirebase().then((_) {
-          if (!mounted) return;
-          provController.loadExpensesSmart();
-        });
+        // Evitar doble inicialización: el controlador ya realiza la carga
+        // inicial (incluyendo sincronización cuando hay conexión). Simplemente
+        // pedirle que cargue el estado inteligente local/remoto.
+        provController.loadExpensesSmart();
       } catch (_) {}
     });
   }

@@ -12,9 +12,24 @@ class WalletExpensesController extends ChangeNotifier {
 
   late final SyncService syncService;
   bool isLoadingExpenses = false;
-
   WalletExpensesController() {
-    final email = FirebaseAuth.instance.currentUser?.email ?? '';
+    // Delay async initialization to ensure we can resolve auth state (may be null if
+    // Firebase hasn't restored currentUser yet). We perform async init after
+    // construction.
+    _asyncInit();
+  }
+
+  Future<void> _asyncInit() async {
+    // Resolve email from FirebaseAuth or persisted storage
+    String email = FirebaseAuth.instance.currentUser?.email ?? '';
+    if (email.isEmpty) {
+      try {
+        final authSvc = AuthService();
+        final saved = await authSvc.getSavedEmail();
+        if (saved != null && saved.isNotEmpty) email = saved;
+      } catch (_) {}
+    }
+
     log('Email usado para SyncService: $email');
     syncService = SyncService(
       localCrud: LocalCrud(),
@@ -22,11 +37,34 @@ class WalletExpensesController extends ChangeNotifier {
       userEmail: email,
     );
     syncService.startAutoSync();
+
+    // Debug: informar el UID resuelto y el estado local al iniciar para ayudar
+    // a diagnosticar problemas de persistencia en cold start offline.
+    try {
+      final resolvedUid = await getUserUid();
+      log('WalletExpensesController: UID resuelto al init -> $resolvedUid');
+      final users = await DBHelper.instance.getTodosLosUsuarios();
+      log('WalletExpensesController: usuarios locales en BD = ${users.length}');
+      final pending = await syncService.localCrud.getPendingExpenses();
+      log('WalletExpensesController: pending expenses al init = ${pending.length}');
+      // Diagnostic: show counts per uid to detect writes under different uid
+      try {
+        final counts = await syncService.localCrud.getGastosCountByUid();
+        log('WalletExpensesController: gastos por uid = $counts');
+      } catch (e, st) {
+        log('Error obteniendo counts por uid: $e\n$st');
+      }
+    } catch (e, st) {
+      log('Error debug init controller: $e\n$st');
+    }
+
     // Set the month filter to current month on initialization so the home page
     // shows only current-month expenses by default.
     final now = DateTime.now();
     _monthFilter = DateTime(now.year, now.month);
-    loadExpensesSmart();
+
+    // Load expenses initially
+    await loadExpensesSmart();
   }
 
   bool _isDisposed = false;
@@ -47,7 +85,11 @@ class WalletExpensesController extends ChangeNotifier {
     final hasConnection = connectivityResult != ConnectivityResult.none;
 
     if (hasConnection) {
-      log('Hay internet, sincronizando con la nube...');
+      log('Hay internet, sincronizando pendientes locales con la nube...');
+      // First push local pending changes, then refresh local DB from remote to avoid
+      // overwriting pending local operations.
+      await syncService.syncPendingChanges();
+      log('Sincronización de pendientes finalizada, obteniendo datos remotos...');
       await syncService.initializeLocalDbFromFirebase();
     } else {
       log('Sin internet, mostrando solo base local');
