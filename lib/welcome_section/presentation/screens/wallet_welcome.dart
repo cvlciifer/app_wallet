@@ -11,7 +11,7 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  bool _checked = false;
+  // _checked removed; not used
 
   @override
   void initState() {
@@ -36,9 +36,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       );
     }
 
-    setState(() {
-      _checked = true;
-    });
+    // no local state needed after navigation
   }
 
   @override

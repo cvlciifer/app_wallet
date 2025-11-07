@@ -28,15 +28,15 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
 
   Future<void> _onCompleted(String pin) async {
     final notifier = ref.read(enterPinProvider(widget.accountId).notifier);
-    final loader = ref.read(globalLoaderProvider.notifier);
-    loader.show();
+  final loader = ref.read(globalLoaderProvider.notifier);
+  loader.state = true;
     setState(() {});
     bool ok = false;
     try {
       ok = await notifier.verifyPin(pin: pin);
-    } finally {
+      } finally {
       try {
-        loader.hide();
+        loader.state = false;
       } catch (_) {}
     }
 
@@ -169,9 +169,9 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                           },
                           onForgotPin: () async {
                             final email = AuthService().getCurrentUser()?.email;
-                            final loader =
-                                ref.read(globalLoaderProvider.notifier);
-                            loader.show();
+              final loader =
+                ref.read(globalLoaderProvider.notifier);
+              loader.state = true;
                             try {
                               final pinService = PinService();
                               final remaining =
@@ -187,7 +187,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
 
                               // hide loader before navigating
                               try {
-                                loader.hide();
+                                loader.state = false;
                               } catch (_) {}
 
                               if (isBlocked) {
@@ -213,7 +213,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                               if (kDebugMode)
                                 debugPrint('Forgot PIN error: $e\n$st');
                               try {
-                                loader.hide();
+                                loader.state = false;
                               } catch (_) {}
                             }
                           },

@@ -44,7 +44,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 // Cabecera más humanizada
                 const FormHeader(
                   title: 'Agrega un nuevo gasto',
-                  subtitle: 'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
+                  subtitle:
+                      'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
                 ),
                 const SizedBox(height: 5),
                 _buildTitle(),
@@ -57,7 +58,9 @@ class _ExpenseFormState extends State<ExpenseForm> {
                   onSelect: _selectCategory,
                 ),
                 const SizedBox(height: 24),
-                AmountInput(controller: _amountController, onChanged: _handleAmountChange),
+                AmountInput(
+                    controller: _amountController,
+                    onChanged: _handleAmountChange),
                 const SizedBox(height: 24),
                 DateSelector(
                   selectedDate: _selectedDate,
@@ -87,6 +90,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
       firstDate: firstDate,
       lastDate: now,
     );
+    if (!mounted) return;
     setState(() {
       _selectedDate = pickedDate;
     });
@@ -103,9 +107,12 @@ class _ExpenseFormState extends State<ExpenseForm> {
   }
 
   void _submitForm() {
-    final numericValue = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
+    final numericValue =
+        _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
     final enteredAmount = int.tryParse(numericValue);
-    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0 || enteredAmount > 999999999999;
+    final amountIsInvalid = enteredAmount == null ||
+        enteredAmount <= 0 ||
+        enteredAmount > 999999999999;
 
     final titleEmpty = _titleController.text.trim().isEmpty;
     final dateEmpty = _selectedDate == null;
@@ -133,10 +140,12 @@ class _ExpenseFormState extends State<ExpenseForm> {
   }
 
   void _showValidationDialog([String? details]) {
-    final contentText = details ?? 'Asegúrese de ingresar un título, monto y fecha válidos.';
+    final contentText =
+        details ?? 'Asegúrese de ingresar un título, monto y fecha válidos.';
     final dialogContent = Platform.isIOS
         ? CupertinoAlertDialog(
-            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
+            title: const AwText.bold('Entrada no válida',
+                color: AwColors.boldBlack),
             content: AwText(text: contentText),
             actions: [
               WalletButton.primaryButton(
@@ -146,7 +155,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
             ],
           )
         : AlertDialog(
-            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
+            title: const AwText.bold('Entrada no válida',
+                color: AwColors.boldBlack),
             content: AwText(
               text: contentText,
               color: AwColors.black,
@@ -162,12 +172,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
     showDialog(context: context, builder: (ctx) => dialogContent);
   }
 
-  void _updateCategoryQuery(String q) {
-    // legacy hook kept for compatibility; no-op because we use a modal bottom sheet
-    setState(() {});
-  }
-
   void _selectCategory(Category category, String? subId, String displayName) {
+    if (!mounted) return;
     setState(() {
       _selectedCategory = category;
       _selectedSubcategoryId = subId;

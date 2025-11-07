@@ -8,7 +8,7 @@ import 'package:path/path.dart';
 import 'dart:developer';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod
     hide ChangeNotifierProvider;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -52,7 +52,7 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  runApp(ProviderScope(child: AppRoot()));
+  runApp(riverpod.ProviderScope(child: AppRoot()));
 }
 
 class AppRoot extends StatefulWidget {
@@ -99,8 +99,9 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       try {
         final ctx = _navigatorKey.currentState?.overlay?.context;
         if (ctx != null) {
-          final resetState = ProviderScope.containerOf(ctx, listen: false)
-              .read(resetFlowProvider);
+          final resetState =
+              riverpod.ProviderScope.containerOf(ctx, listen: false)
+                  .read(resetFlowProvider);
           if (resetState.status == ResetFlowStatus.allowed) {
             final nav = _navigatorKey.currentState;
             if (nav != null) {
@@ -116,13 +117,21 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       } catch (_) {}
       _navigatingToPin = true;
 
-      try {
+        try {
         final authSvc = AuthService();
-        final isLoggedIn = await authSvc.isUserLoggedIn();
-        if (!isLoggedIn) return;
+        // Prefer persisted login flag + firebase user; but if firebase hasn't
+        // restored yet, fall back to the saved uid so we can show PIN screen.
+        final prefs = await SharedPreferences.getInstance();
+        final prefLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+        final currentUser = authSvc.getCurrentUser();
+        String? uid = currentUser?.uid;
+        if (!prefLoggedIn && uid == null) return;
 
-        final uid = authSvc.getCurrentUser()?.uid;
-        if (uid == null) return;
+        if (uid == null) {
+          // try saved uid values
+          uid = await authSvc.getSavedUid() ?? await authSvc.getLastSavedUid();
+          if (uid == null) return;
+        }
 
         final pinService = PinService();
         final hasPin = await pinService.hasPin(accountId: uid);
@@ -168,7 +177,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
           try {
             final ctx = _navigatorKey.currentState?.overlay?.context;
             if (ctx != null) {
-              ProviderScope.containerOf(ctx, listen: false)
+              riverpod.ProviderScope.containerOf(ctx, listen: false)
                   .read(resetFlowProvider.notifier)
                   .setProcessing();
             }
@@ -202,7 +211,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                   try {
                     final ctx = _navigatorKey.currentState?.overlay?.context;
                     if (ctx != null) {
-                      ProviderScope.containerOf(ctx, listen: false)
+                      riverpod.ProviderScope.containerOf(ctx, listen: false)
                           .read(resetFlowProvider.notifier)
                           .setAllowed(email);
                     }
@@ -218,7 +227,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                   try {
                     final ctx = _navigatorKey.currentState?.overlay?.context;
                     if (ctx != null) {
-                      ProviderScope.containerOf(ctx, listen: false)
+                      riverpod.ProviderScope.containerOf(ctx, listen: false)
                           .read(resetFlowProvider.notifier)
                           .clear();
                     }
@@ -230,7 +239,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                 try {
                   final ctx = _navigatorKey.currentState?.overlay?.context;
                   if (ctx != null) {
-                    ProviderScope.containerOf(ctx, listen: false)
+                    riverpod.ProviderScope.containerOf(ctx, listen: false)
                         .read(resetFlowProvider.notifier)
                         .setAllowed(email);
                   }
@@ -266,7 +275,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
             try {
               final ctx = _navigatorKey.currentState?.overlay?.context;
               if (ctx != null) {
-                ProviderScope.containerOf(ctx, listen: false)
+                riverpod.ProviderScope.containerOf(ctx, listen: false)
                     .read(resetFlowProvider.notifier)
                     .clear();
               }
@@ -289,9 +298,8 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       ],
       child: MaterialApp(
         builder: (context, child) {
-          return Consumer(builder: (ctx, ref, _) {
-            final loaderCount = ref.watch(globalLoaderProvider);
-            final showLoader = loaderCount > 0;
+          return riverpod.Consumer(builder: (ctx, ref, _) {
+            final showLoader = ref.watch(globalLoaderProvider);
             return Stack(
               children: [
                 child ?? const SizedBox.shrink(),

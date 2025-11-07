@@ -159,7 +159,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                 icon: Icons.lock_reset,
                 onTap: () async {
                   final loader = ref.read(globalLoaderProvider.notifier);
-                  loader.show();
+                  loader.state = true;
                   try {
                     final uid = user?.uid;
                     final pinService = PinService();
@@ -172,7 +172,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                         (blockedUntil != null && blockedUntil > Duration.zero);
 
                     try {
-                      loader.hide();
+                      loader.state = false;
                     } catch (_) {}
 
                     if (isBlocked) {
@@ -210,7 +210,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                     if (kDebugMode)
                       debugPrint('Error checking PIN state: $e\n$st');
                     try {
-                      loader.hide();
+                      loader.state = false;
                     } catch (_) {}
                   }
                 },

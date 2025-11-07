@@ -1,11 +1,11 @@
 import 'package:app_wallet/library_section/main_library.dart';
 
 class WalletNavigationService {
-  static void handleBottomNavigation(
-      BuildContext context, int index, List<Expense> expenses) {
+  static Future<void> handleBottomNavigation(
+      BuildContext context, int index, List<Expense> expenses) async {
     switch (index) {
       case 0:
-        return Future.value();
+        return;
       case 1:
         await Navigator.of(context).push(
           MaterialPageRoute(
@@ -15,23 +15,23 @@ class WalletNavigationService {
           ),
         );
         return;
-
       case 2: // Informes
-        Navigator.of(context).push(
+        await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (ctx) => InformeMensualScreen(
               expenses: expenses,
             ),
           ),
         );
-        break;
+        return;
       case 3: // MiWallet
-        double totalAmount = expenses.fold(0, (sum, expense) => sum + expense.amount);
         await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (ctx) => const WalletProfilePage(),
           ),
         );
+        return;
+      default:
         return;
     }
   }

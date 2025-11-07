@@ -57,11 +57,11 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
     }
     final pinService = PinService();
     try {
-      try {
-        ProviderScope.containerOf(context, listen: false)
-            .read(globalLoaderProvider.notifier)
-            .show();
-      } catch (_) {}
+  try {
+    ProviderScope.containerOf(context, listen: false)
+    .read(globalLoaderProvider.notifier)
+    .state = true;
+  } catch (_) {}
 
       await pinService.setPin(
           accountId: uid,
@@ -69,19 +69,19 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           digits: widget.digits,
           alias: widget.alias);
 
-      try {
-        ProviderScope.containerOf(context, listen: false)
-            .read(globalLoaderProvider.notifier)
-            .hide();
-      } catch (_) {}
+  try {
+    ProviderScope.containerOf(context, listen: false)
+    .read(globalLoaderProvider.notifier)
+    .state = false;
+  } catch (_) {}
     } catch (e) {
       final msg = e.toString();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-      try {
-        ProviderScope.containerOf(context, listen: false)
-            .read(globalLoaderProvider.notifier)
-            .hide();
-      } catch (_) {}
+  try {
+    ProviderScope.containerOf(context, listen: false)
+    .read(globalLoaderProvider.notifier)
+    .state = false;
+  } catch (_) {}
       return;
     }
 

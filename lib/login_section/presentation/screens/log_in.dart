@@ -135,11 +135,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: WalletButton.primaryButton(
                       buttonText: 'Acceder',
                       onPressed: () async {
+                        if (!mounted) return;
                         setState(() {
                           _errorMessage = null;
                         });
                         if (_emailController.text.trim().isEmpty ||
                             _passwordController.text.trim().isEmpty) {
+                          if (!mounted) return;
                           setState(() {
                             _errorMessage =
                                 'Por favor, ingresa tu email y contraseña.';
@@ -150,6 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
                         RegExp regex = RegExp(emailPattern);
                         if (!regex.hasMatch(_emailController.text.trim())) {
+                          if (!mounted) return;
                           setState(() {
                             _errorMessage =
                                 'Por favor, ingresa un email válido.';
@@ -157,6 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           return;
                         }
                         if (_passwordController.text.trim().length < 6) {
+                          if (!mounted) return;
                           setState(() {
                             _errorMessage =
                                 'La contraseña debe tener al menos 6 caracteres.';
@@ -171,6 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           password: _passwordController.text.trim(),
                           onSuccess: () {
                             // Ir a AuthWrapper para que se encargue del flujo (PIN / home)
+                            if (!mounted) return;
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
@@ -187,6 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               translatedError = error;
                             }
 
+                            if (!mounted) return;
                             setState(() {
                               _errorMessage = translatedError;
                             });
@@ -209,6 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       await loginProvider.signInWithGoogle(
                         onSuccess: () {
+                          if (!mounted) return;
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -216,6 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                         onError: (error) {
+                          if (!mounted) return;
                           setState(() {
                             _errorMessage = error;
                           });

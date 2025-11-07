@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:app_wallet/components_section/widgets/month_selector.dart';
 
@@ -11,7 +10,7 @@ class WalletHomePage extends StatefulWidget {
 }
 
 class _WalletHomePageState extends State<WalletHomePage> {
-  int _currentBottomIndex = 0;
+  // _currentBottomIndex removed (unused)
   late WalletExpensesController _controller;
   bool _initialLoaderHidden = false;
 
@@ -27,7 +26,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
           try {
             riverpod.ProviderScope.containerOf(ctx, listen: false)
                 .read(globalLoaderProvider.notifier)
-                .hide();
+                .state = false;
           } catch (_) {}
         }
       } catch (_) {}
@@ -45,7 +44,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
         try {
           riverpod.ProviderScope.containerOf(context, listen: false)
               .read(globalLoaderProvider.notifier)
-              .hide();
+              .state = false;
         } catch (_) {}
       }
     });
@@ -58,9 +57,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
   }
 
   void _onBottomNavTap(int index) {
-    setState(() {
-      _currentBottomIndex = index;
-    });
+    // don't keep local index state here; bottom nav state is provided by BottomNavProvider
     WalletNavigationService.handleBottomNavigation(
         context, index, _controller.allExpenses);
   }
@@ -74,17 +71,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     }
   }
 
-  void _openFilters() async {
-    final filters = await WalletNavigationService.openFiltersPage(
-        context, _controller.currentFilters);
-    if (filters != null) {
-      _controller.applyFilters(filters);
-      final connectivity = await Connectivity().checkConnectivity();
-      final hasConnection = connectivity != ConnectivityResult.none;
-      final controller = context.read<WalletExpensesController>();
-      await controller.addExpense(expense, hasConnection: hasConnection);
-    }
-  }
+  // _openFilters removed - not referenced
 
   @override
   Widget build(BuildContext context) {
@@ -131,58 +118,57 @@ class _WalletHomePageState extends State<WalletHomePage> {
   Widget _buildBody(BuildContext context, WalletExpensesController controller) {
     final width = MediaQuery.of(context).size.width;
 
-    Widget mainContent;
-
     if (controller.isLoadingExpenses) {
-      // While loading, show a centered loader in the content area (replaces list/empty state)
-      mainContent = const Center(
+      return const Center(
         child: SizedBox(
           height: AwSize.s48,
           child: WalletLoader(color: AwColors.appBarColor),
         ),
       );
-    } else if (controller.filteredExpenses.isNotEmpty) {
-    Widget monthButtons = _buildMonthButtons(context, controller);
-
-    Widget mainContent = const EmptyState();
-    if (controller.filteredExpenses.isNotEmpty) {
-      mainContent = ExpensesList(
-        expenses: controller.filteredExpenses,
-        onRemoveExpense: (expense) async {
-          final connectivity = await Connectivity().checkConnectivity();
-          final hasConnection = connectivity != ConnectivityResult.none;
-          await controller.removeExpense(expense, hasConnection: hasConnection);
-        },
-      );
-    } else {
-      mainContent = const EmptyState();
     }
 
-    return width < 600
-        ? Column(
-            children: [
-              Chart(expenses: controller.filteredExpenses),
-              monthButtons,
-              Expanded(child: mainContent),
-            ],
+    final monthButtons = _buildMonthButtons(context, controller);
+
+    final Widget mainContent = controller.filteredExpenses.isNotEmpty
+        ? ExpensesList(
+            expenses: controller.filteredExpenses,
+            onRemoveExpense: (expense) async {
+              final connectivity = await Connectivity().checkConnectivity();
+              final hasConnection = connectivity != ConnectivityResult.none;
+              await controller.removeExpense(expense,
+                  hasConnection: hasConnection);
+            },
           )
-        : Row(
+        : const EmptyState();
+
+    if (width < 600) {
+      return Column(
+        children: [
+          Chart(expenses: controller.filteredExpenses),
+          monthButtons,
+          Expanded(child: mainContent),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
             children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    monthButtons,
-                    Expanded(child: Chart(expenses: controller.filteredExpenses)),
-                  ],
-                ),
-              ),
-              Expanded(child: mainContent),
-              const SizedBox(width: AwSize.s60),
+              monthButtons,
+              Expanded(child: Chart(expenses: controller.filteredExpenses)),
             ],
-          );
+          ),
+        ),
+        Expanded(child: mainContent),
+        const SizedBox(width: AwSize.s60),
+      ],
+    );
   }
 
-  Widget _buildMonthButtons(BuildContext context, WalletExpensesController controller) {
+  Widget _buildMonthButtons(
+      BuildContext context, WalletExpensesController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 4),
       child: Center(
@@ -219,8 +205,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
     final available = controller.getAvailableMonths(excludeCurrent: true);
     if (available.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No hay meses disponibles para filtrar')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('No hay meses disponibles para filtrar')));
       }
       return;
     }

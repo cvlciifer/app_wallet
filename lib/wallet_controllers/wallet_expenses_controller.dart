@@ -53,20 +53,26 @@ class WalletExpensesController extends ChangeNotifier {
       log('Sin internet, mostrando solo base local');
     }
 
-    List<Expense> gastosFromLocal = await syncService.localCrud.getAllExpenses();
+    List<Expense> gastosFromLocal =
+        await syncService.localCrud.getAllExpenses();
     log('Gastos obtenidos localmente: ${gastosFromLocal.length}');
 
-    final visibleExpenses = gastosFromLocal.where((e) => e.syncStatus != SyncStatus.pendingDelete).toList();
+    final visibleExpenses = gastosFromLocal
+        .where((e) => e.syncStatus != SyncStatus.pendingDelete)
+        .toList();
     // Ordenar por fecha descendente: del más reciente al más antiguo
     visibleExpenses.sort((a, b) => b.date.compareTo(a.date));
 
     _allExpenses.clear();
     _allExpenses.addAll(visibleExpenses);
     _applyCombinedFilters();
-    notifyListeners();
+    // finished loading
+    isLoadingExpenses = false;
+    if (!_isDisposed) notifyListeners();
   }
 
-  Future<void> addExpense(Expense expense, {required bool hasConnection}) async {
+  Future<void> addExpense(Expense expense,
+      {required bool hasConnection}) async {
     log('addExpense llamado con: ${expense.title}');
     _isLoading = true;
     notifyListeners();
@@ -82,7 +88,8 @@ class WalletExpensesController extends ChangeNotifier {
     }
   }
 
-  Future<void> removeExpense(Expense expense, {required bool hasConnection}) async {
+  Future<void> removeExpense(Expense expense,
+      {required bool hasConnection}) async {
     log('removeExpense llamado con: \\\${expense.title}');
     _isLoading = true;
     notifyListeners();
@@ -144,7 +151,8 @@ class WalletExpensesController extends ChangeNotifier {
       // month filter
       if (_monthFilter != null) {
         final ed = DateTime(expense.date.year, expense.date.month);
-        if (ed.year != _monthFilter!.year || ed.month != _monthFilter!.month) return false;
+        if (ed.year != _monthFilter!.year || ed.month != _monthFilter!.month)
+          return false;
       }
       // category filters
       if (hasCategoryFilters) {
