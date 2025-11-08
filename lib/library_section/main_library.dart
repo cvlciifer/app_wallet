@@ -104,6 +104,7 @@ export 'package:app_wallet/core/providers/global_loader_provider.dart';
 export 'package:app_wallet/core/providers/security/forgot_pin_notifier.dart';
 export 'package:app_wallet/core/models/security/forgot_pin_state.dart';
 
+export 'package:app_wallet/components_section/modals/aw_alert.dart';
 export 'package:app_wallet/components_section/components/ticket_card.dart';
 export 'package:app_wallet/components_section/components/form_header.dart';
 export 'package:app_wallet/components_section/components/category_picker.dart';

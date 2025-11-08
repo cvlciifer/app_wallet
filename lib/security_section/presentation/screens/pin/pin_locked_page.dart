@@ -7,6 +7,7 @@ class PinLockedPage extends StatefulWidget {
   final Duration remaining;
   final String? message;
   final bool allowBack;
+  final bool returnToEnterPin;
   final String? accountId;
 
   const PinLockedPage({
@@ -14,6 +15,7 @@ class PinLockedPage extends StatefulWidget {
     required this.remaining,
     this.message,
     this.allowBack = false,
+    this.returnToEnterPin = false,
     this.accountId,
   }) : super(key: key);
 
@@ -74,54 +76,67 @@ class _PinLockedPageState extends State<PinLockedPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PinPageScaffold(
-      transparentAppBar: widget.allowBack,
-      allowBack: widget.allowBack,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const AwText.bold('Demasiados intentos',
-                  size: AwSize.s30,
-                  color: AwColors.appBarColor,
-                  textAlign: TextAlign.center),
-              AwSpacing.s20,
-              AwText.normal(
-                widget.message ??
-                    'Intenta nuevamente cuando termine el tiempo.',
-                textAlign: TextAlign.center,
-              ),
-              AwSpacing.s20,
-              AwText.bold(_format(_remaining),
-                  size: AwSize.s30, textAlign: TextAlign.center),
-              AwSpacing.s20,
-              WalletButton.primaryButton(
-                buttonText: _remaining == Duration.zero
-                    ? 'Continuar'
-                    : 'Volver cuando esté desbloqueado',
-                onPressed: _remaining == Duration.zero
-                    ? () {
-                        final preferredUid = widget.accountId ??
-                            AuthService().getCurrentUser()?.uid;
-                        if (preferredUid != null) {
-                          Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      EnterPinPage(accountId: preferredUid)));
-                        } else {
-                          // If there's no known uid, send them to login.
-                          Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                  builder: (_) => const LoginScreen()));
+    return WillPopScope(
+      onWillPop: () async {
+        if (widget.returnToEnterPin) {
+          final preferredUid =
+              widget.accountId ?? AuthService().getCurrentUser()?.uid;
+          if (preferredUid != null) {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (_) => EnterPinPage(accountId: preferredUid)));
+            return false;
+          }
+        }
+        return true;
+      },
+      child: PinPageScaffold(
+        transparentAppBar: widget.allowBack,
+        allowBack: widget.allowBack,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const AwText.bold('Demasiados intentos',
+                    size: AwSize.s30,
+                    color: AwColors.appBarColor,
+                    textAlign: TextAlign.center),
+                AwSpacing.s20,
+                AwText.normal(
+                  widget.message ??
+                      'Intenta nuevamente cuando termine el tiempo.',
+                  textAlign: TextAlign.center,
+                ),
+                AwSpacing.s20,
+                AwText.bold(_format(_remaining),
+                    size: AwSize.s30, textAlign: TextAlign.center),
+                AwSpacing.s20,
+                WalletButton.primaryButton(
+                  buttonText: _remaining == Duration.zero
+                      ? 'Continuar'
+                      : 'Volver cuando esté desbloqueado',
+                  onPressed: _remaining == Duration.zero
+                      ? () {
+                          final preferredUid = widget.accountId ??
+                              AuthService().getCurrentUser()?.uid;
+                          if (preferredUid != null) {
+                            Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        EnterPinPage(accountId: preferredUid)));
+                          } else {
+                            Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                    builder: (_) => const LoginScreen()));
+                          }
                         }
-                      }
-                    : null,
-                backgroundColor: AwColors.appBarColor,
-              ),
-            ],
+                      : null,
+                  backgroundColor: AwColors.appBarColor,
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -91,8 +91,13 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
 
   Widget _buildSendAreaWithState(ForgotPinState state) {
     final hasSentBefore = state.lastSentAt != null;
+    String _formatRemainingMinutes(int seconds) {
+      final mins = (seconds + 59) ~/ 60; // round up
+      return '${mins} min';
+    }
+
     final buttonText = state.remainingSeconds > 0
-        ? 'Reenviar (${state.remainingSeconds} s)'
+        ? 'Reenviar (${_formatRemainingMinutes(state.remainingSeconds)})'
         : (hasSentBefore ? 'Reenviar enlace' : 'Enviar enlace');
 
     final isDisabled = state.isSending || state.remainingSeconds > 0;
@@ -102,8 +107,22 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
         WalletButton.iconButtonText(
           buttonText: buttonText,
           onPressed: () async {
-            if (isDisabled) return;
-            // send recovery email (UI will reflect cooldown via state)
+            if (state.remainingSeconds > 0) {
+              final formatted = _formatRemainingMinutes(state.remainingSeconds);
+              if (!mounted) return;
+              await AwAlert.showTicketInfo(
+                context,
+                title: 'Espera antes de reenviar',
+                content:
+                    'Debes esperar $formatted antes de solicitar otro enlace.',
+                titleSize: AwSize.s20,
+                contentSize: AwSize.s14,
+              );
+              return;
+            }
+
+            if (state.isSending) return;
+
             final email = _emailController.text.trim();
             final uid = AuthService().getCurrentUser()?.uid;
             final msg = await ref

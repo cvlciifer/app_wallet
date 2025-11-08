@@ -179,7 +179,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       final remainingDuration =
                           blockedUntil ?? const Duration(days: 1);
                       if (!mounted) return;
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => PinLockedPage(
                                 remaining: remainingDuration,
                                 accountId: uid,

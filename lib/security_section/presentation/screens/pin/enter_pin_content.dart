@@ -28,13 +28,13 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
 
   Future<void> _onCompleted(String pin) async {
     final notifier = ref.read(enterPinProvider(widget.accountId).notifier);
-  final loader = ref.read(globalLoaderProvider.notifier);
-  loader.state = true;
+    final loader = ref.read(globalLoaderProvider.notifier);
+    loader.state = true;
     setState(() {});
     bool ok = false;
     try {
       ok = await notifier.verifyPin(pin: pin);
-      } finally {
+    } finally {
       try {
         loader.state = false;
       } catch (_) {}
@@ -79,10 +79,15 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
           next.lockedRemaining != null && next.lockedRemaining! > Duration.zero;
       if (!wasLocked && isLocked) {
         if (!mounted) return;
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
+        try {
+          ref.read(globalLoaderProvider.notifier).state = false;
+        } catch (_) {}
+        Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => PinLockedPage(
                   remaining: next.lockedRemaining ?? Duration.zero,
                   accountId: widget.accountId,
+                  allowBack: true,
+                  returnToEnterPin: true,
                 )));
         return;
       }
@@ -169,9 +174,9 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                           },
                           onForgotPin: () async {
                             final email = AuthService().getCurrentUser()?.email;
-              final loader =
-                ref.read(globalLoaderProvider.notifier);
-              loader.state = true;
+                            final loader =
+                                ref.read(globalLoaderProvider.notifier);
+                            loader.state = true;
                             try {
                               final pinService = PinService();
                               final remaining =
@@ -194,13 +199,15 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                                 final remainingDuration =
                                     blockedUntil ?? const Duration(days: 1);
                                 if (!mounted) return;
-                                Navigator.of(context)
-                                    .pushReplacement(MaterialPageRoute(
-                                        builder: (_) => PinLockedPage(
-                                              remaining: remainingDuration,
-                                              accountId: widget.accountId,
-                                              allowBack: true,
-                                            )));
+                                // Push so EnterPin remains in the stack; set returnToEnterPin
+                                // so back navigates deterministically to EnterPin.
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (_) => PinLockedPage(
+                                          remaining: remainingDuration,
+                                          accountId: widget.accountId,
+                                          allowBack: true,
+                                          returnToEnterPin: true,
+                                        )));
                               } else {
                                 Navigator.of(context).push(MaterialPageRoute(
                                   builder: (_) => ForgotPinPage(

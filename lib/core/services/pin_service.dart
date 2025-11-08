@@ -24,7 +24,7 @@ class PinService {
   static const Duration verifyLockDuration = Duration(minutes: 2);
   static const int maxAttempts = maxVerifyAttempts;
   static const Duration lockDuration = verifyLockDuration;
-  // cambiar de 30 seg a 20 min
+  // cambiar de 30 segs a 20 minutos
   static const Duration pinChangeCooldownDuration = Duration(seconds: 30);
   static const int pinChangeMaxPerDay = 3;
 
