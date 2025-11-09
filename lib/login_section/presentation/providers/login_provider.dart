@@ -1,0 +1,202 @@
+import 'dart:developer';
+import 'package:app_wallet/library_section/main_library.dart';
+import 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
+import 'package:sqflite/sqflite.dart';
+
+class LoginProvider extends ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final AuthService _authService = AuthService();
+
+  Future<void> loginUser({
+    required String email,
+    required String password,
+    required Function onSuccess,
+    required Function(String) onError,
+  }) async {
+    try {
+      final String emailLower = email.toLowerCase();
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
+        email: emailLower,
+        password: password,
+      );
+
+      final User? user = userCredential.user;
+      if (user != null) {
+        if (user.emailVerified) {
+          // Guardar estado de login (incluye uid)
+          await _authService.saveLoginState(emailLower, uid: user.uid);
+
+          try {
+            await DBHelper.instance.database;
+
+            // Verificar si el usuario ya existe en la BD local
+            final existingUser =
+                await DBHelper.instance.getUsuarioPorUid(user.uid);
+
+            if (existingUser != null) {
+              log('Usuario encontrado en BD local: ${existingUser['correo']}');
+              if (existingUser['correo'] != emailLower) {
+                log('Email actualizado de ${existingUser['correo']} a $emailLower');
+                await DBHelper.instance
+                    .upsertUsuario(uid: user.uid, correo: emailLower);
+              }
+            } else {
+              log('Usuario nuevo, guardando en BD local: $emailLower');
+              // Usuario nuevo, guardarlo
+              await DBHelper.instance
+                  .upsertUsuario(uid: user.uid, correo: emailLower);
+            }
+          } catch (dbErr) {
+            log('Error creando/verificando DB local: $dbErr');
+          }
+
+          onSuccess();
+        } else {
+          await _auth.signOut();
+          onError(
+              'Debe verificar su correo electrónico antes de iniciar sesión.');
+        }
+      } else {
+        onError('Error al obtener el usuario después del inicio de sesión.');
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        onError('No se encontró un usuario con este correo.');
+      } else if (e.code == 'wrong-password') {
+        onError('Contraseña incorrecta.');
+      } else if (e.code == 'too-many-requests') {
+        onError('Demasiados intentos fallidos. Por favor, intenta más tarde.');
+      } else {
+        onError(e.message ?? 'Error desconocido al iniciar sesión.');
+      }
+    } catch (e) {
+      onError('Error al iniciar sesión: $e');
+    }
+  }
+
+  Future<void> signInWithGoogle({
+    required Function onSuccess,
+    required Function(String) onError,
+  }) async {
+    try {
+      await _googleSignIn.signOut();
+      final dbPath = await getDatabasesPath();
+      log('Ruta de la base de datos: $dbPath/adminwallet.db');
+
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        onError('Inicio de sesión cancelado');
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      final User? user = userCredential.user;
+      if (user != null) {
+        if (userCredential.additionalUserInfo?.isNewUser == true) {
+          await _createUserProfile(user);
+        }
+
+        // Guardar estado de login para Google (incluye uid)
+        final emailLower = (user.email ?? '').toLowerCase();
+        await _authService.saveLoginState(emailLower, uid: user.uid);
+
+        try {
+          await DBHelper.instance.database;
+
+          // Verificar si el usuario ya existe en la BD local
+          final existingUser =
+              await DBHelper.instance.getUsuarioPorUid(user.uid);
+
+          if (existingUser != null) {
+            log('Usuario Google encontrado en BD local: ${existingUser['correo']}');
+            if (existingUser['correo'] != emailLower) {
+              log('Email Google actualizado de ${existingUser['correo']} a $emailLower');
+              await DBHelper.instance
+                  .upsertUsuario(uid: user.uid, correo: emailLower);
+            }
+          } else {
+            log('Usuario Google nuevo, guardando en BD local: $emailLower');
+            await DBHelper.instance
+                .upsertUsuario(uid: user.uid, correo: emailLower);
+          }
+        } catch (dbErr) {
+          log('Error creando/verificando DB local (Google): $dbErr');
+        }
+
+        onSuccess();
+      } else {
+        onError(
+            'Error al obtener el usuario después del inicio de sesión con Google.');
+      }
+    } on FirebaseAuthException catch (e) {
+      onError('Error de autenticación: ${e.message}');
+    } catch (e) {
+      onError('Error al iniciar sesión con Google: $e');
+    }
+  }
+
+  Future<void> _createUserProfile(User user) async {
+    try {
+      final emailLower = (user.email ?? '').toLowerCase();
+      await _firestore.collection('Registros').doc(emailLower).set({
+        'email': emailLower,
+        'username': user.displayName ?? '',
+        'token': user.uid,
+        'provider': 'google',
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
+      await _firestore
+          .collection('usuarios')
+          .doc(emailLower)
+          .collection('gastos')
+          .doc(user.uid)
+          .set({
+        'name': "Bienvenido a AdminWallet",
+      });
+
+      await _firestore
+          .collection('usuarios')
+          .doc(emailLower)
+          .collection('ingresos')
+          .doc(user.uid)
+          .set({
+        'name': "Bienvenido a AdminWallet",
+      });
+
+      try {
+        await DBHelper.instance.database;
+        await DBHelper.instance
+            .upsertUsuario(uid: user.uid, correo: emailLower);
+      } catch (dbErr) {
+        log('Error guardando usuario local tras crear perfil Firestore: $dbErr');
+      }
+    } catch (e) {
+      log('Error al crear el perfil del usuario: $e');
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await _googleSignIn.signOut();
+      await _auth.signOut();
+      await _authService.clearLoginState();
+    } catch (e) {
+      log('Error al cerrar sesión: $e');
+    }
+  }
+}
