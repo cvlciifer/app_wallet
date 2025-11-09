@@ -24,7 +24,7 @@ export 'package:app_wallet/login_section/presentation/screens/log_in.dart';
 export 'package:app_wallet/welcome_section/presentation/screens/wallet_welcome.dart';
 export 'package:app_wallet/login_section/presentation/screens/auth_wrapper.dart';
 export 'package:app_wallet/statistics_section/presentation/screens/statistics_screen.dart';
-export 'package:app_wallet/login_section/presentation/screens/forgot_passoword.dart';
+export 'package:app_wallet/login_section/presentation/screens/forgot_password.dart';
 export 'package:app_wallet/components_section/widgets/card_expense.dart';
 export 'package:app_wallet/components_section/widgets/chart/chart.dart';
 export 'package:app_wallet/components_section/widgets/expenses_list/expense_item.dart';

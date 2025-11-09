@@ -1,5 +1,5 @@
+import 'package:app_wallet/library_section/main_library.dart' hide AuthProvider;
 import 'package:app_wallet/login_section/presentation/providers/reset_password.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
@@ -12,22 +12,13 @@ class ForgotPasswordScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Imagen de fondo
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/background.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
+          Container(color: AwColors.greyLight),
           Center(
             child: Container(
               margin: const EdgeInsets.all(16.0),
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                color: Colors.white
-                    .withOpacity(0.9), // Fondo blanco semi-transparente
+                color: Colors.white.withOpacity(0.95),
                 borderRadius: BorderRadius.circular(15.0),
                 boxShadow: const [
                   BoxShadow(
@@ -40,30 +31,26 @@ class ForgotPasswordScreen extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
+                      child: AwText.bold(
                         '¿Has olvidado tu contraseña?',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        size: AwSize.s24,
+                        color: AwColors.appBarColor,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    AwSpacing.s12,
                     const Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Te pedimos que ingreses tu correo con el que iniciaste sesión, '
-                        'para enviarte instrucciones de restablecimiento de contraseña.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
+                      child: AwText.normal(
+                        'Ingresa tu correo con el que iniciaste sesión para enviarte instrucciones de restablecimiento.',
+                        size: AwSize.s14,
+                        color: AwColors.boldBlack,
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    AwSpacing.s20,
                     TextField(
                       controller: _emailController,
                       decoration: const InputDecoration(
@@ -73,10 +60,11 @@ class ForgotPasswordScreen extends StatelessWidget {
                       ),
                       keyboardType: TextInputType.emailAddress,
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
+                    AwSpacing.s20,
+                    WalletButton.iconButtonText(
+                      buttonText: 'Enviar al Email',
                       onPressed: () {
-                        String email = _emailController.text.trim();
+                        final email = _emailController.text.trim();
                         if (email.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -84,6 +72,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                           );
                           return;
                         }
+
                         Provider.of<AuthProvider>(context, listen: false)
                             .resetPassword(
                           email,
@@ -102,14 +91,14 @@ class ForgotPasswordScreen extends StatelessWidget {
                           },
                         );
                       },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 12.0, horizontal: 40.0),
-                        child: Text(
-                          'Enviar al Email',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      ),
+                      backgroundColor: AwColors.appBarColor,
+                    ),
+                    AwSpacing.s12,
+                    WalletButton.textButton(
+                      buttonText: 'Volver',
+                      onPressed: () => Navigator.of(context).pop(),
+                      alignment: MainAxisAlignment.center,
+                      colorText: AwColors.blue,
                     ),
                   ],
                 ),
