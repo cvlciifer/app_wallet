@@ -6,48 +6,56 @@ class InformeMensualScreen extends StatefulWidget {
   const InformeMensualScreen({Key? key, required this.expenses}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _InformeMensualScreenState createState() => _InformeMensualScreenState();
 }
 
 class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
-  int _currentBottomNavIndex = 2;
 
-  void _handleBottomNavTap(int index) {
-    setState(() {
-      _currentBottomNavIndex = index;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _initializeSelectedMonthYear();
+  }
 
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (ctx) => const WalletHomePage(),
-          ),
-          (route) => false,
-        );
-        break;
-      case 1:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (ctx) => EstadisticasScreen(
-              expenses: widget.expenses,
-            ),
-          ),
-        );
-        break;
-      case 2:
-        break;
-      case 3:
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (ctx) => const WalletProfilePage(),
-          ),
-        );
-        break;
+  @override
+  void didUpdateWidget(covariant InformeMensualScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.expenses != widget.expenses) {
+      _initializeSelectedMonthYear();
     }
+  }
+
+  void _initializeSelectedMonthYear() {
+    if (widget.expenses.isEmpty) return;
+    final years = widget.expenses.map((e) => e.date.year).toSet().toList();
+    years.sort((a, b) => b.compareTo(a));
+    if (years.isNotEmpty) {
+      selectedYear = years.first;
+    }
+    final months = widget.expenses.where((e) => e.date.year == selectedYear).map((e) => e.date.month).toSet().toList();
+    months.sort();
+    if (months.isNotEmpty) {
+      selectedMonth = months.first;
+    }
+  }
+
+  List<int> getAvailableYears() {
+    final years = widget.expenses.map((e) => e.date.year).toSet().toList();
+    years.sort((a, b) => b.compareTo(a));
+    return years;
+  }
+
+  List<int> getAvailableMonthsForYear(int year) {
+    final months = widget.expenses.where((e) => e.date.year == year).map((e) => e.date.month).toSet().toList();
+    months.sort();
+    return months;
+  }
+
+  String formatNumber(double value) {
+    final formatter = NumberFormat('#,##0', 'es');
+    return '\$${formatter.format(value)}';
   }
 
   @override
@@ -62,13 +70,14 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold(
           'Informe Mensual',
           size: AwSize.s18,
           color: AwColors.white,
         ),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
@@ -92,106 +101,101 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                   ),
             ),
             const SizedBox(height: 10.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: DropdownButton<int>(
-                    value: selectedMonth,
-                    isExpanded: true,
-                    items: List.generate(12, (index) {
-                      return DropdownMenuItem(
-                        value: index + 1,
-                        child: Text(
-                          DateFormat('MMMM').format(DateTime(0, index + 1)),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      );
-                    }),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedMonth = value!;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10.0),
-                Expanded(
-                  child: DropdownButton<int>(
-                    value: selectedYear,
-                    isExpanded: true,
-                    items: List.generate(5, (index) {
-                      int year = DateTime.now().year - index;
-                      return DropdownMenuItem(
-                        value: year,
-                        child: Text(
-                          year.toString(),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      );
-                    }),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedYear = value!;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
+            Builder(builder: (context) {
+              final availableYears = getAvailableYears();
+              if (!availableYears.contains(selectedYear) && availableYears.isNotEmpty) {
+                selectedYear = availableYears.first;
+              }
+              final availableMonths = getAvailableMonthsForYear(selectedYear);
+              if (!availableMonths.contains(selectedMonth) && availableMonths.isNotEmpty) {
+                selectedMonth = availableMonths.first;
+              }
+
+              return WalletMonthYearSelector(
+                selectedMonth: selectedMonth,
+                selectedYear: selectedYear,
+                onMonthChanged: (m) => setState(() => selectedMonth = m),
+                onYearChanged: (y) => setState(() => selectedYear = y),
+                availableMonths: availableMonths,
+                availableYears: availableYears,
+                totalAmount: totalExpenses,
+                showTotal: false,
+                formatNumber: (d) => formatNumber(d),
+              );
+            }),
             const SizedBox(height: 16.0),
             Expanded(
               child: ListView.builder(
                 itemCount: expenseBuckets.length,
                 itemBuilder: (context, index) {
                   final bucket = expenseBuckets[index];
-                  return Card(
-                    elevation: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 4.0),
-                    color: Theme.of(context).colorScheme.surface,
-                    child: ListTile(
-                      leading: Icon(
-                        categoryIcons[bucket.category],
-                        size: 30,
-                        color: Theme.of(context).colorScheme.tertiary,
-                      ),
-                      title: Text(
-                        bucket.category.name,
-                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                          alignment: Alignment.centerLeft,
+                          backgroundColor: Colors.transparent,
+                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        ),
+                        onPressed: () {
+                          final categoryExpenses = filteredExpenses.where((expense) {
+                            return expense.category == bucket.category;
+                          }).toList();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (ctx) => CategoryDetailScreen(
+                                category: bucket.category,
+                                expenses: categoryExpenses,
+                              ),
                             ),
-                      ),
-                      subtitle: Text(
-                        'Total: ${formatNumber(bucket.totalExpenses)}',
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              categoryIcons[bucket.category],
+                              size: 30,
+                              color: bucket.category.color,
                             ),
-                      ),
-                      trailing: const Icon(Icons.arrow_forward),
-                      onTap: () {
-                        final categoryExpenses = filteredExpenses.where((expense) {
-                          return expense.category == bucket.category;
-                        }).toList();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (ctx) => CategoryDetailScreen(
-                              category: bucket.category,
-                              expenses: categoryExpenses,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    bucket.category.displayName,
+                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Total: ${formatNumber(bucket.totalExpenses)}',
+                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                        ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                            const Icon(Icons.arrow_forward),
+                          ],
+                        ),
+                      ),
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ],
                   );
                 },
               ),
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: WalletBottomAppBar(
-        currentIndex: _currentBottomNavIndex,
-        onTap: _handleBottomNavTap,
       ),
     );
   }

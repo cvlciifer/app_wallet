@@ -2,12 +2,14 @@ import 'package:app_wallet/library_section/main_library.dart';
 
 class CategorySelector extends StatelessWidget {
   final Category selectedCategory;
+  final String? selectedSubcategoryId;
   final VoidCallback onTap;
 
   const CategorySelector({
     super.key,
     required this.selectedCategory,
     required this.onTap,
+    this.selectedSubcategoryId,
   });
 
   @override
@@ -27,9 +29,22 @@ class CategorySelector extends StatelessWidget {
             children: [
               Center(
                 child: Icon(
-                  categoryIcons[selectedCategory],
+                  (() {
+                    if (selectedSubcategoryId != null) {
+                      final list = subcategoriesByCategory[selectedCategory] ?? [];
+                      Subcategory? found;
+                      for (final s in list) {
+                        if (s.id == selectedSubcategoryId) {
+                          found = s;
+                          break;
+                        }
+                      }
+                      if (found != null) return found.icon;
+                    }
+                    return categoryIcons[selectedCategory];
+                  })(),
                   size: 28,
-                  color: AwColors.appBarColor,
+                  color: selectedCategory.color,
                 ),
               ),
               Positioned(

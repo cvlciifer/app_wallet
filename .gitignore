@@ -41,3 +41,25 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Node / JS
+node_modules/
+
+# Env / credentials
+.env
+*.env
+serviceAccount*.json
+*.key
+*.pem
+*.p12
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Build / output
+build/
+dist/
+coverage/

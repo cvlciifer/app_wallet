@@ -3,23 +3,27 @@ import 'package:app_wallet/library_section/main_library.dart';
 class WalletAppBar extends StatefulWidget implements PreferredSizeWidget {
   final bool zoomLogo;
   final dynamic title;
+  final bool showWalletIcon;
   final bool? automaticallyImplyLeading;
   final bool? showCloseIcon;
   final bool? showBackArrow;
   final Widget? leading;
   final Color? barColor;
   final bool centerTitle;
+  final List<Widget>? actions;
 
   const WalletAppBar({
     super.key,
     this.zoomLogo = false,
     this.title = '',
+    this.showWalletIcon = true,
     this.automaticallyImplyLeading = true,
     this.showCloseIcon = false,
     this.showBackArrow = false,
     this.leading,
     this.barColor = AwColors.appBarColor,
     this.centerTitle = false,
+    this.actions,
   });
 
   @override
@@ -31,6 +35,7 @@ class WalletAppBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _WalletAppBarState extends State<WalletAppBar> {
   bool _shouldShowLogo() {
+    if (!widget.showWalletIcon) return false;
     if (widget.title is String) {
       return (widget.title as String).isEmpty;
     } else if (widget.title is AwText) {
@@ -79,21 +84,22 @@ class _WalletAppBarState extends State<WalletAppBar> {
               : _buildTitle(),
       centerTitle: widget.centerTitle,
       automaticallyImplyLeading: widget.automaticallyImplyLeading!,
-      actions: [
-        if (widget.showCloseIcon!)
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-        if (widget.zoomLogo)
-          Icon(
-            Icons.account_balance_wallet,
-            size: widget.zoomLogo ? AwSize.s32 : AwSize.s24,
-          ),
-        const SizedBox(width: AwSize.s16),
-      ],
+      actions: widget.actions ??
+          [
+            if (widget.showCloseIcon!)
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            if (widget.zoomLogo)
+              Icon(
+                Icons.account_balance_wallet,
+                size: widget.zoomLogo ? AwSize.s32 : AwSize.s24,
+              ),
+            const SizedBox(width: AwSize.s16),
+          ],
     );
   }
 }

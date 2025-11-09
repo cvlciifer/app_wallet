@@ -33,11 +33,17 @@ class AwSpacing {
   /// Size: 32 px
   static const SizedBox l = SizedBox(height: 32);
 
-  /// Size: 48 px
+  /// Size: 40 px
   static const SizedBox s40 = SizedBox(height: 40);
+
+  /// Size: 48 px
+  static const SizedBox s48 = SizedBox(height: 48);
 
   /// Size: 50 px
   static const SizedBox s50 = SizedBox(height: 50);
+
+  /// Size: 60 px
+  static const SizedBox s60 = SizedBox(height: 60);
 
   /// Size: 64 px
   static const SizedBox xl = SizedBox(height: 64);

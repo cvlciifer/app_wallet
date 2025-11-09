@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/home_section/presentation/new_expense/presentation/models/currency.dart' as currency_model;
 
 class ExpenseForm extends StatefulWidget {
   final Function(Expense) onSubmit;
@@ -15,40 +14,69 @@ class ExpenseForm extends StatefulWidget {
 
 class _ExpenseFormState extends State<ExpenseForm> {
   final _titleController = TextEditingController();
+  final _categoryController = TextEditingController(text: 'Elige categoría');
   final _amountController = TextEditingController();
   DateTime? _selectedDate;
-  Category _selectedCategory = Category.ocio;
-  currency_model.Currency _selectedCurrency = currency_model.Currency.clp;
+  Category _selectedCategory = Category.comidaBebida;
+  String? _selectedSubcategoryId;
 
-  void _showCategoryPicker() {
-    showDialog(
-      context: context,
-      builder: (context) => CategoryPickerDialog(
-        selectedCategory: _selectedCategory,
-        onCategorySelected: (category) {
-          setState(() {
-            _selectedCategory = category;
-          });
-        },
-      ),
-    );
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _categoryController.dispose();
+    _amountController.dispose();
+    super.dispose();
   }
 
-  void _showCurrencyPicker() {
-    showDialog(
-      context: context,
-      builder: (context) => CurrencyPickerDialog(
-        selectedCurrency: _selectedCurrency,
-        onCurrencySelected: (currency) {
-          setState(() {
-            _selectedCurrency = currency;
-            // Reformatear el amount si ya hay texto
-            if (_amountController.text.isNotEmpty) {
-              final currentValue = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
-              _amountController.text = NumberFormatHelper.formatAmount(currentValue, _selectedCurrency);
-            }
-          });
-        },
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        children: [
+          TicketCard(
+            notchDepth: 12,
+            elevation: 10,
+            color: Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 12),
+                // Cabecera más humanizada
+                const FormHeader(
+                  title: 'Agrega un nuevo gasto',
+                  subtitle:
+                      'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
+                ),
+                const SizedBox(height: 5),
+                _buildTitle(),
+                const SizedBox(height: 12),
+                // componentizado: CategoryPicker — ahora abre un bottom sheet
+                CategoryPicker(
+                  controller: _categoryController,
+                  selectedCategory: _selectedCategory,
+                  selectedSubcategoryId: _selectedSubcategoryId,
+                  onSelect: _selectCategory,
+                ),
+                const SizedBox(height: 24),
+                AmountInput(
+                    controller: _amountController,
+                    onChanged: _handleAmountChange),
+                const SizedBox(height: 24),
+                DateSelector(
+                  selectedDate: _selectedDate,
+                  onTap: _presentDatePicker,
+                ),
+                const SizedBox(height: 20),
+                WalletButton.primaryButton(
+                  buttonText: 'Añadir Gasto',
+                  onPressed: _submitForm,
+                ),
+                const SizedBox(height: 30),
+              ],
+            ),
+          ),
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }
@@ -62,13 +90,14 @@ class _ExpenseFormState extends State<ExpenseForm> {
       firstDate: firstDate,
       lastDate: now,
     );
+    if (!mounted) return;
     setState(() {
       _selectedDate = pickedDate;
     });
   }
 
   void _handleAmountChange(String value) {
-    final formatted = NumberFormatHelper.formatAmount(value, _selectedCurrency);
+    final formatted = NumberFormatHelper.formatAmount(value);
     if (formatted != _amountController.text) {
       _amountController.value = TextEditingValue(
         text: formatted,
@@ -78,13 +107,24 @@ class _ExpenseFormState extends State<ExpenseForm> {
   }
 
   void _submitForm() {
-    // Extraer solo los números del texto formateado
-    final numericValue = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
+    final numericValue =
+        _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
     final enteredAmount = int.tryParse(numericValue);
-    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0 || enteredAmount > 999999999999;
+    final amountIsInvalid = enteredAmount == null ||
+        enteredAmount <= 0 ||
+        enteredAmount > 999999999999;
 
-    if (_titleController.text.trim().isEmpty || amountIsInvalid || _selectedDate == null) {
-      _showValidationDialog();
+    final titleEmpty = _titleController.text.trim().isEmpty;
+    final dateEmpty = _selectedDate == null;
+
+    if (titleEmpty || amountIsInvalid || dateEmpty) {
+      final missing = <String>[];
+      if (titleEmpty) missing.add('Título');
+      if (amountIsInvalid) missing.add('Precio válido (> 0)');
+      if (dateEmpty) missing.add('Fecha');
+
+      final details = 'Por favor ingrese: ${missing.join(', ')}.';
+      _showValidationDialog(details);
       return;
     }
 
@@ -93,16 +133,20 @@ class _ExpenseFormState extends State<ExpenseForm> {
       amount: enteredAmount.toDouble(),
       date: _selectedDate!,
       category: _selectedCategory,
+      subcategoryId: _selectedSubcategoryId,
     );
 
     widget.onSubmit(expense);
   }
 
-  void _showValidationDialog() {
+  void _showValidationDialog([String? details]) {
+    final contentText =
+        details ?? 'Asegúrese de ingresar un título, monto y fecha válidos.';
     final dialogContent = Platform.isIOS
         ? CupertinoAlertDialog(
-            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
-            content: const AwText(text: 'Asegúrese de ingresar un título, monto, fecha y categoría válidos.'),
+            title: const AwText.bold('Entrada no válida',
+                color: AwColors.boldBlack),
+            content: AwText(text: contentText),
             actions: [
               WalletButton.primaryButton(
                 buttonText: 'Cerrar.',
@@ -111,9 +155,10 @@ class _ExpenseFormState extends State<ExpenseForm> {
             ],
           )
         : AlertDialog(
-            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
-            content: const AwText(
-              text: 'Asegúrese de ingresar un título, monto, fecha y categoría válidos.',
+            title: const AwText.bold('Entrada no válida',
+                color: AwColors.boldBlack),
+            content: AwText(
+              text: contentText,
               color: AwColors.black,
             ),
             actions: [
@@ -127,80 +172,28 @@ class _ExpenseFormState extends State<ExpenseForm> {
     showDialog(context: context, builder: (ctx) => dialogContent);
   }
 
-  Widget _buildCategoryAndTitleRow() {
+  void _selectCategory(Category category, String? subId, String displayName) {
+    if (!mounted) return;
+    setState(() {
+      _selectedCategory = category;
+      _selectedSubcategoryId = subId;
+      _categoryController.text = displayName;
+    });
+  }
+
+  Widget _buildTitle() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CategorySelector(
-          selectedCategory: _selectedCategory,
-          onTap: _showCategoryPicker,
-        ),
-        const SizedBox(width: 16),
         Expanded(
           flex: 8,
           child: CustomTextField(
             controller: _titleController,
-            label: 'Titulo',
+            label: 'Título',
             maxLength: 50,
             hideCounter: true,
+            flat: true,
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCurrencyAndAmountRow() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CurrencySelector(
-          selectedCurrency: _selectedCurrency,
-          onTap: _showCurrencyPicker,
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 8,
-          child: CustomTextField(
-            controller: _amountController,
-            label: 'Precio',
-            keyboardType: TextInputType.number,
-            inputFormatters: NumberFormatHelper.getAmountFormatters(),
-            onChanged: _handleAmountChange,
-            prefixText: '${_selectedCurrency.symbol} ',
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _amountController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const AwText.bold(
-          'Agrega un nuevo Gasto',
-          size: 20,
-        ),
-        const SizedBox(height: 24),
-        _buildCategoryAndTitleRow(),
-        const SizedBox(height: 24),
-        _buildCurrencyAndAmountRow(),
-        const SizedBox(height: 24),
-        DateSelector(
-          selectedDate: _selectedDate,
-          onTap: _presentDatePicker,
-        ),
-        const SizedBox(height: 32),
-        WalletButton.primaryButton(
-          buttonText: 'Añadir Gasto',
-          onPressed: _submitForm,
         ),
       ],
     );

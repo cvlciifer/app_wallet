@@ -1,5 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
+import 'dart:developer';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({Key? key}) : super(key: key);
@@ -8,7 +8,7 @@ class AuthWrapper extends StatefulWidget {
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   final AuthService _authService = AuthService();
 
   @override
@@ -17,23 +17,75 @@ class _AuthWrapperState extends State<AuthWrapper> {
     _checkAuthStatus();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _checkAuthStatus() async {
     try {
-      // Esperar un poco para mostrar el splash
       await Future.delayed(const Duration(seconds: 2));
 
       final isLoggedIn = await _authService.isUserLoggedIn();
 
       if (mounted) {
+        log('AuthWrapper: isLoggedIn=$isLoggedIn');
         if (isLoggedIn) {
-          // Usuario ya está logueado, ir al home
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const WalletHomePage(),
-            ),
-          );
+          final uid = _authService.getCurrentUser()?.uid;
+          if (uid == null) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+            );
+            return;
+          }
+          final pinService = PinService();
+          await pinService.clearOnReinstallIfNeeded(accountId: uid);
+          final hasPin = await pinService.hasPin(accountId: uid);
+          log('AuthWrapper: uid=$uid hasPin=$hasPin');
+
+          if (hasPin) {
+            // Si el pin
+            final alias = await pinService.getAlias(accountId: uid);
+            if (alias == null || alias.isEmpty) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        const AliasInputPage(initialSetup: false)),
+              );
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const EnterPinPage()),
+              );
+            }
+          } else {
+            // Si no hay PIN configurado, primero pedir alias y luego crear el PIN
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                  builder: (context) =>
+                      const AliasInputPage(initialSetup: true)),
+            );
+          }
         } else {
-          // Usuario no está logueado, ir al login
+          String? candidateUid = await _authService.getSavedUid();
+          if (candidateUid == null) {
+            candidateUid = await _authService.getLastSavedUid();
+          }
+
+          if (candidateUid != null) {
+            try {
+              final pinService = PinService();
+              final hasPin = await pinService.hasPin(accountId: candidateUid);
+              if (hasPin) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          EnterPinPage(accountId: candidateUid)),
+                );
+                return;
+              }
+            } catch (_) {}
+          }
+
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => LoginScreen(),
@@ -43,7 +95,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
       }
     } catch (e) {
       if (mounted) {
-        // En caso de error, ir al login
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => LoginScreen(),
@@ -64,12 +115,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
                 // ignore: deprecated_member_use
-                color: Colors.white.withOpacity(0.9),
+                color: AwColors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(20.0),
                 boxShadow: [
                   BoxShadow(
                     // ignore: deprecated_member_use
-                    color: Colors.black.withOpacity(0.2),
+                    color: AwColors.black.withOpacity(0.2),
                     blurRadius: 10.0,
                     offset: const Offset(0, 5),
                   ),

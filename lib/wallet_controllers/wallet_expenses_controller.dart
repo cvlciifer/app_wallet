@@ -1,87 +1,207 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
-
 import '../core/data_base_local/local_crud.dart';
 import '../core/sync_service/sync_service.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
 
 class WalletExpensesController extends ChangeNotifier {
   final List<Expense> _allExpenses = [];
   List<Expense> _filteredExpenses = [];
   Map<Category, bool> _currentFilters = {
-    Category.comida: false,
-    Category.viajes: false,
-    Category.ocio: false,
-    Category.trabajo: false,
-    Category.salud: false,
-    Category.servicios: false,
+    for (var c in Category.values) c: false,
   };
 
   late final SyncService syncService;
-
+  bool isLoadingExpenses = false;
   WalletExpensesController() {
-    // Inicializa el servicio de sincronización con el email real del usuario autenticado
-    final email = FirebaseAuth.instance.currentUser?.email ?? '';
-    print('Email usado para SyncService: $email');
+    // Delay async initialization to ensure we can resolve auth state (may be null if
+    // Firebase hasn't restored currentUser yet). We perform async init after
+    // construction.
+    _asyncInit();
+  }
+
+  Future<void> _asyncInit() async {
+    // Resolve email from FirebaseAuth or persisted storage
+    String email = FirebaseAuth.instance.currentUser?.email ?? '';
+    if (email.isEmpty) {
+      try {
+        final authSvc = AuthService();
+        final saved = await authSvc.getSavedEmail();
+        if (saved != null && saved.isNotEmpty) email = saved;
+      } catch (_) {}
+    }
+
+    log('Email usado para SyncService: $email');
     syncService = SyncService(
       localCrud: LocalCrud(),
       firestore: FirebaseFirestore.instance,
       userEmail: email,
     );
     syncService.startAutoSync();
+
+    // Debug: informar el UID resuelto y el estado local al iniciar para ayudar
+    // a diagnosticar problemas de persistencia en cold start offline.
+    try {
+      final resolvedUid = await getUserUid();
+      log('WalletExpensesController: UID resuelto al init -> $resolvedUid');
+      final users = await DBHelper.instance.getTodosLosUsuarios();
+      log('WalletExpensesController: usuarios locales en BD = ${users.length}');
+      final pending = await syncService.localCrud.getPendingExpenses();
+      log('WalletExpensesController: pending expenses al init = ${pending.length}');
+      // Diagnostic: show counts per uid to detect writes under different uid
+      try {
+        final counts = await syncService.localCrud.getGastosCountByUid();
+        log('WalletExpensesController: gastos por uid = $counts');
+      } catch (e, st) {
+        log('Error obteniendo counts por uid: $e\n$st');
+      }
+    } catch (e, st) {
+      log('Error debug init controller: $e\n$st');
+    }
+
+    // Set the month filter to current month on initialization so the home page
+    // shows only current-month expenses by default.
+    final now = DateTime.now();
+    _monthFilter = DateTime(now.year, now.month);
+
+    // Load expenses initially
+    await loadExpensesSmart();
   }
+
+  bool _isDisposed = false;
 
   List<Expense> get allExpenses => List.unmodifiable(_allExpenses);
   List<Expense> get filteredExpenses => List.unmodifiable(_filteredExpenses);
   Map<Category, bool> get currentFilters => Map.unmodifiable(_currentFilters);
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+  DateTime? _monthFilter;
+  DateTime? get monthFilter => _monthFilter;
 
-  /// Carga los gastos desde la nube si hay internet, o desde la base local si no hay conexión
   Future<void> loadExpensesSmart() async {
+    isLoadingExpenses = true;
+    if (!_isDisposed) notifyListeners();
     print('loadExpensesSmart llamado');
     final connectivityResult = await Connectivity().checkConnectivity();
     final hasConnection = connectivityResult != ConnectivityResult.none;
 
     if (hasConnection) {
-      print('Hay internet, sincronizando con la nube...');
+      log('Hay internet, sincronizando pendientes locales con la nube...');
+      // First push local pending changes, then refresh local DB from remote to avoid
+      // overwriting pending local operations.
+      await syncService.syncPendingChanges();
+      log('Sincronización de pendientes finalizada, obteniendo datos remotos...');
       await syncService.initializeLocalDbFromFirebase();
     } else {
-      print('Sin internet, mostrando solo base local');
+      log('Sin internet, mostrando solo base local');
     }
 
-    List<Expense> gastosFromLocal = await syncService.localCrud.getAllExpenses();
-    print('Gastos obtenidos localmente: ${gastosFromLocal.length}');
+    List<Expense> gastosFromLocal =
+        await syncService.localCrud.getAllExpenses();
+    log('Gastos obtenidos localmente: ${gastosFromLocal.length}');
+
+    final visibleExpenses = gastosFromLocal
+        .where((e) => e.syncStatus != SyncStatus.pendingDelete)
+        .toList();
+    // Ordenar por fecha descendente: del más reciente al más antiguo
+    visibleExpenses.sort((a, b) => b.date.compareTo(a.date));
+
     _allExpenses.clear();
-    _allExpenses.addAll(gastosFromLocal);
-    _filteredExpenses = List.from(_allExpenses);
+    _allExpenses.addAll(visibleExpenses);
+    _applyCombinedFilters();
+    // finished loading
+    isLoadingExpenses = false;
+    if (!_isDisposed) notifyListeners();
+  }
+
+  Future<void> addExpense(Expense expense,
+      {required bool hasConnection}) async {
+    log('addExpense llamado con: ${expense.title}');
+    _isLoading = true;
     notifyListeners();
+    try {
+      await syncService.createExpense(expense, hasConnection: hasConnection);
+      if (hasConnection) {
+        await syncService.initializeLocalDbFromFirebase();
+      }
+      await loadExpensesSmart();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  Future<void> addExpense(Expense expense, {required bool hasConnection}) async {
-    print('addExpense llamado con: ${expense.title}');
-    await syncService.createExpense(expense, hasConnection: hasConnection);
-    // Sincroniza la base local con la nube después de guardar
-    await syncService.initializeLocalDbFromFirebase();
-    await loadExpensesSmart();
-  }
-
-  Future<void> removeExpense(Expense expense, {required bool hasConnection}) async {
-    print('removeExpense llamado con: \\${expense.title}');
-    await syncService.deleteExpense(expense.id, hasConnection: hasConnection);
-    await loadExpensesSmart();
+  Future<void> removeExpense(Expense expense,
+      {required bool hasConnection}) async {
+    log('removeExpense llamado con: \\\${expense.title}');
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await syncService.deleteExpense(expense.id, hasConnection: hasConnection);
+      if (hasConnection) {
+        await syncService.initializeLocalDbFromFirebase();
+      }
+      await loadExpensesSmart();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void applyFilters(Map<Category, bool> filters) {
     _currentFilters = Map.from(filters);
-    _filteredExpenses = _allExpenses.where((expense) {
-      if (filters[Category.comida] == true && expense.category == Category.comida) return true;
-      if (filters[Category.viajes] == true && expense.category == Category.viajes) return true;
-      if (filters[Category.ocio] == true && expense.category == Category.ocio) return true;
-      if (filters[Category.trabajo] == true && expense.category == Category.trabajo) return true;
-      if (filters[Category.salud] == true && expense.category == Category.salud) return true;
-      if (filters[Category.servicios] == true && expense.category == Category.servicios) return true;
-      return false;
-    }).toList();
+    _applyCombinedFilters();
     notifyListeners();
+  }
+
+  void setMonthFilter(DateTime? month) {
+    if (month == null) {
+      _monthFilter = null;
+    } else {
+      // normalize to first day of month
+      _monthFilter = DateTime(month.year, month.month);
+    }
+    _applyCombinedFilters();
+    notifyListeners();
+  }
+
+  void clearMonthFilter() {
+    _monthFilter = null;
+    _applyCombinedFilters();
+    notifyListeners();
+  }
+
+  /// Devuelve la lista de meses (como DateTime al primer día de mes) en los que
+  /// existen gastos. Si [excludeCurrent] es true, no incluirá el mes actual.
+  List<DateTime> getAvailableMonths({bool excludeCurrent = false}) {
+    final months = <DateTime>{};
+    for (final e in _allExpenses) {
+      final m = DateTime(e.date.year, e.date.month);
+      months.add(m);
+    }
+    if (excludeCurrent) {
+      final now = DateTime.now();
+      months.remove(DateTime(now.year, now.month));
+    }
+    final list = months.toList();
+    list.sort((a, b) => b.compareTo(a));
+    return list;
+  }
+
+  void _applyCombinedFilters() {
+    final hasCategoryFilters = _currentFilters.containsValue(true);
+    _filteredExpenses = _allExpenses.where((expense) {
+      // month filter
+      if (_monthFilter != null) {
+        final ed = DateTime(expense.date.year, expense.date.month);
+        if (ed.year != _monthFilter!.year || ed.month != _monthFilter!.month)
+          return false;
+      }
+      // category filters
+      if (hasCategoryFilters) {
+        return _currentFilters[expense.category] == true;
+      }
+      return true;
+    }).toList();
+    _filteredExpenses.sort((a, b) => b.date.compareTo(a.date));
   }
 }

@@ -1,5 +1,7 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:provider/provider.dart';
+import 'package:app_wallet/components_section/widgets/month_selector.dart';
 
 class WalletHomePage extends StatefulWidget {
   const WalletHomePage({super.key});
@@ -9,69 +11,103 @@ class WalletHomePage extends StatefulWidget {
 }
 
 class _WalletHomePageState extends State<WalletHomePage> {
-  int _currentBottomIndex = 0;
-  late WalletExpensesController _controller;
+  // Use the controller provided by Provider (MultiProvider in main)
+  bool _initialLoaderHidden = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = WalletExpensesController();
-    // Sincroniza con la nube solo una vez al entrar, luego carga local
-    _controller.syncService.initializeLocalDbFromFirebase().then((_) {
-      _controller.loadExpensesSmart();
+    // Attach to the provided controller after the first frame so context is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final provController = context.read<WalletExpensesController>();
+        provController.addListener(() {
+          try {
+            if (!_initialLoaderHidden && !provController.isLoadingExpenses) {
+              _initialLoaderHidden = true;
+              final ctx = context;
+              try {
+        riverpod.ProviderScope.containerOf(ctx, listen: false)
+          .read(globalLoaderProvider.notifier)
+          .state = false;
+              } catch (_) {}
+            }
+          } catch (_) {}
+        });
+
+        // Evitar doble inicialización: el controlador ya realiza la carga
+        // inicial (incluyendo sincronización cuando hay conexión). Simplemente
+        // pedirle que cargue el estado inteligente local/remoto.
+        provController.loadExpensesSmart();
+      } catch (_) {}
     });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    // Do not dispose the provided controller (managed by Provider)
     super.dispose();
   }
 
   void _onBottomNavTap(int index) {
-    setState(() {
-      _currentBottomIndex = index;
-    });
-    WalletNavigationService.handleBottomNavigation(context, index, _controller.allExpenses);
+    // don't keep local index state here; bottom nav state is provided by BottomNavProvider
+  final controller = context.read<WalletExpensesController>();
+  WalletNavigationService.handleBottomNavigation(
+    context, index, controller.allExpenses);
   }
 
   void _openAddExpenseOverlay() async {
-    final expense = await WalletNavigationService.openAddExpenseOverlay(context);
+    final expense =
+        await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
-      // Aquí deberías detectar la conectividad real, por ahora se asume true
-      await _controller.addExpense(expense, hasConnection: true);
+      // Detectar conectividad real antes de intentar crear el gasto
+      final conn = await Connectivity().checkConnectivity();
+      final hasConnection = conn != ConnectivityResult.none;
+      final controller = context.read<WalletExpensesController>();
+      await controller.addExpense(expense, hasConnection: hasConnection);
     }
   }
 
-  void _openFilters() async {
-    final filters = await WalletNavigationService.openFiltersPage(context, _controller.currentFilters);
-    if (filters != null) {
-      _controller.applyFilters(filters);
-    }
-  }
+  // _openFilters removed - not referenced
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _controller,
-      child: Scaffold(
-        appBar: const WalletHomeAppbar(),
-        body: Consumer<WalletExpensesController>(
-          builder: (context, controller, child) {
-            return _buildBody(context, controller);
-          },
-        ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: AwColors.appBarColor,
-          onPressed: _openAddExpenseOverlay,
-          tooltip: 'Agregar gasto',
-          child: const Icon(Icons.add, color: AwColors.white),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: WalletBottomAppBar(
-          currentIndex: _currentBottomIndex,
-          onTap: _onBottomNavTap,
-        ),
+    return Scaffold(
+      backgroundColor: AwColors.greyLight,
+      appBar: const WalletHomeAppbar(),
+      body: Consumer<WalletExpensesController>(
+        builder: (context, controller, child) {
+          return Stack(
+            children: [
+              _buildBody(context, controller),
+              if (controller.isLoading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.4),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AwColors.appBarColor,
+        onPressed: _openAddExpenseOverlay,
+        tooltip: 'Agregar gasto',
+        child: const Icon(Icons.add, color: AwColors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: Consumer<BottomNavProvider>(
+        builder: (context, bottomNav, child) {
+          final selected = bottomNav.selectedIndex;
+          return WalletBottomAppBar(
+            currentIndex: selected,
+            onTap: _onBottomNavTap,
+          );
+        },
       ),
     );
   }
@@ -79,31 +115,102 @@ class _WalletHomePageState extends State<WalletHomePage> {
   Widget _buildBody(BuildContext context, WalletExpensesController controller) {
     final width = MediaQuery.of(context).size.width;
 
-    Widget mainContent = const EmptyState();
-    if (controller.filteredExpenses.isNotEmpty) {
-      mainContent = ExpensesList(
-        expenses: controller.filteredExpenses,
-        onRemoveExpense: (expense) async {
-          // Aquí deberías detectar la conectividad real, por ahora se asume true
-          await controller.removeExpense(expense, hasConnection: true);
-        },
+    if (controller.isLoadingExpenses) {
+      return const Center(
+        child: SizedBox(
+          height: AwSize.s48,
+          child: WalletLoader(color: AwColors.appBarColor),
+        ),
       );
     }
 
-    return width < 600
-        ? Column(
-            children: [
-              Chart(expenses: controller.filteredExpenses),
-              const AwDivider(),
-              WalletFiltersButton(onTap: _openFilters),
-              Expanded(child: mainContent),
-            ],
+    final monthButtons = _buildMonthButtons(context, controller);
+
+    final Widget mainContent = controller.filteredExpenses.isNotEmpty
+        ? ExpensesList(
+            expenses: controller.filteredExpenses,
+            onRemoveExpense: (expense) async {
+              final connectivity = await Connectivity().checkConnectivity();
+              final hasConnection = connectivity != ConnectivityResult.none;
+              await controller.removeExpense(expense,
+                  hasConnection: hasConnection);
+            },
           )
-        : Row(
+        : const EmptyState();
+
+    if (width < 600) {
+      return Column(
+        children: [
+          Chart(expenses: controller.filteredExpenses),
+          monthButtons,
+          Expanded(child: mainContent),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
             children: [
+              monthButtons,
               Expanded(child: Chart(expenses: controller.filteredExpenses)),
-              Expanded(child: mainContent),
             ],
-          );
+          ),
+        ),
+        Expanded(child: mainContent),
+        const SizedBox(width: AwSize.s60),
+      ],
+    );
+  }
+
+  Widget _buildMonthButtons(
+      BuildContext context, WalletExpensesController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 4),
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            WalletButton.filterButton(
+              buttonText: 'Mes actual',
+              onPressed: () {
+                final now = DateTime.now();
+                controller.setMonthFilter(DateTime(now.year, now.month));
+              },
+              selected: controller.monthFilter != null &&
+                  controller.monthFilter!.year == DateTime.now().year &&
+                  controller.monthFilter!.month == DateTime.now().month,
+            ),
+            const Spacer(),
+            WalletButton.filterButton(
+              buttonText: 'Filtrar por mes',
+              onPressed: () {
+                _handleOpenSelector(controller);
+              },
+              selected: controller.monthFilter != null &&
+                  !(controller.monthFilter!.year == DateTime.now().year &&
+                      controller.monthFilter!.month == DateTime.now().month),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleOpenSelector(WalletExpensesController controller) async {
+    final available = controller.getAvailableMonths(excludeCurrent: true);
+    if (available.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('No hay meses disponibles para filtrar')));
+      }
+      return;
+    }
+
+    final selected = await showMonthSelector(context, available);
+    if (selected != null) {
+      controller.setMonthFilter(selected);
+    }
   }
 }

@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,7 +29,6 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginScreenState createState() => _LoginScreenState();
 }
 
@@ -61,7 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              // ignore: deprecated_member_use
                               color: AwColors.grey.withOpacity(0.1),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
@@ -104,7 +101,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                         ),
                         onPressed: () {
                           setState(() {
@@ -126,7 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => ForgotPasswordScreen()),
                       );
                     },
                   ),
@@ -135,46 +135,64 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: WalletButton.primaryButton(
                       buttonText: 'Acceder',
                       onPressed: () async {
+                        if (!mounted) return;
                         setState(() {
                           _errorMessage = null;
                         });
-                        if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+                        if (_emailController.text.trim().isEmpty ||
+                            _passwordController.text.trim().isEmpty) {
+                          if (!mounted) return;
                           setState(() {
-                            _errorMessage = 'Por favor, ingresa tu email y contraseña.';
+                            _errorMessage =
+                                'Por favor, ingresa tu email y contraseña.';
                           });
                           return;
                         }
-                        String emailPattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+                        String emailPattern =
+                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
                         RegExp regex = RegExp(emailPattern);
                         if (!regex.hasMatch(_emailController.text.trim())) {
+                          if (!mounted) return;
                           setState(() {
-                            _errorMessage = 'Por favor, ingresa un email válido.';
+                            _errorMessage =
+                                'Por favor, ingresa un email válido.';
                           });
                           return;
                         }
                         if (_passwordController.text.trim().length < 6) {
+                          if (!mounted) return;
                           setState(() {
-                            _errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
+                            _errorMessage =
+                                'La contraseña debe tener al menos 6 caracteres.';
                           });
                           return;
                         }
 
-                        final loginProvider = Provider.of<LoginProvider>(context, listen: false);
+                        final loginProvider =
+                            Provider.of<LoginProvider>(context, listen: false);
                         await loginProvider.loginUser(
                           email: _emailController.text.trim(),
                           password: _passwordController.text.trim(),
                           onSuccess: () {
-                            Navigator.pushReplacementNamed(context, '/home-page');
+                            // Ir a AuthWrapper para que se encargue del flujo (PIN / home)
+                            if (!mounted) return;
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const AuthWrapper()),
+                            );
                           },
                           onError: (error) {
                             String translatedError;
-                            if (error == 'The supplied auth credential is incorrect, malformed or has expired.') {
+                            if (error ==
+                                'The supplied auth credential is incorrect, malformed or has expired.') {
                               translatedError =
                                   'Las credenciales de autenticación proporcionadas son incorrectas, están mal formadas o han expirado.';
                             } else {
                               translatedError = error;
                             }
 
+                            if (!mounted) return;
                             setState(() {
                               _errorMessage = translatedError;
                             });
@@ -192,13 +210,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         _errorMessage = null;
                       });
 
-                      final loginProvider = Provider.of<LoginProvider>(context, listen: false);
+                      final loginProvider =
+                          Provider.of<LoginProvider>(context, listen: false);
 
                       await loginProvider.signInWithGoogle(
                         onSuccess: () {
-                          Navigator.pushReplacementNamed(context, '/home-page');
+                          if (!mounted) return;
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AuthWrapper()),
+                          );
                         },
                         onError: (error) {
+                          if (!mounted) return;
                           setState(() {
                             _errorMessage = error;
                           });
@@ -216,7 +241,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => RegisterScreen()),
+                            MaterialPageRoute(
+                                builder: (context) => RegisterScreen()),
                           );
                         },
                       ),

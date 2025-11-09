@@ -7,11 +7,13 @@ class AwColors {
   static const Color black = Color(0xFF595B5A);
   static const Color blue = Color(0xFF006FB9);
   static const Color indigo = Color(0xFF4B0082);
+  static const Color black54 = Color(0x8A000000);
   static const Color cyan = Color(0xFF00B8D4);
   static const Color lightBlue = Color(0xFF40C4FF);
   static const Color darkBlue = Color(0xFF01579B);
   static const Color blueGrey = Color(0xFF90A4AE);
   static const Color purple = Color(0xFF6F00B8);
+  static const Color indigoInk = Color(0xFF3F51B5);
   static const Color grey = Color(0xFF979797);
   static const Color greyLight = Color(0xFFF4F4F4);
   static const Color green = Color(0xFF00953A);
@@ -21,6 +23,7 @@ class AwColors {
   static const Color lightOrange = Color(0xFFFFB514);
   static const Color notificationGrey = Color(0xF4F4F4F4);
   static const Color boldBlack = Color(0xFF000000);
+  static const Color transparent = Colors.transparent;
 
   static const Color modalRed = Color(0xFFEF3742);
   static const Color modalBlue = Color(0xFF007AFF);
@@ -33,10 +36,13 @@ class AwColors {
     'white': AwColors.white,
     'yellow': AwColors.yellow,
     'lightOrange': AwColors.lightOrange,
+    'black54': AwColors.black54,
     'grey': AwColors.grey,
     'green': AwColors.green,
     'black': AwColors.black,
+    'indigoInk': AwColors.indigoInk,
     'cyan': AwColors.cyan,
+    'transparent': AwColors.transparent,
     'lightBlue': AwColors.lightBlue,
     'darkBlue': AwColors.darkBlue,
     'blueGrey': AwColors.blueGrey,

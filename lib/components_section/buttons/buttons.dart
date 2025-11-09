@@ -4,7 +4,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 class WalletButton {
   static Widget primaryButton({
     required String buttonText,
-    required Function() onPressed,
+    required Function()? onPressed,
     double? height = AwSize.s48,
     Color? backgroundColor = AwColors.appBarColor,
     Color? buttonTextColor = AwColors.white,
@@ -34,7 +34,7 @@ class WalletButton {
 
   static Widget secondaryButton({
     required String buttonText,
-    required Function() onPressed,
+    required Function()? onPressed,
   }) {
     return SizedBox(
       height: AwSize.s48,
@@ -63,7 +63,7 @@ class WalletButton {
 
   static Widget textButton({
     required String buttonText,
-    required Function() onPressed,
+    required Function()? onPressed,
     MainAxisAlignment? alignment,
     Color colorText = AwColors.blue,
   }) {
@@ -83,7 +83,7 @@ class WalletButton {
           child: Text.rich(
             TextSpan(
               style: TextStyle(
-                fontSize: AwSize.s14,
+                fontSize: AwSize.s16,
                 fontWeight: FontWeight.bold,
                 color: colorText,
                 decorationColor: colorText,
@@ -152,6 +152,46 @@ class WalletButton {
                 ),
         ),
       ),
+    );
+  }
+
+  static Widget filterButton({
+    required String buttonText,
+    required Function() onPressed,
+    MainAxisAlignment? alignment,
+    Color colorText = AwColors.appBarColor,
+    bool selected = false,
+  }) {
+    return Row(
+      mainAxisAlignment: alignment ?? MainAxisAlignment.end,
+      children: [
+        GestureDetector(
+          onTap: onPressed,
+          child: Container(
+            padding: EdgeInsets.only(bottom: selected ? 0.5 : 0.0),
+            decoration: selected
+                ? BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: colorText,
+                        width: 1.5,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                  )
+                : null,
+            child: Text(
+              buttonText,
+              style: TextStyle(
+                fontSize: AwSize.s14,
+                fontWeight: FontWeight.bold,
+                color: colorText,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
