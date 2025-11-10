@@ -40,11 +40,12 @@ class SettingsCard extends StatelessWidget {
           size: AwSize.s16,
           fontWeight: titleWeight,
         ),
-        subtitle: subtitle != null
-            ? AwText.small(subtitle!, color: AwColors.grey)
-            : null,
-        trailing: trailing ??
-            Icon(Icons.chevron_right, color: AwColors.blue, size: 28),
+    subtitle: subtitle != null
+      ? AwText.small(subtitle!, color: AwColors.grey)
+      : null,
+    trailing: trailing ??
+      Icon(Icons.chevron_right, color: AwColors.blue, size: 28),
+    onTap: onTap,
       ),
     );
   }

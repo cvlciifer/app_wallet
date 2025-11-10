@@ -4,6 +4,14 @@ import 'package:app_wallet/library_section/main_library.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
 
+// Cache to avoid repeated expensive UID/email resolution during UI events.
+// This reduces SharedPreferences/DB accesses that may cause visible pauses.
+final Duration _uidCacheDuration = Duration(minutes: 5);
+String? _cachedUserUid;
+DateTime? _cachedUserUidAt;
+String? _cachedUserEmail;
+DateTime? _cachedUserEmailAt;
+
 class LocalCrud {
   Future<List<Expense>> getAllExpenses() => getAllExpensesImpl();
   Future<void> insertExpense(Expense expense) => insertExpenseImpl(expense);
@@ -14,6 +22,15 @@ class LocalCrud {
   Future<List<Expense>> getPendingExpenses() => getPendingExpensesImpl();
   Future<void> replaceAllExpenses(List<Expense> expenses) => replaceAllExpensesImpl(expenses);
   Future<Map<String, int>> getGastosCountByUid() => getGastosCountByUidImpl();
+  
+  // Incomes
+  Future<void> createIncomeLocal(DateTime date, int ingresoFijo, int? ingresoImprevisto, {String? id, int syncStatus = 0}) =>
+      createIncomeLocalImpl(date, ingresoFijo, ingresoImprevisto, id: id, syncStatus: syncStatus);
+  Future<List<Map<String, dynamic>>> getIncomesLocal() => getIncomesLocalImpl();
+  Future<List<Map<String, dynamic>>> getPendingIncomes() => getPendingIncomesImpl();
+  Future<void> updateIncomeSyncStatus(String incomeId, SyncStatus status) => updateIncomeSyncStatusImpl(incomeId, status);
+  Future<void> replaceAllIncomes(List<Map<String, dynamic>> incomes) => replaceAllIncomesImpl(incomes);
+  Future<void> deleteIncome(String incomeId) => deleteIncomeLocal(incomeId);
 }
 
 Future<List<Expense>> getAllExpensesImpl() async {
@@ -75,8 +92,17 @@ Future<List<Expense>> getAllExpensesImpl() async {
 }
 
 Future<String?> getUserUid() async {
+  // Return cached uid if still fresh to avoid repeated SharedPreferences/DB work
+  if (_cachedUserUid != null && _cachedUserUidAt != null && DateTime.now().difference(_cachedUserUidAt!) < _uidCacheDuration) {
+    return _cachedUserUid;
+  }
+
   final uid = FirebaseAuth.instance.currentUser?.uid;
-  if (uid != null && uid.isNotEmpty) return uid;
+  if (uid != null && uid.isNotEmpty) {
+    _cachedUserUid = uid;
+    _cachedUserUidAt = DateTime.now();
+    return uid;
+  }
   try {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('userUid') ?? prefs.getString('lastUserUid');
@@ -88,6 +114,8 @@ Future<String?> getUserUid() async {
       if (usuario != null && usuario['uid'] != null) {
         final resolved = usuario['uid'] as String;
         log('getUserUid: resuelto desde email guardado -> $resolved');
+        _cachedUserUid = resolved;
+        _cachedUserUidAt = DateTime.now();
         return resolved;
       }
     }
@@ -95,11 +123,13 @@ Future<String?> getUserUid() async {
     final fallback = prefs.getString('localFallbackUid');
     if (fallback != null && fallback.isNotEmpty) {
       log('getUserUid: usando localFallbackUid -> $fallback');
+      _cachedUserUid = fallback;
+      _cachedUserUidAt = DateTime.now();
       return fallback;
     }
     // Crear un UID local consistente para permitir operaciones offline persistentes.
-    final newLocalUid = Uuid().v4();
-    await prefs.setString('localFallbackUid', newLocalUid);
+  final newLocalUid = Uuid().v4();
+  await prefs.setString('localFallbackUid', newLocalUid);
     // Guardar en la tabla usuarios para satisfacer la FK y permitir consultas.
     try {
       final emailForUser = (prefs.getString('userEmail') ?? '${newLocalUid}@local').toLowerCase();
@@ -108,6 +138,8 @@ Future<String?> getUserUid() async {
     } catch (e, st) {
       log('getUserUid: error insertando usuario placeholder: $e\n$st');
     }
+    _cachedUserUid = newLocalUid;
+    _cachedUserUidAt = DateTime.now();
     return newLocalUid;
   } catch (e, st) {
     log('getUserUid error: $e\n$st');
@@ -133,11 +165,26 @@ Future<String?> _resolveUidFromSavedEmail() async {
 }
 
 Future<String?> getUserEmail() async {
+  // Return cached email if fresh
+  if (_cachedUserEmail != null && _cachedUserEmailAt != null && DateTime.now().difference(_cachedUserEmailAt!) < _uidCacheDuration) {
+    return _cachedUserEmail;
+  }
+
   final email = FirebaseAuth.instance.currentUser?.email;
-  if (email != null && email.isNotEmpty) return email;
+  if (email != null && email.isNotEmpty) {
+    _cachedUserEmail = email;
+    _cachedUserEmailAt = DateTime.now();
+    return email;
+  }
   try {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('userEmail');
+    final saved = prefs.getString('userEmail');
+    if (saved != null && saved.isNotEmpty) {
+      _cachedUserEmail = saved;
+      _cachedUserEmailAt = DateTime.now();
+      return saved;
+    }
+    return null;
   } catch (_) {
     return null;
   }
@@ -307,6 +354,138 @@ Future<void> deleteExpenseImpl(String expenseId, {bool localOnly = false}) async
   log('Gasto eliminado localmente: $expenseId (uid_correo: $uid). Rows deleted: $count');
 }
 
+/// Inserta o reemplaza una fila en la tabla `ingresos` para la fecha dada.
+Future<void> createIncomeLocalImpl(DateTime date, int ingresoFijo, int? ingresoImprevisto, {String? id, int syncStatus = 0}) async {
+  final uid = await getUserUid();
+  if (uid == null) {
+    log('createIncomeLocalImpl: no se encontró el usuario autenticado');
+    return;
+  }
+  try {
+    await _ensureUserExists();
+  } catch (e, st) {
+    log('Warning: _ensureUserExists failed for ingresos: $e\n$st');
+  }
+
+  final db = await _db();
+  final fechaMs = date.millisecondsSinceEpoch;
+  try {
+    await db.transaction((txn) async {
+      // Evitar duplicados para el mismo uid_correo y fecha (1er día del mes)
+      // Intentar actualizar si existe
+      final existing = await txn.query('ingresos', where: 'uid_correo = ? AND fecha = ?', whereArgs: [uid, fechaMs]);
+      if (existing.isNotEmpty) {
+        // Always ensure a stable id for the income row. Prefer provided id,
+        // otherwise derive from date.
+        final derivedId = id ?? '${date.year}${date.month.toString().padLeft(2, '0')}';
+        final Map<String, Object?> updateMap = {'ingreso_fijo': ingresoFijo};
+        if (ingresoImprevisto != null) updateMap['ingreso_imprevisto'] = ingresoImprevisto;
+        final currentImprev = ingresoImprevisto ?? (existing.first['ingreso_imprevisto'] as int? ?? 0);
+        updateMap['ingreso_total'] = ingresoFijo + currentImprev;
+        updateMap['id'] = derivedId;
+        updateMap['sync_status'] = syncStatus;
+        await txn.update('ingresos', updateMap, where: 'uid_correo = ? AND fecha = ?', whereArgs: [uid, fechaMs]);
+      } else {
+        final total = ingresoFijo + (ingresoImprevisto ?? 0);
+        final derivedId = id ?? '${date.year}${date.month.toString().padLeft(2, '0')}';
+        await txn.insert('ingresos', {
+          'id': derivedId,
+          'uid_correo': uid,
+          'fecha': fechaMs,
+          'ingreso_fijo': ingresoFijo,
+          'ingreso_imprevisto': ingresoImprevisto ?? 0,
+          'ingreso_total': total,
+          'sync_status': syncStatus,
+        });
+      }
+    });
+    log('Ingreso insertado localmente: fecha=$date, fijo=$ingresoFijo, imprevisto=$ingresoImprevisto (uid_correo: $uid)');
+  } catch (e, st) {
+    log('createIncomeLocalImpl: transacción fallida, intentando insert simple: $e\n$st');
+    await db.insert('ingresos', {
+      'id': id,
+      'uid_correo': uid,
+      'fecha': fechaMs,
+      'ingreso_fijo': ingresoFijo,
+      'ingreso_imprevisto': ingresoImprevisto ?? 0,
+      'ingreso_total': ingresoFijo + (ingresoImprevisto ?? 0),
+      'sync_status': syncStatus,
+    });
+  }
+}
+
+Future<List<Map<String, dynamic>>> getIncomesLocalImpl() async {
+  final uid = await getUserUid();
+  if (uid == null) {
+    log('getIncomesLocalImpl: no se encontró el usuario autenticado');
+    return [];
+  }
+  final db = await _db();
+  final rows = await db.query('ingresos', where: 'uid_correo = ?', whereArgs: [uid], orderBy: 'fecha DESC');
+  return rows;
+}
+
+Future<List<Map<String, dynamic>>> getPendingIncomesImpl() async {
+  final uid = await getUserUid();
+  if (uid == null) return [];
+  final db = await _db();
+  final rows = await db.query('ingresos', where: 'uid_correo = ? AND sync_status != ?', whereArgs: [uid, SyncStatus.synced.index]);
+  return rows;
+}
+
+Future<void> updateIncomeSyncStatusImpl(String incomeId, SyncStatus status) async {
+  final uid = await getUserUid();
+  if (uid == null) return;
+  final db = await _db();
+  await db.update('ingresos', {'sync_status': status.index}, where: 'id = ? AND uid_correo = ?', whereArgs: [incomeId, uid]);
+}
+
+Future<void> replaceAllIncomesImpl(List<Map<String, dynamic>> incomes) async {
+  final uid = await getUserUid();
+  if (uid == null) return;
+  final db = await _db();
+  await db.transaction((txn) async {
+    await txn.delete('ingresos', where: 'uid_correo = ?', whereArgs: [uid]);
+    for (final income in incomes) {
+      // Defensive parsing: fecha may be Timestamp, int, or missing. Ensure we store a valid int (msSinceEpoch).
+      final rawFecha = income['fecha'];
+      int fechaMs;
+      if (rawFecha == null) {
+        // If fecha is missing, fallback to now and log for diagnostics
+        fechaMs = DateTime.now().millisecondsSinceEpoch;
+        log('replaceAllIncomesImpl: income missing fecha, using now as fallback. income id=${income['id']}');
+      } else if (rawFecha is Timestamp) {
+        fechaMs = rawFecha.toDate().millisecondsSinceEpoch;
+      } else if (rawFecha is int) {
+        fechaMs = rawFecha;
+      } else if (rawFecha is String) {
+        fechaMs = int.tryParse(rawFecha) ?? DateTime.now().millisecondsSinceEpoch;
+      } else {
+        // unknown type
+        fechaMs = DateTime.now().millisecondsSinceEpoch;
+      }
+
+      // Ensure we have an id for the income; if missing, derive one from year/month
+      var idVal = income['id'];
+      if (idVal == null) {
+        final dt = DateTime.fromMillisecondsSinceEpoch(fechaMs);
+        idVal = '${dt.year}${dt.month.toString().padLeft(2, '0')}';
+        log('replaceAllIncomesImpl: income missing id, derived id=$idVal from fecha');
+      }
+
+      await txn.insert('ingresos', {
+        'id': idVal,
+        'uid_correo': uid,
+        'fecha': fechaMs,
+        'ingreso_fijo': income['ingreso_fijo'] ?? 0,
+        'ingreso_imprevisto': income['ingreso_imprevisto'] ?? 0,
+        'ingreso_total': income['ingreso_total'] ?? ((income['ingreso_fijo'] ?? 0) + (income['ingreso_imprevisto'] ?? 0)),
+        'sync_status': SyncStatus.synced.index,
+      });
+    }
+  });
+}
+
 Future<List<Expense>> getPendingExpensesImpl() async {
   final uid = await getUserUid();
   if (uid == null) return [];
@@ -412,4 +591,11 @@ Future<void> updateExpenseLocal(int uidGasto, Expense expense) async {
     where: 'uid_gasto = ? AND uid_correo = ?',
     whereArgs: [uidGasto, uid],
   );
+}
+
+Future<void> deleteIncomeLocal(String incomeId) async {
+  final uid = await getUserUid();
+  if (uid == null) return;
+  final db = await _db();
+  await db.delete('ingresos', where: 'id = ? AND uid_correo = ?', whereArgs: [incomeId, uid]);
 }

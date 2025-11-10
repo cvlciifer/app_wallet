@@ -122,3 +122,63 @@ Future<Map<String, dynamic>> getConsejoDelDia() async {
 
   return consejos[index];
 }
+
+/// Crea o agrega una entrada de ingreso en Firestore bajo la colección
+/// usuarios/{email}/ingresos.
+Future<void> createIncomeEntry(DateTime date, int ingresoFijo, int ingresoImprevisto) async {
+  String? userEmail = getUserEmail();
+  if (userEmail == null) {
+    log('createIncomeEntry: no hay usuario autenticado');
+    return;
+  }
+
+  try {
+    await db.collection('usuarios').doc(userEmail).collection('ingresos').add({
+      'fecha': Timestamp.fromDate(date),
+      'ingreso_fijo': ingresoFijo,
+      'ingreso_imprevisto': ingresoImprevisto,
+    });
+    log('Ingreso creado en Firestore: $date -> $ingresoFijo (imprevisto: $ingresoImprevisto)');
+  } catch (e) {
+    log('Error al crear ingreso en Firestore: $e');
+  }
+}
+
+/// Upsert (create or update) an income entry for the given date (1er día del mes).
+Future<void> upsertIncomeEntry(DateTime date, int ingresoFijo, int? ingresoImprevisto, {String? docId}) async {
+  String? userEmail = getUserEmail();
+  if (userEmail == null) {
+    log('upsertIncomeEntry: no hay usuario autenticado');
+    return;
+  }
+
+  try {
+    final collection = db.collection('usuarios').doc(userEmail).collection('ingresos');
+    final id = docId ?? '${date.year}${date.month.toString().padLeft(2, '0')}';
+    final docRef = collection.doc(id);
+    final ts = Timestamp.fromDate(date);
+
+    final snapshot = await docRef.get();
+    final existingImprev = snapshot.exists ? (snapshot.data()?['ingreso_imprevisto'] ?? 0) : 0;
+    final ingresoImprev = ingresoImprevisto ?? existingImprev;
+    final ingresoTotal = ingresoFijo + ingresoImprev;
+
+    final payload = {
+      'fecha': ts,
+      'ingreso_fijo': ingresoFijo,
+      'ingreso_imprevisto': ingresoImprev,
+      'ingreso_total': ingresoTotal,
+      'id': id,
+    };
+
+    if (snapshot.exists) {
+      await docRef.update(payload);
+      log('Ingreso actualizado en Firestore para id=$id fecha=$date');
+    } else {
+      await docRef.set(payload);
+      log('Ingreso creado en Firestore para id=$id fecha=$date');
+    }
+  } catch (e) {
+    log('Error en upsertIncomeEntry: $e');
+  }
+}

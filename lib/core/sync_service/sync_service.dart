@@ -44,6 +44,18 @@ class SyncService {
     try {
       await localCrud.replaceAllExpenses(expenses);
       log('Gastos guardados en la base local: ${expenses.length}');
+      // Ahora sincronizar/descargar los ingresos también
+      log('Obteniendo ingresos de Firestore para el usuario: $email');
+      final incomesSnapshot = await firestore.collection('usuarios').doc(email).collection('ingresos').get();
+      // Map docs defensively: ensure 'id' and 'fecha' are present and well-typed
+      final incomes = incomesSnapshot.docs.map((doc) {
+        final data = Map<String, dynamic>.from(doc.data());
+        // Ensure id exists (use doc.id if backend didn't include it)
+        data['id'] = data['id'] ?? doc.id;
+        return data;
+      }).toList();
+      await localCrud.replaceAllIncomes(incomes);
+      log('Ingresos guardados en la base local: ${incomes.length}');
     } finally {
       _initializing = false;
     }
@@ -69,8 +81,13 @@ class SyncService {
       return;
     }
     _syncingPending = true;
-    final pendingExpenses = await localCrud.getPendingExpenses();
-    if (pendingExpenses.isEmpty) return;
+    log('syncPendingChanges: inicio');
+    try {
+  final pendingExpenses = await localCrud.getPendingExpenses();
+  // Do not return early if there are no pending expenses: we still need to
+  // process pending incomes. Returning early here left `_syncingPending` as
+  // true and prevented future sync attempts. Instead, continue and handle
+  // empty lists gracefully.
 
     // Process creates first, then updates, then deletes. This avoids cases where a
     // record is created and immediately deleted while still pending.
@@ -133,7 +150,74 @@ class SyncService {
         log('Synced pending delete: ${expense.id}');
       });
     }
-    _syncingPending = false;
+  // Incomes: sync pending incomes similarly to gastos
+  try {
+      final pendingIncomes = await localCrud.getPendingIncomes();
+      if (pendingIncomes.isNotEmpty) {
+        final creates = pendingIncomes.where((r) => (r['sync_status'] as int) == SyncStatus.pendingCreate.index).toList();
+        final updates = pendingIncomes.where((r) => (r['sync_status'] as int) == SyncStatus.pendingUpdate.index).toList();
+        final deletesIn = pendingIncomes.where((r) => (r['sync_status'] as int) == SyncStatus.pendingDelete.index).toList();
+
+        for (final row in creates) {
+          await _safeRun(() async {
+            final email = await _resolveEmail();
+            if (email.isEmpty) throw Exception('No user email to sync create');
+            final docRef = firestore.collection('usuarios').doc(email).collection('ingresos').doc(row['id'] as String);
+            await docRef.set({
+              'fecha': Timestamp.fromMillisecondsSinceEpoch(row['fecha'] as int),
+              'ingreso_fijo': row['ingreso_fijo'] ?? 0,
+              'ingreso_imprevisto': row['ingreso_imprevisto'] ?? 0,
+              'ingreso_total': row['ingreso_total'] ?? ((row['ingreso_fijo'] ?? 0) + (row['ingreso_imprevisto'] ?? 0)),
+              'id': row['id'],
+            });
+            await localCrud.updateIncomeSyncStatus(row['id'] as String, SyncStatus.synced);
+            log('Synced pending income create: ${row['id']}');
+          });
+        }
+
+        for (final row in updates) {
+          await _safeRun(() async {
+            final email = await _resolveEmail();
+            if (email.isEmpty) throw Exception('No user email to sync update');
+            final docRef = firestore.collection('usuarios').doc(email).collection('ingresos').doc(row['id'] as String);
+            final snapshot = await docRef.get();
+            final payload = {
+              'fecha': Timestamp.fromMillisecondsSinceEpoch(row['fecha'] as int),
+              'ingreso_fijo': row['ingreso_fijo'] ?? 0,
+              'ingreso_imprevisto': row['ingreso_imprevisto'] ?? 0,
+              'ingreso_total': row['ingreso_total'] ?? ((row['ingreso_fijo'] ?? 0) + (row['ingreso_imprevisto'] ?? 0)),
+              'id': row['id'],
+            };
+            if (!snapshot.exists) {
+              await docRef.set(payload);
+            } else {
+              await docRef.update(payload);
+            }
+            await localCrud.updateIncomeSyncStatus(row['id'] as String, SyncStatus.synced);
+            log('Synced pending income update: ${row['id']}');
+          });
+        }
+
+        for (final row in deletesIn) {
+          await _safeRun(() async {
+            final email = await _resolveEmail();
+            if (email.isEmpty) throw Exception('No user email to sync delete');
+            final docRef = firestore.collection('usuarios').doc(email).collection('ingresos').doc(row['id'] as String);
+            try {
+              await docRef.delete();
+            } catch (_) {}
+            await localCrud.deleteIncome(row['id'] as String);
+            log('Synced pending income delete: ${row['id']}');
+          });
+        }
+      }
+    } catch (e, st) {
+      log('Error syncing pending incomes: $e\n$st');
+    }
+    } finally {
+      _syncingPending = false;
+      log('syncPendingChanges: fin');
+    }
   }
 
   /// Detecta conexión y sincroniza automáticamente

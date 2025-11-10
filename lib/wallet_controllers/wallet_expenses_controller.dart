@@ -16,7 +16,10 @@ class WalletExpensesController extends ChangeNotifier {
     // Delay async initialization to ensure we can resolve auth state (may be null if
     // Firebase hasn't restored currentUser yet). We perform async init after
     // construction.
-    _asyncInit();
+    // Defer heavy async work until after the constructor returns and the first
+    // event loop turn finishes. This avoids blocking the UI during debug/startup
+    // when the controller is created synchronously while the app builds.
+    Future.delayed(Duration.zero, () => _asyncInit());
   }
 
   Future<void> _asyncInit() async {

@@ -1,33 +1,52 @@
 import 'package:app_wallet/library_section/main_library.dart';
 
-class Chart extends StatelessWidget {
+class Chart extends StatefulWidget {
   const Chart({super.key, required this.expenses});
 
   final List<Expense> expenses;
 
-  List<WalletExpenseBucket> get buckets {
-    return Category.values.map((c) => WalletExpenseBucket.forCategory(expenses, c)).toList();
+  @override
+  State<Chart> createState() => _ChartState();
+}
+
+class _ChartState extends State<Chart> {
+  late List<WalletExpenseBucket> _buckets;
+  late double _maxTotalExpense;
+  late double _totalExpenses;
+
+  @override
+  void initState() {
+    super.initState();
+    _recomputeBuckets();
   }
 
-  double get maxTotalExpense {
-    double maxTotalExpense = 0;
+  @override
+  void didUpdateWidget(covariant Chart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.expenses, widget.expenses)) {
+      // If the expenses list instance changed, recompute caches. This avoids
+      // repeated expensive computations on every rebuild (e.g., when clicking
+      // inside the UI) and should prevent UI pauses.
+      _recomputeBuckets();
+    }
+  }
 
-    for (final bucket in buckets) {
-      if (bucket.totalExpenses > maxTotalExpense) {
-        maxTotalExpense = bucket.totalExpenses;
+  void _recomputeBuckets() {
+    _buckets = Category.values
+        .map((c) => WalletExpenseBucket.forCategory(widget.expenses, c))
+        .toList();
+
+    _maxTotalExpense = 0;
+    for (final bucket in _buckets) {
+      if (bucket.totalExpenses > _maxTotalExpense) {
+        _maxTotalExpense = bucket.totalExpenses;
       }
     }
 
-    return maxTotalExpense;
+    _totalExpenses = _buckets.fold(0, (sum, b) => sum + b.totalExpenses);
   }
 
-  double get totalExpenses {
-    return buckets.fold(0, (sum, bucket) => sum + bucket.totalExpenses);
-  }
-
-  Color getColorForCategory(Category category) {
-    return category.color;
-  }
+  Color getColorForCategory(Category category) => category.color;
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +82,7 @@ class Chart extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ...List.generate(7, (index) {
-                      double value = maxTotalExpense - (index * (maxTotalExpense / 6));
+                      double value = _maxTotalExpense - (index * (_maxTotalExpense / 6));
                       return AwText.bold(
                         formatNumber(value),
                         size: AwSize.s10,
@@ -78,14 +97,14 @@ class Chart extends StatelessWidget {
                     children: [
                       Expanded(
                         child: CustomPaint(
-                          painter: ChartPainter(maxTotalExpense),
+                          painter: ChartPainter(_maxTotalExpense),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.end,
-                            children: buckets.map((bucket) {
+                            children: _buckets.map((bucket) {
                               return Expanded(
                                 child: ChartBar(
-                                  fill: bucket.totalExpenses == 0 ? 0 : bucket.totalExpenses / maxTotalExpense,
+                                  fill: bucket.totalExpenses == 0 ? 0 : bucket.totalExpenses / _maxTotalExpense,
                                   barColor: getColorForCategory(bucket.category),
                                 ),
                               );
@@ -96,7 +115,7 @@ class Chart extends StatelessWidget {
                       AwSpacing.s10,
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: buckets.map((bucket) {
+                        children: _buckets.map((bucket) {
                           return Expanded(
                             child: SizedBox(
                               width: 40,
@@ -124,7 +143,7 @@ class Chart extends StatelessWidget {
                 color: AwColors.darkBlue,
               ),
               AwText.bold(
-                formatNumber(totalExpenses),
+                formatNumber(_totalExpenses),
                 size: AwSize.s18,
                 color: AwColors.darkBlue,
               ),
@@ -158,6 +177,9 @@ class ChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
+    if (oldDelegate is ChartPainter) {
+      return oldDelegate.maxTotalExpense != maxTotalExpense;
+    }
+    return true;
   }
 }

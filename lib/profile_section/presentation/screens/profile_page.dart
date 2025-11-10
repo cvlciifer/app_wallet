@@ -1,5 +1,7 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
+import 'package:app_wallet/profile_section/presentation/screens/gastos_imprevistos_page.dart';
 
 class WalletProfilePage extends ConsumerStatefulWidget {
   final String? userEmail;
@@ -213,6 +215,46 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       loader.state = false;
                     } catch (_) {}
                   }
+                },
+              ),
+            ),
+            AwSpacing.s12,
+            SizedBox(
+              width: double.infinity,
+              child: SettingsCard(
+                title: 'Ingresos mensuales',
+                icon: Icons.attach_money,
+                onTap: () async {
+                  try {
+                    final result = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(builder: (_) => const IngresosPage()),
+                    );
+                    if (result == true) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ingresos guardados')));
+                      }
+                    }
+                  } catch (_) {}
+                },
+              ),
+            ),
+            AwSpacing.s6,
+            SizedBox(
+              width: double.infinity,
+              child: SettingsCard(
+                title: 'Ingresos imprevistos',
+                icon: Icons.money_off,
+                onTap: () async {
+                  try {
+                    final result = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(builder: (_) => const GastosImprevistosPage()),
+                    );
+                    if (result == true) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ingreso imprevisto guardado')));
+                      }
+                    }
+                  } catch (_) {}
                 },
               ),
             ),

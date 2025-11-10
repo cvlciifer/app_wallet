@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBHelper {
-  static const int _dbVersion = 2;
+  static const int _dbVersion = 3;
   static const String _dbName = 'adminwallet.db';
 
   DBHelper._privateConstructor();
@@ -45,10 +45,13 @@ class DBHelper {
     await db.execute('''
       CREATE TABLE ingresos (
         uid_ingreso INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT,
         uid_correo TEXT NOT NULL,
         fecha INTEGER NOT NULL,
         ingreso_fijo INTEGER DEFAULT 0,
         ingreso_imprevisto INTEGER DEFAULT 0,
+        ingreso_total INTEGER DEFAULT 0,
+        sync_status INTEGER DEFAULT 0,
         FOREIGN KEY (uid_correo) REFERENCES usuarios(uid) ON DELETE CASCADE
       );
     ''');
@@ -91,6 +94,17 @@ class DBHelper {
     if (oldVersion < 2) {
       try {
         await db.execute('ALTER TABLE gastos ADD COLUMN subcategoria TEXT;');
+      } catch (e) {}
+    }
+    if (oldVersion < 3) {
+      try {
+        await db.execute('ALTER TABLE ingresos ADD COLUMN id TEXT;');
+      } catch (e) {}
+      try {
+        await db.execute('ALTER TABLE ingresos ADD COLUMN ingreso_total INTEGER DEFAULT 0;');
+      } catch (e) {}
+      try {
+        await db.execute('ALTER TABLE ingresos ADD COLUMN sync_status INTEGER DEFAULT 0;');
       } catch (e) {}
     }
   }
