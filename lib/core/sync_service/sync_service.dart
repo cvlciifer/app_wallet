@@ -136,13 +136,16 @@ class SyncService {
     _syncingPending = false;
   }
 
-  /// Detecta conexión y sincroniza automáticamente
-  void startAutoSync() {
-    Connectivity().onConnectivityChanged.listen((result) async {
+  /// Detecta conexión y sincroniza automáticamente.
+  /// Devuelve la suscripción para que el llamador pueda cancelarla cuando
+  /// quiera detener el auto-sync (por ejemplo al cambiar de cuenta).
+  StreamSubscription<ConnectivityResult> startAutoSync() {
+    final sub = Connectivity().onConnectivityChanged.listen((result) async {
       if (result != ConnectivityResult.none) {
         await syncPendingChanges();
       }
     });
+    return sub;
   }
 
   /// Crea un gasto (maneja local y remoto según conexión)
