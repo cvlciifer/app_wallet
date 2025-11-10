@@ -1,4 +1,6 @@
 import 'dart:developer';
+import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 import '../core/data_base_local/local_crud.dart';
 import '../core/sync_service/sync_service.dart';
@@ -10,7 +12,9 @@ class WalletExpensesController extends ChangeNotifier {
     for (var c in Category.values) c: false,
   };
 
-  late final SyncService syncService;
+  late SyncService syncService;
+  StreamSubscription<User?>? _authSubscription;
+  StreamSubscription<ConnectivityResult>? _connectivitySub;
   bool isLoadingExpenses = false;
   WalletExpensesController() {
     // Delay async initialization to ensure we can resolve auth state (may be null if
@@ -36,7 +40,9 @@ class WalletExpensesController extends ChangeNotifier {
       firestore: FirebaseFirestore.instance,
       userEmail: email,
     );
-    syncService.startAutoSync();
+    // keep the connectivity subscription so we can cancel it if the user
+    // changes account and we need to recreate the SyncService
+    _connectivitySub = syncService.startAutoSync();
 
     // Debug: informar el UID resuelto y el estado local al iniciar para ayudar
     // a diagnosticar problemas de persistencia en cold start offline.
@@ -65,6 +71,15 @@ class WalletExpensesController extends ChangeNotifier {
 
     // Load expenses initially
     await loadExpensesSmart();
+
+    // Listen to auth state changes and react by reloading the sync service
+    // with the new user email so the UI shows immediately the data for the
+    // currently signed-in account.
+    try {
+      _authSubscription = AuthService().authStateChanges.listen((user) async {
+        await _handleAuthChanged(user);
+      });
+    } catch (_) {}
   }
 
   bool _isDisposed = false;
@@ -127,6 +142,44 @@ class WalletExpensesController extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _handleAuthChanged(User? user) async {
+    try {
+      final newEmail = user?.email ?? await AuthService().getSavedEmail() ?? '';
+      final currentEmail = syncService.userEmail;
+
+      // If nothing changed, do nothing
+      if (newEmail == currentEmail) return;
+
+      // Cancel previous connectivity listener
+      try {
+        await _connectivitySub?.cancel();
+      } catch (_) {}
+
+      // Create a new SyncService for the new user (or empty if signed out)
+      syncService = SyncService(
+        localCrud: LocalCrud(),
+        firestore: FirebaseFirestore.instance,
+        userEmail: newEmail,
+      );
+
+      _connectivitySub = syncService.startAutoSync();
+
+      if (newEmail.isEmpty) {
+        // signed out: clear visible lists immediately
+        _allExpenses.clear();
+        _filteredExpenses.clear();
+        if (!_isDisposed) notifyListeners();
+        return;
+      }
+
+      // Load remote data for the newly signed-in user and refresh UI
+      await syncService.initializeLocalDbFromFirebase();
+      await loadExpensesSmart();
+    } catch (e, st) {
+      log('Error manejando cambio de auth: $e\n$st');
     }
   }
 
@@ -203,5 +256,17 @@ class WalletExpensesController extends ChangeNotifier {
       return true;
     }).toList();
     _filteredExpenses.sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    try {
+      _authSubscription?.cancel();
+    } catch (_) {}
+    try {
+      _connectivitySub?.cancel();
+    } catch (_) {}
+    super.dispose();
   }
 }
