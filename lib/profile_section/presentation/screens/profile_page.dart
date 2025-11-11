@@ -2,6 +2,8 @@ import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
 import 'package:app_wallet/profile_section/presentation/screens/gastos_imprevistos_page.dart';
+import 'package:app_wallet/profile_section/presentation/screens/recurrent_create_page.dart';
+import 'package:app_wallet/profile_section/presentation/screens/recurrent_registry_page.dart';
 
 class WalletProfilePage extends ConsumerStatefulWidget {
   final String? userEmail;
@@ -122,6 +124,35 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
               alignment: Alignment.centerLeft,
               child: AwText.bold('Configuraciones',
                   color: AwColors.blue, size: AwSize.s18),
+            ),
+            AwSpacing.s12,
+            SizedBox(
+              width: double.infinity,
+              child: SettingsCard(
+                title: 'Gastos recurrentes',
+                icon: Icons.repeat,
+                onTap: () async {
+                  try {
+                    final result = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
+                    if (result == true) {
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gasto recurrente creado')));
+                    }
+                  } catch (_) {}
+                },
+              ),
+            ),
+            AwSpacing.s6,
+            SizedBox(
+              width: double.infinity,
+              child: SettingsCard(
+                title: 'Registro de gastos recurrentes',
+                icon: Icons.list_alt,
+                onTap: () async {
+                  try {
+                    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RecurrentRegistryPage()));
+                  } catch (_) {}
+                },
+              ),
             ),
             AwSpacing.s12,
             SizedBox(

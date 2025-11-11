@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBHelper {
-  static const int _dbVersion = 3;
+  static const int _dbVersion = 4;
   static const String _dbName = 'adminwallet.db';
 
   DBHelper._privateConstructor();
@@ -88,6 +88,43 @@ class DBHelper {
     ''');
 
     await db.execute('CREATE INDEX idx_pending_ops_created_at ON pending_ops(created_at);');
+
+    // Tabla para manejar gastos recurrentes (metadatos)
+    await db.execute('''
+      CREATE TABLE gastos_recurrentes (
+        uid_recurrente INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT,
+        uid_correo TEXT NOT NULL,
+        nombre TEXT,
+        cantidad INTEGER NOT NULL,
+        categoria TEXT,
+        subcategoria TEXT,
+        dia INTEGER NOT NULL,
+        meses INTEGER NOT NULL,
+        start_year INTEGER NOT NULL,
+        start_month INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        sync_status INTEGER DEFAULT 0,
+        FOREIGN KEY (uid_correo) REFERENCES usuarios(uid) ON DELETE CASCADE
+      );
+    ''');
+
+    await db.execute('CREATE INDEX idx_recurrentes_uid ON gastos_recurrentes(uid_correo);');
+
+    // Tabla para mapear items generados por una recurrencia a los gastos creados
+    await db.execute('''
+      CREATE TABLE gastos_recurrentes_items (
+        uid_item INTEGER PRIMARY KEY AUTOINCREMENT,
+        recurrence_id TEXT NOT NULL,
+        expense_id TEXT NOT NULL,
+        fecha INTEGER NOT NULL,
+        cantidad INTEGER NOT NULL,
+        month_index INTEGER NOT NULL,
+        mutable INTEGER DEFAULT 0,
+        sync_status INTEGER DEFAULT 0
+      );
+    ''');
+    await db.execute('CREATE INDEX idx_recurrentes_items_recurrence ON gastos_recurrentes_items(recurrence_id);');
   }
 
   FutureOr<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -106,6 +143,48 @@ class DBHelper {
       try {
         await db.execute('ALTER TABLE ingresos ADD COLUMN sync_status INTEGER DEFAULT 0;');
       } catch (e) {}
+    }
+    if (oldVersion < 4) {
+      try {
+        await db.execute('''
+      CREATE TABLE gastos_recurrentes (
+        uid_recurrente INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT,
+        uid_correo TEXT NOT NULL,
+        nombre TEXT,
+        cantidad INTEGER NOT NULL,
+        categoria TEXT,
+        subcategoria TEXT,
+        dia INTEGER NOT NULL,
+        meses INTEGER NOT NULL,
+        start_year INTEGER NOT NULL,
+        start_month INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        sync_status INTEGER DEFAULT 0,
+        FOREIGN KEY (uid_correo) REFERENCES usuarios(uid) ON DELETE CASCADE
+      );
+    ''');
+      } catch (_) {}
+      try {
+        await db.execute('CREATE INDEX idx_recurrentes_uid ON gastos_recurrentes(uid_correo);');
+      } catch (_) {}
+      try {
+        await db.execute('''
+      CREATE TABLE gastos_recurrentes_items (
+        uid_item INTEGER PRIMARY KEY AUTOINCREMENT,
+        recurrence_id TEXT NOT NULL,
+        expense_id TEXT NOT NULL,
+        fecha INTEGER NOT NULL,
+        cantidad INTEGER NOT NULL,
+        month_index INTEGER NOT NULL,
+        mutable INTEGER DEFAULT 0,
+        sync_status INTEGER DEFAULT 0
+      );
+    ''');
+      } catch (_) {}
+      try {
+        await db.execute('CREATE INDEX idx_recurrentes_items_recurrence ON gastos_recurrentes_items(recurrence_id);');
+      } catch (_) {}
     }
   }
 

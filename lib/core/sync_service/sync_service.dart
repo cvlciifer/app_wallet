@@ -42,8 +42,11 @@ class SyncService {
       return expense;
     }).toList();
     try {
-      await localCrud.replaceAllExpenses(expenses);
-      log('Gastos guardados en la base local: ${expenses.length}');
+      // Use a safe reconcile to merge remote state into local DB while preserving any
+      // local pending changes (creates/updates/deletes) so we don't accidentally
+      // wipe unsynced user edits.
+      await localCrud.reconcileRemoteExpenses(expenses);
+      log('Gastos reconciliados en la base local: ${expenses.length}');
       // Ahora sincronizar/descargar los ingresos también
       log('Obteniendo ingresos de Firestore para el usuario: $email');
       final incomesSnapshot = await firestore.collection('usuarios').doc(email).collection('ingresos').get();
