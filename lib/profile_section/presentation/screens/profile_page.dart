@@ -1,7 +1,7 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
-import 'package:app_wallet/profile_section/presentation/screens/gastos_imprevistos_page.dart';
+import 'package:app_wallet/profile_section/presentation/screens/ingresos_imprevistos_page.dart';
 import 'package:app_wallet/profile_section/presentation/screens/recurrent_create_page.dart';
 import 'package:app_wallet/profile_section/presentation/screens/recurrent_registry_page.dart';
 
@@ -133,9 +133,13 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                 icon: Icons.repeat,
                 onTap: () async {
                   try {
-                    final result = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
+                    final result = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                            builder: (_) => const RecurrentCreatePage()));
+                    if (!mounted) return;
                     if (result == true) {
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gasto recurrente creado')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Gasto recurrente creado')));
                     }
                   } catch (_) {}
                 },
@@ -149,7 +153,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                 icon: Icons.list_alt,
                 onTap: () async {
                   try {
-                    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RecurrentRegistryPage()));
+                    await Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const RecurrentRegistryPage()));
                   } catch (_) {}
                 },
               ),
@@ -167,18 +172,21 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           MaterialPageRoute(
                               builder: (_) =>
                                   const AliasInputPage(initialSetup: false)));
+                      if (!mounted) return;
                       if (result != null && result.isNotEmpty) {
                         setState(() {
                           alias = result;
                         });
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('Alias actualizado: $result')));
-                        }
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Alias actualizado: $result')));
                       }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text('No se pudo abrir cambiar alias')));
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('No se pudo abrir cambiar alias')));
+                      }
                     }
                   }();
                 },
@@ -260,10 +268,10 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                     final result = await Navigator.of(context).push<bool>(
                       MaterialPageRoute(builder: (_) => const IngresosPage()),
                     );
+                    if (!mounted) return;
                     if (result == true) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ingresos guardados')));
-                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Ingresos guardados')));
                     }
                   } catch (_) {}
                 },
@@ -274,16 +282,17 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
               width: double.infinity,
               child: SettingsCard(
                 title: 'Ingresos imprevistos',
-                icon: Icons.money_off,
+                icon: Icons.savings,
                 onTap: () async {
                   try {
                     final result = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(builder: (_) => const GastosImprevistosPage()),
+                      MaterialPageRoute(
+                          builder: (_) => const IngresosImprevistosPage()),
                     );
+                    if (!mounted) return;
                     if (result == true) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ingreso imprevisto guardado')));
-                      }
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Ingreso imprevisto guardado')));
                     }
                   } catch (_) {}
                 },
