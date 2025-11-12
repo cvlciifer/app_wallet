@@ -2,10 +2,12 @@ import 'package:app_wallet/library_section/main_library.dart';
 
 class ExpenseForm extends StatefulWidget {
   final Function(Expense) onSubmit;
+  final Expense? initialExpense;
 
   const ExpenseForm({
     super.key,
     required this.onSubmit,
+    this.initialExpense,
   });
 
   @override
@@ -19,6 +21,22 @@ class _ExpenseFormState extends State<ExpenseForm> {
   DateTime? _selectedDate;
   Category _selectedCategory = Category.comidaBebida;
   String? _selectedSubcategoryId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Si se entrega un expense inicial, prellenar campos
+    final init = widget.initialExpense;
+    if (init != null) {
+      _titleController.text = init.title;
+      _selectedDate = init.date;
+      _selectedCategory = init.category;
+      _selectedSubcategoryId = init.subcategoryId;
+      // Formatear monto para mostrar (NumberFormatHelper espera string input)
+      _amountController.text = NumberFormatHelper.formatAmount(init.amount.toString());
+      _categoryController.text = init.category.toString().split('.').last;
+    }
+  }
 
   @override
   void dispose() {
@@ -44,8 +62,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 // Cabecera más humanizada
                 const FormHeader(
                   title: 'Agrega un nuevo gasto',
-                  subtitle:
-                      'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
+                  subtitle: 'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
                 ),
                 const SizedBox(height: 5),
                 _buildTitle(),
@@ -58,9 +75,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                   onSelect: _selectCategory,
                 ),
                 const SizedBox(height: 24),
-                AmountInput(
-                    controller: _amountController,
-                    onChanged: _handleAmountChange),
+                AmountInput(controller: _amountController, onChanged: _handleAmountChange),
                 const SizedBox(height: 24),
                 DateSelector(
                   selectedDate: _selectedDate,
@@ -107,12 +122,9 @@ class _ExpenseFormState extends State<ExpenseForm> {
   }
 
   void _submitForm() {
-    final numericValue =
-        _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
+    final numericValue = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
     final enteredAmount = int.tryParse(numericValue);
-    final amountIsInvalid = enteredAmount == null ||
-        enteredAmount <= 0 ||
-        enteredAmount > 999999999999;
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0 || enteredAmount > 999999999999;
 
     final titleEmpty = _titleController.text.trim().isEmpty;
     final dateEmpty = _selectedDate == null;
@@ -140,12 +152,10 @@ class _ExpenseFormState extends State<ExpenseForm> {
   }
 
   void _showValidationDialog([String? details]) {
-    final contentText =
-        details ?? 'Asegúrese de ingresar un título, monto y fecha válidos.';
+    final contentText = details ?? 'Asegúrese de ingresar un título, monto y fecha válidos.';
     final dialogContent = Platform.isIOS
         ? CupertinoAlertDialog(
-            title: const AwText.bold('Entrada no válida',
-                color: AwColors.boldBlack),
+            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
             content: AwText(text: contentText),
             actions: [
               WalletButton.primaryButton(
@@ -155,8 +165,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
             ],
           )
         : AlertDialog(
-            title: const AwText.bold('Entrada no válida',
-                color: AwColors.boldBlack),
+            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
             content: AwText(
               text: contentText,
               color: AwColors.black,

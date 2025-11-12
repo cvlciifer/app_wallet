@@ -28,14 +28,90 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
     }
 
     try {
-      // Filtrar por remitentes: Banco Estado y Banco Santander.
-      // La consulta q puede usar dominios o nombres. Ajusta según los remitentes reales.
-      final query = 'from:("BancoEstado" OR "Banco Santander" OR "@bancoestado.cl" OR "@santander.cl")';
-      final msgs = await _service.listLatestMessages(maxResults: 20, query: query);
-      return msgs;
+      // Filtrar por remitentes/dominios de los bancos principales y traer más mensajes
+      // para filtrar localmente por frases específicas.
+      // Por ahora solo filtramos correos de BancoEstado
+      final query =
+          'from:("BancoEstado" OR "@bancoestado.cl" OR "noreply@correo.bancoestado.cl" OR "notificaciones@correo.bancoestado.cl")';
+      final msgs = await _service.listLatestMessages(maxResults: 50, query: query);
+
+      // Filtrar localmente para devolver sólo correos que indiquen salida de dinero
+      final outgoing = msgs.where((m) => _isOutgoingMessage(m)).toList();
+      return outgoing;
     } catch (e) {
       rethrow;
     }
+  }
+
+  // Devuelve true si el mensaje indica que ha salido dinero de la cuenta
+  // usando frases específicas por banco (BancoEstado / Chile y Santander / BCI / Itaú).
+  bool _isOutgoingMessage(GmailMessageInfo m) {
+    final textToAnalyze = '${m.subject} ${m.snippet} ${m.from}'.toLowerCase();
+
+    // Lista de remitentes conocidos (direcciones exactas) de BancoEstado
+    final knownSenders = <String>[
+      'noreply@correo.bancoestado.cl',
+      'notificaciones@correo.bancoestado.cl',
+    ];
+
+    // Frases específicas para BancoEstado / Chile
+    final bancoEstadoPhrases = <String>[
+      'se ha realizado una transferencia desde su cuenta corriente',
+      'se ha realizado una compra',
+      'se ha efectuado un pago a través de su tarjeta de débito',
+      'se ha descontado el monto de', // seguido de $XXXX
+      'ha realizado una compra en',
+      'le informamos que su pago ha sido procesado exitosamente',
+      'se ha cargado el monto correspondiente a su tarjeta',
+    ];
+
+    // (Se eliminaron las frases de otros bancos; sólo BancoEstado se considera)
+
+    // Normalizar acentos y variantes simples
+    final normalized = textToAnalyze.replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
+    final normalizedFrom = m.from.toLowerCase().replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
+
+    // Si el remitente coincide con una dirección conocida, favorecemos detección
+    if (knownSenders.any((s) => normalizedFrom.contains(s))) {
+      // Si el correo proviene de un remitente oficial y contiene signos típicos
+      // de cargo/transferencia o un monto ($), lo consideramos salida.
+      if (normalized.contains('pago') ||
+          normalized.contains('cargo') ||
+          normalized.contains('transferencia') ||
+          RegExp(r'\$\s*\d').hasMatch(normalized)) {
+        return true;
+      }
+    }
+
+    // Buscar coincidencias exactas de frases (si contienen monto con $ también cuenta)
+    for (final p in bancoEstadoPhrases) {
+      final pn = p.replaceAll('ó', 'o').replaceAll('é', 'e').replaceAll('á', 'a');
+      if (normalized.contains(pn)) return true;
+    }
+
+    // no se buscan frases de otros bancos aquí
+
+    // Detectar patrones más generales que indiquen debito/compra/retiro con monto
+    final generalPatterns = <RegExp>[
+      // "se ha descontado el monto de $1234"
+      RegExp(r'se ha descontado el monto de\s*\$?\s*\d', caseSensitive: false),
+      // "se debito el monto de $1234" / "se debito"
+      RegExp(r'se debi?t?o?\b.*\$?\s*\d', caseSensitive: false),
+      // "pago efectuado" + posible referencia a tarjeta/visa
+      RegExp(r'pago efectuado.*tarjeta', caseSensitive: false),
+      // "transferencia enviada"
+      RegExp(r'transferencia enviad', caseSensitive: false),
+      // "compra" + comercio
+      RegExp(r'ha realizado una compra en|compra por internet|compra registrada', caseSensitive: false),
+      // "cargo" automático o por servicio
+      RegExp(r'cargo automatico|cargo por pago|se realizo un cargo', caseSensitive: false),
+    ];
+
+    for (final re in generalPatterns) {
+      if (re.hasMatch(normalized)) return true;
+    }
+
+    return false;
   }
 
   void _refresh() {
@@ -66,24 +142,8 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         final subject = m.subject.isNotEmpty ? m.subject : '(sin asunto)';
         final snippet = m.snippet.replaceAll('\n', ' ').trim();
 
-        // Detectar si el correo indica movimientos de dinero (entrada/salida)
+        // Detectar si el correo indica salida de dinero usando la función centralizada
         final textToAnalyze = '${subject.toLowerCase()} ${snippet.toLowerCase()} ${m.from.toLowerCase()}';
-        const outKeywords = [
-          'debito',
-          'debited',
-          'retir',
-          'retirado',
-          'cargo',
-          'compra',
-          'pag',
-          'pagado',
-          'pago',
-          'salid',
-          'retiro',
-          'descuento',
-          'cobro',
-          'comprado'
-        ];
         const inKeywords = [
           'acredit',
           'acreditado',
@@ -98,7 +158,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
           'transferencia recibida'
         ];
 
-        final bool indicatesOut = outKeywords.any((k) => textToAnalyze.contains(k));
+        final bool indicatesOut = _isOutgoingMessage(m);
         final bool indicatesIn = !indicatesOut && inKeywords.any((k) => textToAnalyze.contains(k));
 
         // Contenido principal de la tarjeta
@@ -157,16 +217,120 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
           ));
         }
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        return GestureDetector(
+          onTap: () => _onMessageTap(m),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: TicketCard(
+              compactNotches: true,
+              roundTopCorners: true,
+              topCornerRadius: 7,
+              overlays: overlays.isNotEmpty ? overlays : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: content,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _onMessageTap(GmailMessageInfo m) async {
+    // Obtener cuerpo completo del mensaje
+    String body = await _service.getMessageBody(m.id);
+
+    // Extraer monto del cuerpo (primer match de $123 o $ 123)
+    final amountMatch = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
+    double? amount;
+    if (amountMatch != null) {
+      final raw = amountMatch.group(1)!.replaceAll('.', '').replaceAll(',', '.');
+      amount = double.tryParse(raw);
+    }
+
+    DateTime parsedDate;
+    try {
+      parsedDate = DateTime.parse(m.date);
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+
+    final title = m.subject.isNotEmpty ? m.subject : 'Gasto detectado';
+
+    // Mostrar popup con TicketCard y cuerpo completo (scrollable)
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        final maxHeight = MediaQuery.of(ctx).size.height * 0.7;
+        return Dialog(
+          backgroundColor: Colors.transparent,
           child: TicketCard(
-            compactNotches: true,
             roundTopCorners: true,
-            topCornerRadius: 7,
-            overlays: overlays.isNotEmpty ? overlays : null,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: content,
+            topCornerRadius: 10,
+            compactNotches: true,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    AwText.bold(
+                      title,
+                      size: 16,
+                    ),
+                    const SizedBox(height: 8),
+                    AwText(
+                      text: 'Fecha: ${DateFormat.yMMMd().add_Hm().format(parsedDate.toLocal())}',
+                    ),
+                    const SizedBox(height: 8),
+                    if (amount != null)
+                      AwText(
+                        text: 'Monto: ${NumberFormat.simpleCurrency(locale: 'en_US').format(amount)}',
+                      ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          body,
+                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        WalletButton.textButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          buttonText: 'Cerrar',
+                        ),
+                        const SizedBox(width: 12),
+                        WalletButton.primaryButton(
+                          onPressed: () async {
+                            Navigator.of(ctx).pop();
+
+                            final expense = Expense(
+                              title: title,
+                              amount: amount ?? 0.0,
+                              date: parsedDate,
+                              category: Category.serviciosCuentas,
+                            );
+                            await Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => NewExpenseScreen(initialExpense: expense),
+                            ));
+                          },
+                          buttonText: 'Agregar gasto',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
             ),
           ),
         );

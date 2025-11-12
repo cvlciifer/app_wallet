@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/gmail/v1.dart' as gmail_api;
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class GmailService {
   static final GmailService _instance = GmailService._internal();
@@ -112,6 +113,78 @@ class GmailService {
       }
 
       return results;
+    } finally {
+      client.close();
+    }
+  }
+
+  /// Obtiene el cuerpo del mensaje (texto plano preferido, fallback HTML sin tags, o snippet)
+  Future<String> getMessageBody(String id) async {
+    final client = await _authenticatedHttpClient();
+    try {
+      final gmail = gmail_api.GmailApi(client);
+      final msg = await gmail.users.messages.get('me', id, format: 'full');
+
+      String extractAndDecode(String? data) {
+        if (data == null || data.isEmpty) return '';
+        // Gmail API returns base64url encoded string
+        final normalized = base64Url.normalize(data);
+        try {
+          return utf8.decode(base64Url.decode(normalized));
+        } catch (_) {
+          try {
+            return utf8.decode(base64.decode(normalized));
+          } catch (e) {
+            return '';
+          }
+        }
+      }
+
+      String bodyText = '';
+
+      final payload = msg.payload;
+      if (payload == null) return msg.snippet ?? '';
+
+      // If payload.body has data, use it
+      if (payload.body != null && (payload.body!.data ?? '').isNotEmpty) {
+        bodyText = extractAndDecode(payload.body!.data);
+      } else if (payload.parts != null && payload.parts!.isNotEmpty) {
+        // Try to find text/plain first, then text/html
+        String? html;
+        for (final p in payload.parts!) {
+          final mime = p.mimeType ?? '';
+          final data = p.body?.data ?? '';
+          if (mime.toLowerCase().contains('text/plain') && data.isNotEmpty) {
+            bodyText = extractAndDecode(data);
+            break;
+          }
+          if (mime.toLowerCase().contains('text/html') && data.isNotEmpty) {
+            html = extractAndDecode(data);
+          }
+          // multipart nested
+          if ((p.parts ?? []).isNotEmpty) {
+            for (final np in p.parts!) {
+              final nm = np.mimeType ?? '';
+              final nd = np.body?.data ?? '';
+              if (nm.toLowerCase().contains('text/plain') && nd.isNotEmpty) {
+                bodyText = extractAndDecode(nd);
+                break;
+              }
+              if (nm.toLowerCase().contains('text/html') && nd.isNotEmpty) {
+                html ??= extractAndDecode(nd);
+              }
+            }
+            if (bodyText.isNotEmpty) break;
+          }
+        }
+        if (bodyText.isEmpty && html != null) {
+          // Strip html tags for a readable fallback
+          bodyText = html.replaceAll(RegExp(r'<[^>]*>'), ' ');
+        }
+      }
+
+      if (bodyText.isEmpty) return msg.snippet ?? '';
+      return bodyText.trim();
     } finally {
       client.close();
     }
