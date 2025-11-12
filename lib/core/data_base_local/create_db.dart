@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBHelper {
-  static const int _dbVersion = 4;
+  static const int _dbVersion = 5;
   static const String _dbName = 'adminwallet.db';
 
   DBHelper._privateConstructor();
@@ -68,6 +68,8 @@ class DBHelper {
         nombre TEXT,
         categoria TEXT,
         subcategoria TEXT,
+        recurrence_id TEXT,
+        recurrence_index INTEGER,
         sync_status INTEGER DEFAULT 0,
         FOREIGN KEY (uid_correo) REFERENCES usuarios(uid) ON DELETE CASCADE
       );
@@ -144,7 +146,16 @@ class DBHelper {
         await db.execute('ALTER TABLE ingresos ADD COLUMN sync_status INTEGER DEFAULT 0;');
       } catch (e) {}
     }
-    if (oldVersion < 4) {
+    if (oldVersion < 5) {
+      // Add recurrence columns to gastos (if not already present) and create
+      // recurrent tables. Use try/catch to be safe across different upgrade paths.
+      try {
+        await db.execute('ALTER TABLE gastos ADD COLUMN recurrence_id TEXT;');
+      } catch (e) {}
+      try {
+        await db.execute('ALTER TABLE gastos ADD COLUMN recurrence_index INTEGER;');
+      } catch (e) {}
+
       try {
         await db.execute('''
       CREATE TABLE gastos_recurrentes (

@@ -413,6 +413,12 @@ Future<void> deleteExpenseImpl(String expenseId, {bool localOnly = false}) async
       log('deleteExpenseImpl: error reconciliando mappings para $expenseId -> $e\n$st');
     }
   });
+  // Ensure recurrence metadata counts are consistent after the transaction
+  try {
+    await refreshRecurrenceCountsImpl();
+  } catch (e, st) {
+    log('deleteExpenseImpl: refreshRecurrenceCounts failed: $e\n$st');
+  }
 }
 
 Future<void> deleteExpenseOfflineImpl(String expenseId) async {
@@ -484,6 +490,12 @@ Future<void> deleteExpenseOfflineImpl(String expenseId) async {
       log('deleteExpenseOfflineImpl: error insertando tombstone para $expenseId -> $e\n$st');
     }
   });
+  // Ensure recurrence metadata counts are consistent after the transaction
+  try {
+    await refreshRecurrenceCountsImpl();
+  } catch (e, st) {
+    log('deleteExpenseOfflineImpl: refreshRecurrenceCounts failed: $e\n$st');
+  }
 }
 
 /// Inserta o reemplaza una fila en la tabla `ingresos` para la fecha dada.
@@ -616,6 +628,12 @@ Future<void> replaceAllIncomesImpl(List<Map<String, dynamic>> incomes) async {
       });
     }
   });
+  // Ensure recurrence metadata counts are consistent after the transaction
+  try {
+    await refreshRecurrenceCountsImpl();
+  } catch (e, st) {
+    log('deleteRecurrenceFromMonthImpl: refreshRecurrenceCounts failed: $e\n$st');
+  }
 }
 
 Future<List<Expense>> getPendingExpensesImpl() async {
@@ -633,6 +651,8 @@ Future<List<Expense>> getPendingExpensesImpl() async {
             category: _mapCategory(row['categoria'] as String),
             subcategoryId: row['subcategoria'] as String?,
             syncStatus: SyncStatus.values[row['sync_status'] as int],
+            recurrenceId: row['recurrence_id'] as String?,
+            recurrenceIndex: row['recurrence_index'] as int?,
           ))
       .toList();
 }
@@ -652,6 +672,8 @@ Future<void> replaceAllExpensesImpl(List<Expense> expenses) async {
         'cantidad': expense.amount,
         'categoria': _categoryToString(expense.category),
         'subcategoria': expense.subcategoryId,
+        'recurrence_id': expense.recurrenceId,
+        'recurrence_index': expense.recurrenceIndex,
         'sync_status': expense.syncStatus.index,
         'id': expense.id,
       });
@@ -687,6 +709,8 @@ Future<void> reconcileRemoteExpensesImpl(List<Expense> remoteExpenses) async {
           'cantidad': expense.amount,
           'categoria': _categoryToString(expense.category),
           'subcategoria': expense.subcategoryId,
+          'recurrence_id': expense.recurrenceId,
+          'recurrence_index': expense.recurrenceIndex,
           'sync_status': SyncStatus.synced.index,
           'id': expense.id,
         });
@@ -730,6 +754,12 @@ Future<void> reconstructRecurrencesFromExpensesImpl(List<Expense> expenses) asyn
   final Map<String, List<Expense>> groups = {};
   final idRegex = RegExp(r'^(.+)-(\d+)\$');
   for (final e in expenses) {
+    // Prefer explicit recurrence metadata stored on the document
+    if (e.recurrenceId != null && e.recurrenceId!.isNotEmpty) {
+      groups.putIfAbsent(e.recurrenceId!, () => []).add(e);
+      continue;
+    }
+    // Fallback to extract prefix from id pattern 'prefix-<index>' for older records
     final m = idRegex.firstMatch(e.id);
     if (m == null) continue;
     final prefix = m.group(1)!;
@@ -899,6 +929,8 @@ Future<void> insertRecurringImpl(RecurringExpense recurring, List<Expense> gener
         'cantidad': e.amount,
         'categoria': e.category.toString().split('.').last,
         'subcategoria': e.subcategoryId,
+        'recurrence_id': recurrenceId,
+        'recurrence_index': i + 1,
         'sync_status': e.syncStatus.index,
         'id': e.id,
       });
@@ -1025,5 +1057,35 @@ Future<void> deleteRecurrenceImpl(String recurrenceId) async {
     await txn.delete('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId]);
     // remove metadata row
     await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [recurrenceId]);
+  });
+}
+
+/// Recompute `gastos_recurrentes.meses` from the actual mapping rows and
+/// delete any recurrence metadata that has no items. This is a defensive
+/// helper to ensure the UI always reads a consistent `meses` value.
+Future<void> refreshRecurrenceCountsImpl() async {
+  final db = await _db();
+  await db.transaction((txn) async {
+    // Get counts grouped by recurrence_id
+    final rows = await txn.rawQuery('SELECT recurrence_id, COUNT(*) as cnt FROM gastos_recurrentes_items GROUP BY recurrence_id');
+    final Map<String, int> counts = {};
+    for (final r in rows) {
+      final id = r['recurrence_id'] as String?;
+      final cnt = (r['cnt'] as int?) ?? (r['COUNT(*)'] as int?) ?? 0;
+      if (id != null) counts[id] = cnt;
+    }
+
+    // Update existing recurrence rows
+    final recurRows = await txn.query('gastos_recurrentes');
+    for (final r in recurRows) {
+      final id = r['id'] as String;
+      final cnt = counts[id] ?? 0;
+      if (cnt == 0) {
+        // remove recurrence metadata if no items
+        await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [id]);
+      } else {
+        await txn.update('gastos_recurrentes', {'meses': cnt}, where: 'id = ?', whereArgs: [id]);
+      }
+    }
   });
 }

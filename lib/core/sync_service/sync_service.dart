@@ -281,23 +281,38 @@ class SyncService {
 
   /// Borra un gasto
   Future<void> deleteExpense(String expenseId, {required bool hasConnection}) async {
-    if (hasConnection) {
-      final email = await _resolveEmail();
-      if (email.isNotEmpty) {
-        final docRef = firestore.collection('usuarios').doc(email).collection('gastos').doc(expenseId);
+    // Fast local-first deletion to keep UI responsive.
+    // We always remove mappings and ensure there's a tombstone locally so
+    // the remote deletion can be retried by the background sync if needed.
+    final email = await _resolveEmail();
+    if (hasConnection && email.isNotEmpty) {
+      // Use the offline-delete helper which removes mappings and inserts a
+      // tombstone (sync_status = pendingDelete) so UI updates immediately.
+      await localCrud.deleteExpenseOffline(expenseId);
+
+      // Fire-and-forget remote delete: attempt to remove remote doc in background.
+      // If it fails, syncPendingChanges() will retry since we left a tombstone.
+      Future.microtask(() async {
         try {
-          await docRef.delete();
-        } catch (_) {}
-        // Remove locally and reconcile mappings immediately
-        await localCrud.deleteExpense(expenseId);
-        return;
-      }
-      // If we can't resolve email, fallthrough to offline helper
+          final docRef = firestore.collection('usuarios').doc(email).collection('gastos').doc(expenseId);
+          try {
+            await docRef.delete();
+          } catch (_) {
+            // ignore individual delete failures; syncPendingChanges will retry
+          }
+          // After successful remote delete, ensure local tombstone is removed.
+          try {
+            await localCrud.deleteExpense(expenseId, localOnly: true);
+          } catch (_) {}
+        } catch (e, st) {
+          log('deleteExpense background delete failed, will be retried by syncPendingChanges: $e\n$st', name: 'SyncService');
+        }
+      });
+      return;
     }
 
-    // Offline delete: remove recurrence mappings immediately so the registry
-    // and UI reflect the deletion, but keep a tombstone row (pendingDelete)
-    // to ensure the remote doc will be removed later by syncPendingChanges().
+    // Offline or no-email path: perform the offline deletion which inserts a
+    // tombstone for later sync and updates mapping metadata immediately.
     await localCrud.deleteExpenseOffline(expenseId);
   }
 }

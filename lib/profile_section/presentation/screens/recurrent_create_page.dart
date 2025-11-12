@@ -72,8 +72,8 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
         return;
       }
 
-      if (_selectedMonths < 1 || _selectedMonths > 12) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleccione entre 1 y 12 meses')));
+      if (_selectedMonths < 2 || _selectedMonths > 12) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleccione entre 2 y 12 meses')));
         return;
       }
 
@@ -93,6 +93,8 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
           category: _selectedCategory,
           subcategoryId: _selectedSubcategoryId,
           syncStatus: SyncStatus.pendingCreate,
+          recurrenceId: recurrenceId,
+          recurrenceIndex: i + 1,
         );
         generated.add(e);
       }
@@ -217,8 +219,8 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
                           DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedMonths,
-                            items: List.generate(12, (i) => i + 1).map((m) => DropdownMenuItem(value: m, child: Text('$m'))).toList(),
-                            onChanged: (v) => setState(() => _selectedMonths = v ?? 1),
+                            items: List.generate(11, (i) => i + 2).map((m) => DropdownMenuItem(value: m, child: Text('$m'))).toList(),
+                            onChanged: (v) => setState(() => _selectedMonths = v ?? 2),
                           ),
                         ]);
                       }
@@ -249,8 +251,8 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
                           DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedMonths,
-                            items: List.generate(12, (i) => i + 1).map((m) => DropdownMenuItem(value: m, child: Text('$m'))).toList(),
-                            onChanged: (v) => setState(() => _selectedMonths = v ?? 1),
+                            items: List.generate(11, (i) => i + 2).map((m) => DropdownMenuItem(value: m, child: Text('$m'))).toList(),
+                            onChanged: (v) => setState(() => _selectedMonths = v ?? 2),
                           ),
                         ])),
                       ]);

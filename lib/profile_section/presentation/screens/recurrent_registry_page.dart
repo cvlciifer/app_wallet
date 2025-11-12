@@ -163,31 +163,13 @@ class _RecurrentDetailPageState extends State<RecurrentDetailPage> {
       );
     });
     if (ok == true) {
-      // Try to delete remotely when possible to avoid reappearing after a remote refresh.
-      final connectivity = await Connectivity().checkConnectivity();
-      final hasConnection = connectivity != ConnectivityResult.none;
+  // Do a fast, local-first deletion that removes mapping rows and marks
+  // affected expenses as pendingDelete in a single transaction. This is
+  // much faster than deleting each expense remotely/synchronously and
+  // keeps the UI snappy. The background sync will attempt remote deletes.
+  await controller.syncService.localCrud.deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
 
-      // Determine cutoff fecha from the item selected
-      final items = await controller.syncService.localCrud.getRecurringItems(widget.recurring.id);
-      final selected = items.firstWhere((r) => (r['month_index'] as int) == monthIndex, orElse: () => {});
-      if (selected.isEmpty) return;
-      final cutoffFecha = selected['fecha'] as int;
-
-      // For each item with fecha >= cutoffFecha, delete using SyncService so remote is handled when possible.
-      final toDelete = items.where((r) => (r['fecha'] as int) >= cutoffFecha).toList();
-      for (final r in toDelete) {
-        final expenseId = r['expense_id'] as String;
-        try {
-          await controller.syncService.deleteExpense(expenseId, hasConnection: hasConnection);
-        } catch (_) {
-          // ignore individual failures; we'll still mark local mapping removal
-        }
-      }
-
-      // Clean up mapping rows and any leftover local gastos
-      await controller.syncService.localCrud.deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
-
-      // Refresh app-wide expenses so deleted items disappear from lists immediately
+      // Trigger a refresh of global expenses so UI updates immediately.
       await controller.loadExpensesSmart();
 
       await _loadItems();
