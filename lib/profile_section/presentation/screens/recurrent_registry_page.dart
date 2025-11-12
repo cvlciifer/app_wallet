@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/core/models/recurring_expense.dart';
 
@@ -11,20 +13,38 @@ class RecurrentRegistryPage extends StatefulWidget {
 class _RecurrentRegistryPageState extends State<RecurrentRegistryPage> {
   List<RecurringExpense> _items = [];
   bool _loading = true;
+  WalletExpensesController? _controller;
+  Timer? _reloadTimer;
 
   @override
   void initState() {
     super.initState();
+    _controller = Provider.of<WalletExpensesController>(context, listen: false);
+    // Listen for global changes so registry updates when expenses are modified elsewhere
+    _controller?.addListener(_onControllerChanged);
     _load();
   }
 
+  void _onControllerChanged() {
+    // Debounce reloads coming from global controller changes to avoid rapid
+    // repeated DB reads / rebuilds that can freeze the UI.
+    if ((_reloadTimer?.isActive ?? false)) return;
+    _reloadTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      _load();
+    });
+  }
+
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       final controller = Provider.of<WalletExpensesController>(context, listen: false);
       final list = await controller.syncService.localCrud.getRecurrents();
+      if (!mounted) return;
       setState(() => _items = list);
     } catch (_) {}
+    if (!mounted) return;
     setState(() => _loading = false);
   }
 
@@ -55,6 +75,13 @@ class _RecurrentRegistryPageState extends State<RecurrentRegistryPage> {
             ),
     );
   }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_onControllerChanged);
+    _reloadTimer?.cancel();
+    super.dispose();
+  }
 }
 
 // Detail page
@@ -69,20 +96,36 @@ class RecurrentDetailPage extends StatefulWidget {
 class _RecurrentDetailPageState extends State<RecurrentDetailPage> {
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
+  WalletExpensesController? _controller;
+  Timer? _reloadTimer;
 
   @override
   void initState() {
     super.initState();
+    _controller = Provider.of<WalletExpensesController>(context, listen: false);
+    _controller?.addListener(_onControllerChanged);
     _loadItems();
   }
 
+  void _onControllerChanged() {
+    // Debounce reloads to avoid frequent immediate DB calls
+    if ((_reloadTimer?.isActive ?? false)) return;
+    _reloadTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      _loadItems();
+    });
+  }
+
   Future<void> _loadItems() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       final controller = Provider.of<WalletExpensesController>(context, listen: false);
       final rows = await controller.syncService.localCrud.getRecurringItems(widget.recurring.id);
+      if (!mounted) return;
       setState(() => _items = rows);
     } catch (_) {}
+    if (!mounted) return;
     setState(() => _loading = false);
   }
 
@@ -120,31 +163,13 @@ class _RecurrentDetailPageState extends State<RecurrentDetailPage> {
       );
     });
     if (ok == true) {
-      // Try to delete remotely when possible to avoid reappearing after a remote refresh.
-      final connectivity = await Connectivity().checkConnectivity();
-      final hasConnection = connectivity != ConnectivityResult.none;
+  // Do a fast, local-first deletion that removes mapping rows and marks
+  // affected expenses as pendingDelete in a single transaction. This is
+  // much faster than deleting each expense remotely/synchronously and
+  // keeps the UI snappy. The background sync will attempt remote deletes.
+  await controller.syncService.localCrud.deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
 
-      // Determine cutoff fecha from the item selected
-      final items = await controller.syncService.localCrud.getRecurringItems(widget.recurring.id);
-      final selected = items.firstWhere((r) => (r['month_index'] as int) == monthIndex, orElse: () => {});
-      if (selected.isEmpty) return;
-      final cutoffFecha = selected['fecha'] as int;
-
-      // For each item with fecha >= cutoffFecha, delete using SyncService so remote is handled when possible.
-      final toDelete = items.where((r) => (r['fecha'] as int) >= cutoffFecha).toList();
-      for (final r in toDelete) {
-        final expenseId = r['expense_id'] as String;
-        try {
-          await controller.syncService.deleteExpense(expenseId, hasConnection: hasConnection);
-        } catch (_) {
-          // ignore individual failures; we'll still mark local mapping removal
-        }
-      }
-
-      // Clean up mapping rows and any leftover local gastos
-      await controller.syncService.localCrud.deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
-
-      // Refresh app-wide expenses so deleted items disappear from lists immediately
+      // Trigger a refresh of global expenses so UI updates immediately.
       await controller.loadExpensesSmart();
 
       await _loadItems();
@@ -200,5 +225,12 @@ class _RecurrentDetailPageState extends State<RecurrentDetailPage> {
       await _deleteFromThisMonth(idx);
       // _deleteFromThisMonth already refreshes global state
     }
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_onControllerChanged);
+    _reloadTimer?.cancel();
+    super.dispose();
   }
 }

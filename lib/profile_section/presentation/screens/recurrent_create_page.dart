@@ -13,6 +13,7 @@ class RecurrentCreatePage extends StatefulWidget {
 
 class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
   
+  bool _isSubmitting = false;
     final _titleController = TextEditingController();
     final _categoryController = TextEditingController(text: 'Elige categoría');
     final _amountController = TextEditingController();
@@ -20,6 +21,12 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
     String? _selectedSubcategoryId;
     int _selectedDay = DateTime.now().day;
     int _selectedMonths = 3;
+  int _selectedStartMonth = DateTime.now().month;
+  int _selectedStartYear = DateTime.now().year;
+    final List<String> _monthNames = const [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
 
     @override
     void dispose() {
@@ -48,6 +55,10 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
     }
 
     Future<void> _onCreate() async {
+      if (_isSubmitting) return;
+      setState(() {
+        _isSubmitting = true;
+      });
       final numericValue = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
       final enteredAmount = int.tryParse(numericValue);
       final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
@@ -61,16 +72,15 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
         return;
       }
 
-      if (_selectedMonths < 1 || _selectedMonths > 12) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleccione entre 1 y 12 meses')));
+      if (_selectedMonths < 2 || _selectedMonths > 12) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleccione entre 2 y 12 meses')));
         return;
       }
 
-      final now = DateTime.now();
       final recurrenceId = const Uuid().v4();
       final generated = <Expense>[];
       for (var i = 0; i < _selectedMonths; i++) {
-        final monthDate = DateTime(now.year, now.month + i);
+        final monthDate = DateTime(_selectedStartYear, _selectedStartMonth + i);
         final lastDay = DateUtils.getDaysInMonth(monthDate.year, monthDate.month);
         final actualDay = min(_selectedDay, lastDay);
         final dt = DateTime(monthDate.year, monthDate.month, actualDay);
@@ -83,6 +93,8 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
           category: _selectedCategory,
           subcategoryId: _selectedSubcategoryId,
           syncStatus: SyncStatus.pendingCreate,
+          recurrenceId: recurrenceId,
+          recurrenceIndex: i + 1,
         );
         generated.add(e);
       }
@@ -93,8 +105,8 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
           amount: enteredAmount.toDouble(),
         dayOfMonth: _selectedDay,
         months: _selectedMonths,
-        startYear: now.year,
-        startMonth: now.month,
+        startYear: _selectedStartYear,
+        startMonth: _selectedStartMonth,
         category: _selectedCategory,
         subcategoryId: _selectedSubcategoryId,
       );
@@ -109,6 +121,12 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
       } catch (e, st) {
         if (kDebugMode) debugPrint('Error creando recurrente: $e\n$st');
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error creando recurrente')));
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
       }
     }
 
@@ -169,13 +187,78 @@ class _RecurrentCreatePageState extends State<RecurrentCreatePage> {
                   const SizedBox(height: 8),
                   _buildDayGrid(),
                   const SizedBox(height: 16),
-                  Row(children: [
-                    const AwText.bold('Meses', color: AwColors.boldBlack),
-                    const SizedBox(width: 12),
-                    DropdownButton<int>(value: _selectedMonths, items: List.generate(12, (i) => i + 1).map((m) => DropdownMenuItem(value: m, child: Text('$m'))).toList(), onChanged: (v) => setState(() => _selectedMonths = v ?? 1)),
-                  ]),
+                    // Responsive layout: on narrow screens, stack selectors vertically; on wide screens, place in a row.
+                    LayoutBuilder(builder: (ctx, constraints) {
+                      final isNarrow = constraints.maxWidth < 420;
+                      if (isNarrow) {
+                        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const AwText.bold('Mes y año de inicio', color: AwColors.boldBlack),
+                          const SizedBox(height: 8),
+                          Row(children: [
+                            Expanded(
+                              child: DropdownButton<int>(
+                                isExpanded: true,
+                                value: _selectedStartMonth,
+                                items: List.generate(12, (i) => i + 1).map((m) => DropdownMenuItem(value: m, child: Text(_monthNames[m - 1]))).toList(),
+                                onChanged: (v) => setState(() => _selectedStartMonth = v ?? 1),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: DropdownButton<int>(
+                                isExpanded: true,
+                                value: _selectedStartYear,
+                                items: List.generate(3, (i) => DateTime.now().year + i).map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
+                                onChanged: (v) => setState(() => _selectedStartYear = v ?? DateTime.now().year),
+                              ),
+                            ),
+                          ]),
+                          const SizedBox(height: 12),
+                          const AwText.bold('Meses', color: AwColors.boldBlack),
+                          const SizedBox(height: 8),
+                          DropdownButton<int>(
+                            isExpanded: true,
+                            value: _selectedMonths,
+                            items: List.generate(11, (i) => i + 2).map((m) => DropdownMenuItem(value: m, child: Text('$m'))).toList(),
+                            onChanged: (v) => setState(() => _selectedMonths = v ?? 2),
+                          ),
+                        ]);
+                      }
+
+                      // wide
+                      return Row(children: [
+                        Expanded(child: Row(children: [
+                          const AwText.bold('Mes y año de inicio', color: AwColors.boldBlack),
+                          const SizedBox(width: 12),
+                          DropdownButton<int>(
+                            isExpanded: true,
+                            value: _selectedStartMonth,
+                            items: List.generate(12, (i) => i + 1).map((m) => DropdownMenuItem(value: m, child: Text(_monthNames[m - 1]))).toList(),
+                            onChanged: (v) => setState(() => _selectedStartMonth = v ?? 1),
+                          ),
+                          const SizedBox(width: 8),
+                          DropdownButton<int>(
+                            isExpanded: true,
+                            value: _selectedStartYear,
+                            items: List.generate(3, (i) => DateTime.now().year + i).map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
+                            onChanged: (v) => setState(() => _selectedStartYear = v ?? DateTime.now().year),
+                          ),
+                        ])),
+                        const SizedBox(width: 12),
+                        Expanded(child: Row(children: [
+                          const AwText.bold('Meses', color: AwColors.boldBlack),
+                          const SizedBox(width: 12),
+                          DropdownButton<int>(
+                            isExpanded: true,
+                            value: _selectedMonths,
+                            items: List.generate(11, (i) => i + 2).map((m) => DropdownMenuItem(value: m, child: Text('$m'))).toList(),
+                            onChanged: (v) => setState(() => _selectedMonths = v ?? 2),
+                          ),
+                        ])),
+                      ]);
+                    }),
                   const SizedBox(height: 20),
-                  WalletButton.primaryButton(buttonText: 'Crear recurrente', onPressed: _onCreate),
+                  WalletButton.primaryButton(buttonText: _isSubmitting ? 'Creando...' : 'Crear recurrente', onPressed: _isSubmitting ? null : _onCreate),
                   const SizedBox(height: 30),
                 ]),
               ),

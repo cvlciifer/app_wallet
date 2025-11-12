@@ -16,6 +16,8 @@ class Expense {
     required this.category,
     this.subcategoryId,
     String? id,
+    this.recurrenceId,
+    this.recurrenceIndex,
     this.syncStatus = SyncStatus.synced,
   }) : id = id ?? uuid.v4();
 
@@ -26,6 +28,8 @@ class Expense {
   final Category category;
   final String? subcategoryId;
   final SyncStatus syncStatus;
+  final String? recurrenceId;
+  final int? recurrenceIndex;
 
   String get formattedDate {
     return formatter.format(date);
@@ -38,6 +42,8 @@ class Expense {
     DateTime? date,
     Category? category,
     SyncStatus? syncStatus,
+    String? recurrenceId,
+    int? recurrenceIndex,
   }) {
     return Expense(
       id: id ?? this.id,
@@ -47,6 +53,8 @@ class Expense {
       category: category ?? this.category,
       subcategoryId: subcategoryId ?? this.subcategoryId,
       syncStatus: syncStatus ?? this.syncStatus,
+      recurrenceId: recurrenceId ?? this.recurrenceId,
+      recurrenceIndex: recurrenceIndex ?? this.recurrenceIndex,
     );
   }
 
@@ -66,6 +74,8 @@ class Expense {
         orElse: () => Category.comidaBebida,
       ),
       subcategoryId: data['subcategoria'] as String?,
+      recurrenceId: data['recurrence_id'] as String?,
+      recurrenceIndex: (data['recurrence_index'] is int) ? data['recurrence_index'] as int : (data['recurrence_index'] is String ? int.tryParse(data['recurrence_index']) : null),
       syncStatus: SyncStatus.synced,
     );
   }
@@ -77,6 +87,8 @@ class Expense {
       'fecha': date,
       'tipo': category.toString().split('.').last,
       'subcategoria': subcategoryId,
+      if (recurrenceId != null) 'recurrence_id': recurrenceId,
+      if (recurrenceIndex != null) 'recurrence_index': recurrenceIndex,
     };
   }
 }

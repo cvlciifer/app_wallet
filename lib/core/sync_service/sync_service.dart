@@ -46,6 +46,8 @@ class SyncService {
       // local pending changes (creates/updates/deletes) so we don't accidentally
       // wipe unsynced user edits.
       await localCrud.reconcileRemoteExpenses(expenses);
+      // Reconstruct recurrence metadata from expenses when needed (covers app re-installs)
+      await localCrud.reconstructRecurrencesFromExpenses(expenses);
       log('Gastos reconciliados en la base local: ${expenses.length}');
       // Ahora sincronizar/descargar los ingresos también
       log('Obteniendo ingresos de Firestore para el usuario: $email');
@@ -234,19 +236,25 @@ class SyncService {
 
   /// Crea un gasto (maneja local y remoto según conexión)
   Future<void> createExpense(Expense expense, {required bool hasConnection}) async {
+    // Fast local-first insert to keep the UI responsive.
+    // Always insert locally first as pendingCreate; if we have connectivity,
+    // try to push to Firestore in background and update the sync status later.
+    await localCrud.insertExpense(expense.copyWith(syncStatus: SyncStatus.pendingCreate));
+
     if (hasConnection) {
-      final email = await _resolveEmail();
-      if (email.isNotEmpty) {
-        final docRef = firestore.collection('usuarios').doc(email).collection('gastos').doc(expense.id);
-        await docRef.set(expense.toFirestore());
-        await localCrud.insertExpense(expense.copyWith(syncStatus: SyncStatus.synced));
-        return;
-      }
-      // if we don't have an email to sync to, fall back to pendingCreate so it will
-      // be picked up when we can resolve the user email later
-      await localCrud.insertExpense(expense.copyWith(syncStatus: SyncStatus.pendingCreate));
-    } else {
-      await localCrud.insertExpense(expense.copyWith(syncStatus: SyncStatus.pendingCreate));
+      // Fire-and-forget remote create. Any failures will be retried by
+      // syncPendingChanges(). We catch errors to avoid unhandled exceptions.
+      Future.microtask(() async {
+        try {
+          final email = await _resolveEmail();
+          if (email.isEmpty) return;
+          final docRef = firestore.collection('usuarios').doc(email).collection('gastos').doc(expense.id);
+          await docRef.set(expense.toFirestore());
+          await localCrud.updateSyncStatus(expense.id, SyncStatus.synced);
+        } catch (e, st) {
+          log('createExpense: remote create failed, will remain pending: $e\n$st', name: 'SyncService');
+        }
+      });
     }
   }
 
@@ -273,20 +281,38 @@ class SyncService {
 
   /// Borra un gasto
   Future<void> deleteExpense(String expenseId, {required bool hasConnection}) async {
-    if (hasConnection) {
-      final email = await _resolveEmail();
-      if (email.isNotEmpty) {
-        final docRef = firestore.collection('usuarios').doc(email).collection('gastos').doc(expenseId);
+    // Fast local-first deletion to keep UI responsive.
+    // We always remove mappings and ensure there's a tombstone locally so
+    // the remote deletion can be retried by the background sync if needed.
+    final email = await _resolveEmail();
+    if (hasConnection && email.isNotEmpty) {
+      // Use the offline-delete helper which removes mappings and inserts a
+      // tombstone (sync_status = pendingDelete) so UI updates immediately.
+      await localCrud.deleteExpenseOffline(expenseId);
+
+      // Fire-and-forget remote delete: attempt to remove remote doc in background.
+      // If it fails, syncPendingChanges() will retry since we left a tombstone.
+      Future.microtask(() async {
         try {
-          await docRef.delete();
-        } catch (_) {}
-        await localCrud.deleteExpense(expenseId);
-        return;
-      }
-      // If we can't resolve email, mark pending delete
-      await localCrud.updateSyncStatus(expenseId, SyncStatus.pendingDelete);
-    } else {
-      await localCrud.updateSyncStatus(expenseId, SyncStatus.pendingDelete);
+          final docRef = firestore.collection('usuarios').doc(email).collection('gastos').doc(expenseId);
+          try {
+            await docRef.delete();
+          } catch (_) {
+            // ignore individual delete failures; syncPendingChanges will retry
+          }
+          // After successful remote delete, ensure local tombstone is removed.
+          try {
+            await localCrud.deleteExpense(expenseId, localOnly: true);
+          } catch (_) {}
+        } catch (e, st) {
+          log('deleteExpense background delete failed, will be retried by syncPendingChanges: $e\n$st', name: 'SyncService');
+        }
+      });
+      return;
     }
+
+    // Offline or no-email path: perform the offline deletion which inserts a
+    // tombstone for later sync and updates mapping metadata immediately.
+    await localCrud.deleteExpenseOffline(expenseId);
   }
 }
