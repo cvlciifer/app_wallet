@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
 import '../core/data_base_local/local_crud.dart';
@@ -10,7 +11,9 @@ class WalletExpensesController extends ChangeNotifier {
     for (var c in Category.values) c: false,
   };
 
-  late final SyncService syncService;
+  SyncService syncService = SyncService(localCrud: LocalCrud(), firestore: FirebaseFirestore.instance, userEmail: '');
+  StreamSubscription<User?>? _authSub;
+  String _currentEmail = '';
   bool isLoadingExpenses = false;
   WalletExpensesController() {
     // Delay async initialization to ensure we can resolve auth state (may be null if
@@ -39,7 +42,27 @@ class WalletExpensesController extends ChangeNotifier {
       firestore: FirebaseFirestore.instance,
       userEmail: email,
     );
+    _currentEmail = email;
     syncService.startAutoSync();
+
+    // Listen for auth changes so switching account reloads data immediately.
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) async {
+      final newEmail = user?.email ?? '';
+      if (newEmail == _currentEmail) return;
+      _currentEmail = newEmail;
+      // Recreate syncService for the new user and perform an immediate sync/load.
+      try {
+        syncService = SyncService(localCrud: LocalCrud(), firestore: FirebaseFirestore.instance, userEmail: newEmail);
+        syncService.startAutoSync();
+        // Push any local pending for the new context, then initialize DB from Firebase
+        await syncService.syncPendingChanges();
+        await syncService.initializeLocalDbFromFirebase();
+      } catch (e, st) {
+        log('Error handling auth change refresh: $e\n$st');
+      }
+      // Refresh controller's view
+      await loadExpensesSmart();
+    });
 
     // Debug: informar el UID resuelto y el estado local al iniciar para ayudar
     // a diagnosticar problemas de persistencia en cold start offline.
@@ -114,6 +137,13 @@ class WalletExpensesController extends ChangeNotifier {
     // finished loading
     isLoadingExpenses = false;
     if (!_isDisposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    _isDisposed = true;
+    super.dispose();
   }
 
   Future<void> addExpense(Expense expense,
