@@ -20,9 +20,15 @@ class LocalCrud {
   Future<void> updateSyncStatus(String expenseId, SyncStatus status) => updateSyncStatusImpl(expenseId, status);
   Future<void> deleteExpense(String expenseId, {bool localOnly = false}) =>
       deleteExpenseImpl(expenseId, localOnly: localOnly);
+  // Special helper used when performing a delete while offline: remove
+  // recurrence mapping rows immediately so the UI/registry reflects the
+  // deletion, but keep a tombstone gasto row with sync_status = pendingDelete
+  // so the SyncService can remove the remote document later.
+  Future<void> deleteExpenseOffline(String expenseId) => deleteExpenseOfflineImpl(expenseId);
   Future<List<Expense>> getPendingExpenses() => getPendingExpensesImpl();
   Future<void> replaceAllExpenses(List<Expense> expenses) => replaceAllExpensesImpl(expenses);
   Future<void> reconcileRemoteExpenses(List<Expense> remoteExpenses) => reconcileRemoteExpensesImpl(remoteExpenses);
+  Future<void> reconstructRecurrencesFromExpenses(List<Expense> expenses) => reconstructRecurrencesFromExpensesImpl(expenses);
   Future<Map<String, int>> getGastosCountByUid() => getGastosCountByUidImpl();
   
   // Recurring expenses
@@ -360,8 +366,124 @@ Future<void> deleteExpenseImpl(String expenseId, {bool localOnly = false}) async
   final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
-  final count = await db.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expenseId, uid]);
-  log('Gasto eliminado localmente: $expenseId (uid_correo: $uid). Rows deleted: $count');
+
+  // Perform deletion and also reconcile any recurrence mapping that referenced this expense.
+  await db.transaction((txn) async {
+    // Delete the expense row for this user
+    try {
+      await txn.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expenseId, uid]);
+      log('Gasto eliminado localmente: $expenseId (uid_correo: $uid)');
+    } catch (e, st) {
+      log('deleteExpenseImpl: error eliminando gasto $expenseId -> $e\n$st');
+    }
+
+    // If this expense was part of a recurrence, remove the mapping and update metadata
+    try {
+      final maps = await txn.query('gastos_recurrentes_items', where: 'expense_id = ?', whereArgs: [expenseId]);
+      for (final m in maps) {
+        final recurrenceId = m['recurrence_id'] as String?;
+        final uidItem = m['uid_item'];
+        // remove mapping row
+        if (uidItem != null) {
+          await txn.delete('gastos_recurrentes_items', where: 'uid_item = ?', whereArgs: [uidItem]);
+        }
+
+        if (recurrenceId != null) {
+          // Count remaining mapping items for this recurrence
+          final remaining = await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId]);
+          if (remaining.isEmpty) {
+            // No months left — remove recurrence metadata
+            await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [recurrenceId]);
+            log('Recurrence $recurrenceId removed because no months remain');
+          } else {
+            // Reindex month_index sequentially by fecha and update meses to remaining count
+            remaining.sort((a, b) => (a['fecha'] as int).compareTo(b['fecha'] as int));
+            for (var i = 0; i < remaining.length; i++) {
+              final uidItemRem = remaining[i]['uid_item'];
+              if (uidItemRem != null) {
+                await txn.update('gastos_recurrentes_items', {'month_index': i}, where: 'uid_item = ?', whereArgs: [uidItemRem]);
+              }
+            }
+            await txn.update('gastos_recurrentes', {'meses': remaining.length}, where: 'id = ?', whereArgs: [recurrenceId]);
+            log('Recurrence $recurrenceId updated meses=${remaining.length} after deleting expense $expenseId');
+          }
+        }
+      }
+    } catch (e, st) {
+      log('deleteExpenseImpl: error reconciliando mappings para $expenseId -> $e\n$st');
+    }
+  });
+}
+
+Future<void> deleteExpenseOfflineImpl(String expenseId) async {
+  final uid = await getUserUid();
+  if (uid == null) return;
+  final db = await _db();
+
+  // Fetch the existing gasto row if present so we can reinsert a tombstone
+  // preserving basic fields (helps keep logs/diagnostics meaningful).
+  final existing = await db.query('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expenseId, uid], limit: 1);
+  Map<String, dynamic>? saved;
+  if (existing.isNotEmpty) {
+    saved = Map<String, dynamic>.from(existing.first);
+  }
+
+  await db.transaction((txn) async {
+    // Remove recurrence mapping items and update metadata similar to deleteExpenseImpl
+    try {
+      final maps = await txn.query('gastos_recurrentes_items', where: 'expense_id = ?', whereArgs: [expenseId]);
+      for (final m in maps) {
+        final recurrenceId = m['recurrence_id'] as String?;
+        final uidItem = m['uid_item'];
+        if (uidItem != null) {
+          await txn.delete('gastos_recurrentes_items', where: 'uid_item = ?', whereArgs: [uidItem]);
+        }
+
+        if (recurrenceId != null) {
+          final remaining = await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId]);
+          if (remaining.isEmpty) {
+            await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [recurrenceId]);
+          } else {
+            remaining.sort((a, b) => (a['fecha'] as int).compareTo(b['fecha'] as int));
+            for (var i = 0; i < remaining.length; i++) {
+              final uidItemRem = remaining[i]['uid_item'];
+              if (uidItemRem != null) {
+                await txn.update('gastos_recurrentes_items', {'month_index': i}, where: 'uid_item = ?', whereArgs: [uidItemRem]);
+              }
+            }
+            await txn.update('gastos_recurrentes', {'meses': remaining.length}, where: 'id = ?', whereArgs: [recurrenceId]);
+          }
+        }
+      }
+    } catch (e, st) {
+      log('deleteExpenseOfflineImpl: error reconciliando mappings para $expenseId -> $e\n$st');
+    }
+
+    // Delete the visible gasto row so UI reflects deletion immediately
+    try {
+      await txn.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expenseId, uid]);
+    } catch (e, st) {
+      log('deleteExpenseOfflineImpl: error eliminando gasto $expenseId -> $e\n$st');
+    }
+
+    // Insert a tombstone row so the sync process can detect and remove the remote doc later.
+    // Use preserved fields when available to make tombstone more informative.
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await txn.insert('gastos', {
+        'uid_correo': uid,
+        'nombre': saved?['nombre'] ?? '__deleted__',
+        'fecha': saved?['fecha'] ?? now,
+        'cantidad': saved?['cantidad'] ?? 0,
+        'categoria': saved?['categoria'] ?? 'tombstone',
+        'subcategoria': saved?['subcategoria'],
+        'sync_status': SyncStatus.pendingDelete.index,
+        'id': expenseId,
+      });
+    } catch (e, st) {
+      log('deleteExpenseOfflineImpl: error insertando tombstone para $expenseId -> $e\n$st');
+    }
+  });
 }
 
 /// Inserta o reemplaza una fila en la tabla `ingresos` para la fecha dada.
@@ -547,39 +669,123 @@ Future<void> reconcileRemoteExpensesImpl(List<Expense> remoteExpenses) async {
   final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
-
   final remoteIds = remoteExpenses.map((e) => e.id).toSet();
 
-  await db.transaction((txn) async {
-    // Upsert remote docs as synced
-    for (final expense in remoteExpenses) {
-      try {
-        await txn.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expense.id, uid]);
-      } catch (_) {}
-      await txn.insert('gastos', {
-        'uid_correo': uid,
-        'nombre': expense.title,
-        'fecha': expense.date.millisecondsSinceEpoch,
-        'cantidad': expense.amount,
-        'categoria': _categoryToString(expense.category),
-        'subcategoria': expense.subcategoryId,
-        'sync_status': SyncStatus.synced.index,
-        'id': expense.id,
-      });
-    }
+  // Process remote expenses in batches to avoid blocking UI for long periods.
+  const batchSize = 50;
+  for (var i = 0; i < remoteExpenses.length; i += batchSize) {
+    final batch = remoteExpenses.sublist(i, (i + batchSize).clamp(0, remoteExpenses.length));
+    await db.transaction((txn) async {
+      for (final expense in batch) {
+        try {
+          await txn.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [expense.id, uid]);
+        } catch (_) {}
+        await txn.insert('gastos', {
+          'uid_correo': uid,
+          'nombre': expense.title,
+          'fecha': expense.date.millisecondsSinceEpoch,
+          'cantidad': expense.amount,
+          'categoria': _categoryToString(expense.category),
+          'subcategoria': expense.subcategoryId,
+          'sync_status': SyncStatus.synced.index,
+          'id': expense.id,
+        });
+      }
+    });
+    // yield to event loop so UI can respond
+    await Future.delayed(const Duration(milliseconds: 40));
+  }
 
-    // Delete local rows that are synced but not present remotely
-    final localRows = await txn.query('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
-    for (final r in localRows) {
-      final localId = r['id'] as String?;
-      final localSync = r['sync_status'] as int? ?? SyncStatus.synced.index;
-      if (localId == null) continue;
-      if (!remoteIds.contains(localId) && localSync == SyncStatus.synced.index) {
-        await txn.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [localId, uid]);
+  // Delete local rows that are synced but not present remotely. Do in batches.
+  final localRows = await db.query('gastos', where: 'uid_correo = ?', whereArgs: [uid]);
+  final toDelete = <String>[];
+  for (final r in localRows) {
+    final localId = r['id'] as String?;
+    final localSync = r['sync_status'] as int? ?? SyncStatus.synced.index;
+    if (localId == null) continue;
+    if (!remoteIds.contains(localId) && localSync == SyncStatus.synced.index) {
+      toDelete.add(localId);
+    }
+  }
+  for (var i = 0; i < toDelete.length; i += batchSize) {
+    final batch = toDelete.sublist(i, (i + batchSize).clamp(0, toDelete.length));
+    await db.transaction((txn) async {
+      for (final id in batch) {
+        await txn.delete('gastos', where: 'id = ? AND uid_correo = ?', whereArgs: [id, uid]);
+      }
+    });
+    await Future.delayed(const Duration(milliseconds: 40));
+  }
+}
+
+/// Reconstruct recurrence metadata from existing expenses when metadata is missing.
+///
+/// Looks for expense IDs that follow the pattern '<recurrenceId>-<index>' and
+/// creates `gastos_recurrentes` and `gastos_recurrentes_items` rows if they
+/// aren't already present. This helps recover recurrents after a reinstall
+/// where the local metadata was lost but individual expenses remain in Firestore.
+Future<void> reconstructRecurrencesFromExpensesImpl(List<Expense> expenses) async {
+  final db = await _db();
+  // Group expenses by presumed recurrence prefix (uuid part before last '-')
+  final Map<String, List<Expense>> groups = {};
+  final idRegex = RegExp(r'^(.+)-(\d+)\$');
+  for (final e in expenses) {
+    final m = idRegex.firstMatch(e.id);
+    if (m == null) continue;
+    final prefix = m.group(1)!;
+    groups.putIfAbsent(prefix, () => []).add(e);
+  }
+
+  if (groups.isEmpty) return;
+
+  await db.transaction((txn) async {
+    for (final entry in groups.entries) {
+      final prefix = entry.key;
+      final items = entry.value;
+      // If recurrence metadata already exists, skip
+      final exists = await txn.query('gastos_recurrentes', where: 'id = ?', whereArgs: [prefix]);
+      if (exists.isNotEmpty) continue;
+
+      // Sort items by date ascending and create metadata from first item
+      items.sort((a, b) => a.date.compareTo(b.date));
+      final first = items.first;
+      final startYear = first.date.year;
+      final startMonth = first.date.month;
+      final dayOfMonth = first.date.day;
+      final meses = items.length;
+
+      await txn.insert('gastos_recurrentes', {
+        'id': prefix,
+        'uid_correo': first.syncStatus == SyncStatus.synced ? (await getUserUid()) : (await getUserUid()),
+        'nombre': first.title,
+        'cantidad': first.amount.toInt(),
+        'categoria': _categoryToString(first.category),
+        'subcategoria': first.subcategoryId,
+        'dia': dayOfMonth,
+        'meses': meses,
+        'start_year': startYear,
+        'start_month': startMonth,
+        'created_at': DateTime.now().millisecondsSinceEpoch,
+        'sync_status': SyncStatus.synced.index,
+      });
+
+      for (var i = 0; i < items.length; i++) {
+        final it = items[i];
+        await txn.insert('gastos_recurrentes_items', {
+          'recurrence_id': prefix,
+          'expense_id': it.id,
+          'fecha': it.date.millisecondsSinceEpoch,
+          'cantidad': it.amount.toInt(),
+          'month_index': i,
+          'mutable': 0,
+          'sync_status': SyncStatus.synced.index,
+        });
       }
     }
   });
 }
+
+Future<void> reconstructRecurrencesFromExpenses(List<Expense> expenses) => reconstructRecurrencesFromExpensesImpl(expenses);
 
 Category _mapCategory(String tipo) {
   for (final c in Category.values) {
@@ -785,10 +991,20 @@ Future<void> deleteRecurrenceFromMonthImpl(String recurrenceId, int fromMonthInd
       // remove the mapping row locally
       await txn.delete('gastos_recurrentes_items', where: 'uid_item = ?', whereArgs: [r['uid_item']]);
     }
-    // If no remaining items exist for this recurrence, delete recurrence metadata as well
+    // Recompute remaining items and reindex month_index; delete metadata if none left
     final remaining = await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId]);
     if (remaining.isEmpty) {
       await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [recurrenceId]);
+    } else {
+      // Reindex month_index sequentially by fecha
+      remaining.sort((a, b) => (a['fecha'] as int).compareTo(b['fecha'] as int));
+      for (var i = 0; i < remaining.length; i++) {
+        final uidItemRem = remaining[i]['uid_item'];
+        if (uidItemRem != null) {
+          await txn.update('gastos_recurrentes_items', {'month_index': i}, where: 'uid_item = ?', whereArgs: [uidItemRem]);
+        }
+      }
+      await txn.update('gastos_recurrentes', {'meses': remaining.length}, where: 'id = ?', whereArgs: [recurrenceId]);
     }
   });
 }

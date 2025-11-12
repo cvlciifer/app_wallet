@@ -46,6 +46,8 @@ class SyncService {
       // local pending changes (creates/updates/deletes) so we don't accidentally
       // wipe unsynced user edits.
       await localCrud.reconcileRemoteExpenses(expenses);
+      // Reconstruct recurrence metadata from expenses when needed (covers app re-installs)
+      await localCrud.reconstructRecurrencesFromExpenses(expenses);
       log('Gastos reconciliados en la base local: ${expenses.length}');
       // Ahora sincronizar/descargar los ingresos también
       log('Obteniendo ingresos de Firestore para el usuario: $email');
@@ -234,19 +236,25 @@ class SyncService {
 
   /// Crea un gasto (maneja local y remoto según conexión)
   Future<void> createExpense(Expense expense, {required bool hasConnection}) async {
+    // Fast local-first insert to keep the UI responsive.
+    // Always insert locally first as pendingCreate; if we have connectivity,
+    // try to push to Firestore in background and update the sync status later.
+    await localCrud.insertExpense(expense.copyWith(syncStatus: SyncStatus.pendingCreate));
+
     if (hasConnection) {
-      final email = await _resolveEmail();
-      if (email.isNotEmpty) {
-        final docRef = firestore.collection('usuarios').doc(email).collection('gastos').doc(expense.id);
-        await docRef.set(expense.toFirestore());
-        await localCrud.insertExpense(expense.copyWith(syncStatus: SyncStatus.synced));
-        return;
-      }
-      // if we don't have an email to sync to, fall back to pendingCreate so it will
-      // be picked up when we can resolve the user email later
-      await localCrud.insertExpense(expense.copyWith(syncStatus: SyncStatus.pendingCreate));
-    } else {
-      await localCrud.insertExpense(expense.copyWith(syncStatus: SyncStatus.pendingCreate));
+      // Fire-and-forget remote create. Any failures will be retried by
+      // syncPendingChanges(). We catch errors to avoid unhandled exceptions.
+      Future.microtask(() async {
+        try {
+          final email = await _resolveEmail();
+          if (email.isEmpty) return;
+          final docRef = firestore.collection('usuarios').doc(email).collection('gastos').doc(expense.id);
+          await docRef.set(expense.toFirestore());
+          await localCrud.updateSyncStatus(expense.id, SyncStatus.synced);
+        } catch (e, st) {
+          log('createExpense: remote create failed, will remain pending: $e\n$st', name: 'SyncService');
+        }
+      });
     }
   }
 
@@ -280,13 +288,16 @@ class SyncService {
         try {
           await docRef.delete();
         } catch (_) {}
+        // Remove locally and reconcile mappings immediately
         await localCrud.deleteExpense(expenseId);
         return;
       }
-      // If we can't resolve email, mark pending delete
-      await localCrud.updateSyncStatus(expenseId, SyncStatus.pendingDelete);
-    } else {
-      await localCrud.updateSyncStatus(expenseId, SyncStatus.pendingDelete);
+      // If we can't resolve email, fallthrough to offline helper
     }
+
+    // Offline delete: remove recurrence mappings immediately so the registry
+    // and UI reflect the deletion, but keep a tombstone row (pendingDelete)
+    // to ensure the remote doc will be removed later by syncPendingChanges().
+    await localCrud.deleteExpenseOffline(expenseId);
   }
 }
