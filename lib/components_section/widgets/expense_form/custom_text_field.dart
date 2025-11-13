@@ -105,7 +105,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
           border: effectiveBorder,
           enabledBorder: effectiveBorder,
           focusedBorder: flat
-              ? UnderlineInputBorder(borderSide: BorderSide(color: AwColors.appBarColor))
+              ? const UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AwColors.appBarColor,
+                  ),
+                )
               : OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: const BorderSide(color: AwColors.appBarColor),
