@@ -1,7 +1,9 @@
+import 'dart:developer';
+
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:app_wallet/profile_section/presentation/screens/ingresos_imprevistos_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
-import 'package:app_wallet/profile_section/presentation/screens/gastos_imprevistos_page.dart';
 import 'package:app_wallet/profile_section/presentation/screens/recurrent_create_page.dart';
 import 'package:app_wallet/profile_section/presentation/screens/recurrent_registry_page.dart';
 import 'package:app_wallet/profile_section/presentation/screens/gmail_inbox_page.dart';
@@ -137,10 +139,10 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                             try {
                               final result = await Navigator.of(context)
                                   .push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
+                              if (!mounted) return;
                               if (result == true) {
-                                if (mounted)
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(const SnackBar(content: Text('Gasto recurrente creado')));
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(content: Text('Gasto recurrente creado')));
                               }
                             } catch (_) {}
                           },
@@ -199,7 +201,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                               await Navigator.of(context)
                                   .push(MaterialPageRoute(builder: (_) => const GmailInboxPage()));
                             } catch (e) {
-                              if (kDebugMode) debugPrint('Error abriendo GmailInboxPage: $e');
+                              if (kDebugMode) log('Error abriendo GmailInboxPage: $e');
                               if (mounted)
                                 ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('No se pudo abrir la bandeja de correos')));
@@ -247,7 +249,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                                     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SetPinPage()));
                                   }
                                 } catch (e, st) {
-                                  if (kDebugMode) debugPrint('Restablecer PIN error: $e\n$st');
+                                  if (kDebugMode) log('Restablecer PIN error', error: e, stackTrace: st);
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(content: Text('No se pudo abrir restablecer PIN')));
@@ -255,7 +257,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                                 }
                               }
                             } catch (e, st) {
-                              if (kDebugMode) debugPrint('Error checking PIN state: $e\n$st');
+                              if (kDebugMode) log('Error checking PIN state', error: e, stackTrace: st);
                               try {
                                 loader.state = false;
                               } catch (_) {}
@@ -289,22 +291,22 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                         width: double.infinity,
                         child: SettingsCard(
                           title: 'Ingresos imprevistos',
-                          icon: Icons.money_off,
+                          icon: Icons.savings,
                           onTap: () async {
                             try {
                               final result = await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(builder: (_) => const GastosImprevistosPage()),
+                                MaterialPageRoute(builder: (_) => const IngresosImprevistosPage()),
                               );
+                              if (!mounted) return;
                               if (result == true) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(const SnackBar(content: Text('Ingreso imprevisto guardado')));
-                                }
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(content: Text('Ingreso imprevisto guardado')));
                               }
                             } catch (_) {}
                           },
                         ),
                       ),
+                      AwSpacing.s18,
                     ],
                   ),
                 ),

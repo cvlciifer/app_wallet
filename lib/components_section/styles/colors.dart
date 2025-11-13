@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 
 class AwColors {
   static const Color appBarColor = Color(0xFF62597C);

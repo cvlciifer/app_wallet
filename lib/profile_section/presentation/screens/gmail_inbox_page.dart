@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 
 class GmailInboxPage extends StatefulWidget {
   const GmailInboxPage({Key? key}) : super(key: key);
@@ -156,17 +157,14 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
   }
 
   Widget _buildList(List<GmailMessageInfo> messages) {
-    // keep a local copy of current messages for batch operations
     _currentMessages = messages;
     if (messages.isEmpty) {
       return const Center(child: Text('No hay correos en la bandeja de entrada'));
     }
 
-    // Wrap list with scroll notification listener to implement custom pull-to-refresh progress
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (notification is OverscrollNotification && notification.metrics.pixels <= 0 && !_isRefreshing) {
-          // user is pulling down at top
           setState(() {
             _pullDistance += notification.overscroll.abs();
             if (_pullDistance > _refreshTriggerDistance * 2) _pullDistance = _refreshTriggerDistance * 2;
@@ -174,13 +172,10 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         }
 
         if (notification is ScrollEndNotification) {
-          // user released; check threshold
           final progress = (_pullDistance / _refreshTriggerDistance).clamp(0.0, 1.0);
           if (progress >= 1.0 && !_isRefreshing) {
-            // trigger refresh
             _performRefresh();
           } else if (!_isRefreshing) {
-            // reset
             setState(() {
               _pullDistance = 0.0;
             });
@@ -211,8 +206,6 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
               }
 
               final bool indicatesOut = _isOutgoingMessage(m);
-              // final bool indicatesIn = !indicatesOut && inKeywords.any((k) => textToAnalyze.contains(k));
-              // selection state for this message
               final isSelected = _selectedIds.contains(m.id);
 
               Widget content = Column(
@@ -258,7 +251,6 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
               );
 
               final List<Widget> overlays = [];
-              // Place a checkbox in the top-right corner inside the TicketCard
               overlays.add(Positioned(
                 right: -8,
                 top: -10,
@@ -353,7 +345,6 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         _futureMessages = Future.value(msgs);
       });
     } catch (e) {
-      // ignore, FutureBuilder will show errors
     } finally {
       setState(() {
         _isRefreshing = false;
@@ -369,9 +360,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
   Future<void> _openBatchConfirm() async {
     if (_selectedIds.isEmpty) return;
 
-    // build parsed list
     final parsed = <Map<String, dynamic>>[];
-    // show loader
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -412,9 +401,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
           'date': parsedDate,
           'title': comentario ?? title,
         });
-      } catch (e) {
-        // ignore missing message
-      }
+      } catch (e) {}
     }
 
     Navigator.of(context, rootNavigator: true).pop();
@@ -467,12 +454,10 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                                       Expanded(child: AwText.bold(title, maxLines: 2)),
                                       IconButton(
                                         onPressed: () {
-                                          // remove this item from parsed and selection
                                           parsed.removeAt(i);
                                           setState(() {
                                             _selectedIds.remove(m.id);
                                           });
-                                          // rebuild dialog by popping and reopening
                                           Navigator.of(ctx).pop();
                                           Future.delayed(Duration.zero, () => _openBatchConfirm());
                                         },
@@ -524,20 +509,27 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
     final hasConnection = conn != ConnectivityResult.none;
     final controller = context.read<WalletExpensesController>();
 
-    // Add each expense sequentially
-    for (final p in parsed) {
-      final expense = Expense(
-        title: p['title'] ?? 'Gasto detectado',
-        amount: (p['amount'] as double?) ?? 0.0,
-        date: p['date'] as DateTime,
-        category: Category.serviciosCuentas,
-      );
-
+    try {
       try {
-        await controller.addExpense(expense, hasConnection: hasConnection);
-      } catch (e) {
-        // continue with others but record errors
+        riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state = true;
+      } catch (_) {}
+
+      for (final p in parsed) {
+        final expense = Expense(
+          title: p['title'] ?? 'Gasto detectado',
+          amount: (p['amount'] as double?) ?? 0.0,
+          date: p['date'] as DateTime,
+          category: Category.serviciosCuentas,
+        );
+
+        try {
+          await controller.addExpense(expense, hasConnection: hasConnection);
+        } catch (e) {}
       }
+    } finally {
+      try {
+        riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state = false;
+      } catch (_) {}
     }
 
     _clearSelection();
@@ -571,7 +563,6 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         final raw = amountMatch.group(1)!.replaceAll('.', '').replaceAll(',', '.');
         amount = double.tryParse(raw);
       }
-      // fallback not required here
     } catch (e) {
       Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error cargando el correo')));
@@ -665,12 +656,26 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                               final hasConnection = conn != ConnectivityResult.none;
                               final controller = context.read<WalletExpensesController>();
 
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(builder: (_) => const WalletHomePage()),
-                                (route) => false,
-                              );
+                              try {
+                                try {
+                                  riverpod.ProviderScope.containerOf(context, listen: false)
+                                      .read(globalLoaderProvider.notifier)
+                                      .state = true;
+                                } catch (_) {}
 
-                              await controller.addExpense(returned, hasConnection: hasConnection);
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (_) => const WalletHomePage()),
+                                  (route) => false,
+                                );
+
+                                await controller.addExpense(returned, hasConnection: hasConnection);
+                              } finally {
+                                try {
+                                  riverpod.ProviderScope.containerOf(context, listen: false)
+                                      .read(globalLoaderProvider.notifier)
+                                      .state = false;
+                                } catch (_) {}
+                              }
                             }
                           },
                           buttonText: 'Agregar gasto',
@@ -728,7 +733,6 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
           return _buildList(msgs);
         },
       ),
-      // Show a floating action button when the user has one or more selections.
       floatingActionButton: _selectedIds.isNotEmpty
           ? Padding(
               padding: const EdgeInsets.only(bottom: 20.0),
