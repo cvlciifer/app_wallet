@@ -60,7 +60,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                 children: [
                   AwSpacing.s12,
                   const AwText.bold('Ingresos mensuales',
-                      size: AwSize.s18, color: AwColors.boldBlack),
+                      size: AwSize.s18, color: AwColors.appBarColor),
                   AwSpacing.s6,
                   const AwText.normal('Ingresa monto y duración (meses).',
                       size: AwSize.s14, color: AwColors.modalGrey),
@@ -204,7 +204,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                   ),
                   const SizedBox(height: 30),
                   const AwText.bold('Previsualización',
-                      size: AwSize.s18, color: AwColors.boldBlack),
+                      size: AwSize.s18, color: AwColors.appBarColor),
                   AwSpacing.s6,
                   Column(
                     children: state.previewMonths.map((d) {

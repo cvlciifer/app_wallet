@@ -136,7 +136,7 @@ class _IngresosImprevistosPageState
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const AwText.bold('Ingresos imprevistos',
-                    size: AwSize.s18, color: AwColors.boldBlack),
+                    size: AwSize.s18, color: AwColors.appBarColor),
                 AwSpacing.s6,
                 AwText.normal(
                   'Ingresa un monto imprevisto. Este valor se verá reflejado en ${DateFormat('MMMM yyyy').format(monthLabel)}.',
