@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:app_wallet/library_section/main_library.dart';
-import '../../services/gmail_service.dart';
 
 class GmailInboxPage extends StatefulWidget {
   const GmailInboxPage({Key? key}) : super(key: key);
@@ -21,21 +18,15 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
   }
 
   Future<List<GmailMessageInfo>> _loadMessages() async {
-    // reset UI state if needed
     final signed = await _service.signInWithGmailScope();
     if (!signed) {
       throw Exception('Autenticación cancelada o permisos denegados');
     }
 
     try {
-      // Filtrar por remitentes/dominios de los bancos principales y traer más mensajes
-      // para filtrar localmente por frases específicas.
-      // Por ahora solo filtramos correos de BancoEstado
-      final query =
+      const query =
           'from:("BancoEstado" OR "@bancoestado.cl" OR "noreply@correo.bancoestado.cl" OR "notificaciones@correo.bancoestado.cl")';
       final msgs = await _service.listLatestMessages(maxResults: 50, query: query);
-
-      // Filtrar localmente para devolver sólo correos que indiquen salida de dinero
       final outgoing = msgs.where((m) => _isOutgoingMessage(m)).toList();
       return outgoing;
     } catch (e) {
@@ -43,38 +34,28 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
     }
   }
 
-  // Devuelve true si el mensaje indica que ha salido dinero de la cuenta
-  // usando frases específicas por banco (BancoEstado / Chile y Santander / BCI / Itaú).
   bool _isOutgoingMessage(GmailMessageInfo m) {
     final textToAnalyze = '${m.subject} ${m.snippet} ${m.from}'.toLowerCase();
 
-    // Lista de remitentes conocidos (direcciones exactas) de BancoEstado
     final knownSenders = <String>[
       'noreply@correo.bancoestado.cl',
       'notificaciones@correo.bancoestado.cl',
     ];
 
-    // Frases específicas para BancoEstado / Chile
     final bancoEstadoPhrases = <String>[
       'se ha realizado una transferencia desde su cuenta corriente',
       'se ha realizado una compra',
       'se ha efectuado un pago a través de su tarjeta de débito',
-      'se ha descontado el monto de', // seguido de $XXXX
+      'se ha descontado el monto de',
       'ha realizado una compra en',
       'le informamos que su pago ha sido procesado exitosamente',
       'se ha cargado el monto correspondiente a su tarjeta',
     ];
 
-    // (Se eliminaron las frases de otros bancos; sólo BancoEstado se considera)
-
-    // Normalizar acentos y variantes simples
     final normalized = textToAnalyze.replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
     final normalizedFrom = m.from.toLowerCase().replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
 
-    // Si el remitente coincide con una dirección conocida, favorecemos detección
     if (knownSenders.any((s) => normalizedFrom.contains(s))) {
-      // Si el correo proviene de un remitente oficial y contiene signos típicos
-      // de cargo/transferencia o un monto ($), lo consideramos salida.
       if (normalized.contains('pago') ||
           normalized.contains('cargo') ||
           normalized.contains('transferencia') ||
@@ -83,27 +64,17 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       }
     }
 
-    // Buscar coincidencias exactas de frases (si contienen monto con $ también cuenta)
     for (final p in bancoEstadoPhrases) {
       final pn = p.replaceAll('ó', 'o').replaceAll('é', 'e').replaceAll('á', 'a');
       if (normalized.contains(pn)) return true;
     }
 
-    // no se buscan frases de otros bancos aquí
-
-    // Detectar patrones más generales que indiquen debito/compra/retiro con monto
     final generalPatterns = <RegExp>[
-      // "se ha descontado el monto de $1234"
       RegExp(r'se ha descontado el monto de\s*\$?\s*\d', caseSensitive: false),
-      // "se debito el monto de $1234" / "se debito"
       RegExp(r'se debi?t?o?\b.*\$?\s*\d', caseSensitive: false),
-      // "pago efectuado" + posible referencia a tarjeta/visa
       RegExp(r'pago efectuado.*tarjeta', caseSensitive: false),
-      // "transferencia enviada"
       RegExp(r'transferencia enviad', caseSensitive: false),
-      // "compra" + comercio
       RegExp(r'ha realizado una compra en|compra por internet|compra registrada', caseSensitive: false),
-      // "cargo" automático o por servicio
       RegExp(r'cargo automatico|cargo por pago|se realizo un cargo', caseSensitive: false),
     ];
 
@@ -134,15 +105,11 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         try {
           final parsed = DateTime.parse(m.date);
           formattedDate = DateFormat.yMMMd().add_Hm().format(parsed.toLocal());
-        } catch (_) {
-          // mantener la fecha original si no parsea
-        }
+        } catch (_) {}
 
-        // Mostrar más información: subject, remitente, fecha y snippet.
         final subject = m.subject.isNotEmpty ? m.subject : '(sin asunto)';
         final snippet = m.snippet.replaceAll('\n', ' ').trim();
 
-        // Detectar si el correo indica salida de dinero usando la función centralizada
         final textToAnalyze = '${subject.toLowerCase()} ${snippet.toLowerCase()} ${m.from.toLowerCase()}';
         const inKeywords = [
           'acredit',
@@ -161,17 +128,14 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         final bool indicatesOut = _isOutgoingMessage(m);
         final bool indicatesIn = !indicatesOut && inKeywords.any((k) => textToAnalyze.contains(k));
 
-        // Contenido principal de la tarjeta
         Widget content = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Subject
             Text(subject,
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis),
             const SizedBox(height: 6),
-            // From + date row
             Row(
               children: [
                 Expanded(
@@ -184,7 +148,6 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
               ],
             ),
             const SizedBox(height: 8),
-            // Snippet
             if (snippet.isNotEmpty)
               Text(snippet,
                   style: TextStyle(fontSize: 14, color: Colors.grey[700]),
@@ -193,10 +156,9 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
           ],
         );
 
-        // Overlay arrow según detección
         final List<Widget> overlays = [];
         if (indicatesOut) {
-          overlays.add(Positioned(
+          overlays.add(const Positioned(
             right: -8,
             top: -10,
             child: CircleAvatar(
@@ -206,7 +168,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
             ),
           ));
         } else if (indicatesIn) {
-          overlays.add(Positioned(
+          overlays.add(const Positioned(
             right: -8,
             top: -10,
             child: CircleAvatar(
@@ -238,10 +200,8 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
   }
 
   void _onMessageTap(GmailMessageInfo m) async {
-    // Obtener cuerpo completo del mensaje
     String body = await _service.getMessageBody(m.id);
 
-    // Extraer monto del cuerpo (primer match de $123 o $ 123)
     final amountMatch = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
     double? amount;
     if (amountMatch != null) {
@@ -258,7 +218,6 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
 
     final title = m.subject.isNotEmpty ? m.subject : 'Gasto detectado';
 
-    // Mostrar popup con TicketCard y cuerpo completo (scrollable)
     await showDialog<void>(
       context: context,
       builder: (ctx) {

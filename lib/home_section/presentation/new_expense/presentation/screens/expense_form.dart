@@ -25,14 +25,14 @@ class _ExpenseFormState extends State<ExpenseForm> {
   @override
   void initState() {
     super.initState();
-    // Si se entrega un expense inicial, prellenar campos
+
     final init = widget.initialExpense;
     if (init != null) {
       _titleController.text = init.title;
       _selectedDate = init.date;
       _selectedCategory = init.category;
       _selectedSubcategoryId = init.subcategoryId;
-      // Formatear monto para mostrar (NumberFormatHelper espera string input)
+
       _amountController.text = NumberFormatHelper.formatAmount(init.amount.toString());
       _categoryController.text = init.category.toString().split('.').last;
     }
@@ -59,7 +59,6 @@ class _ExpenseFormState extends State<ExpenseForm> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 12),
-                // Cabecera más humanizada
                 const FormHeader(
                   title: 'Agrega un nuevo gasto',
                   subtitle: 'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
@@ -67,7 +66,6 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 const SizedBox(height: 5),
                 _buildTitle(),
                 const SizedBox(height: 12),
-                // componentizado: CategoryPicker — ahora abre un bottom sheet
                 CategoryPicker(
                   controller: _categoryController,
                   selectedCategory: _selectedCategory,

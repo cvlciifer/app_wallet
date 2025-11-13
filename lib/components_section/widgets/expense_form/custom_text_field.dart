@@ -49,8 +49,6 @@ class CustomTextField extends StatelessWidget {
         textAlign: textAlign ?? TextAlign.start,
         textAlignVertical: textAlignVertical,
         decoration: InputDecoration(
-          // usar labelText en lugar de label widget para que el comportamiento del
-          // label (flotante) sea consistente con el campo de categoría
           labelText: label,
           labelStyle: const TextStyle(color: Colors.black),
           prefixText: prefixText,
@@ -58,12 +56,11 @@ class CustomTextField extends StatelessWidget {
           border: effectiveBorder,
           enabledBorder: effectiveBorder,
           focusedBorder: flat
-              ? UnderlineInputBorder(borderSide: BorderSide(color: AwColors.appBarColor))
+              ? const UnderlineInputBorder(borderSide: BorderSide(color: AwColors.appBarColor))
               : OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: AwColors.appBarColor),
+                  borderSide: const BorderSide(color: AwColors.appBarColor),
                 ),
-          // cuando es flat (underline) usamos padding similar al campo de categoría
           contentPadding: EdgeInsets.symmetric(
             horizontal: 16,
             vertical: flat ? 18 : 18,

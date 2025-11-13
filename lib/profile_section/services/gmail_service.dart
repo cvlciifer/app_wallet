@@ -1,5 +1,4 @@
-import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:app_wallet/library_section/main_library.dart';
 import 'package:googleapis/gmail/v1.dart' as gmail_api;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -64,7 +63,6 @@ class GmailService {
   Future<http.Client> _authenticatedHttpClient() async {
     final account = _currentUser ?? _googleSignIn.currentUser;
     if (account == null) throw StateError('No signed in user');
-
     final headers = await account.authHeaders;
     return _GoogleAuthClient(headers);
   }
@@ -76,39 +74,52 @@ class GmailService {
       final messagesResponse =
           await gmail.users.messages.list('me', maxResults: maxResults, labelIds: ['INBOX'], q: query);
       final messages = messagesResponse.messages ?? [];
-
       final List<GmailMessageInfo> results = [];
 
-      for (final m in messages) {
-        try {
-          // Request full format so we can access snippet and labels in addition to headers
-          final msg = await gmail.users.messages.get('me', m.id!, format: 'full');
+      const int concurrency = 6; // number of parallel requests
+      for (var i = 0; i < messages.length; i += concurrency) {
+        final chunk = messages.skip(i).take(concurrency).toList();
+        final futures = chunk.map((m) async {
+          try {
+            final msg = await gmail.users.messages.get(
+              'me',
+              m.id!,
+              format: 'metadata',
+              metadataHeaders: ['From', 'Subject', 'Date'],
+            );
 
-          final headers = msg.payload?.headers ?? [];
-          String from = '';
-          String subject = '';
-          String date = '';
-          for (final h in headers) {
-            if (h.name?.toLowerCase() == 'from') from = h.value ?? '';
-            if (h.name?.toLowerCase() == 'subject') subject = h.value ?? '';
-            if (h.name?.toLowerCase() == 'date') date = h.value ?? '';
+            final headers = msg.payload?.headers ?? [];
+            String from = '';
+            String subject = '';
+            String date = '';
+            for (final h in headers) {
+              if (h.name?.toLowerCase() == 'from') from = h.value ?? '';
+              if (h.name?.toLowerCase() == 'subject') subject = h.value ?? '';
+              if (h.name?.toLowerCase() == 'date') date = h.value ?? '';
+            }
+
+            final labels = msg.labelIds ?? [];
+            final isRead = !(labels.contains('UNREAD'));
+            final snippet = msg.snippet ?? '';
+
+            return GmailMessageInfo(
+              id: m.id ?? '',
+              from: from,
+              subject: subject,
+              date: date,
+              isRead: isRead,
+              snippet: snippet,
+              labels: labels,
+            );
+          } catch (e) {
+            debugPrint('Error fetching message ${m.id}: $e');
+            return null;
           }
+        }).toList();
 
-          final labels = msg.labelIds ?? [];
-          final isRead = !(labels.contains('UNREAD'));
-          final snippet = msg.snippet ?? '';
-
-          results.add(GmailMessageInfo(
-            id: m.id ?? '',
-            from: from,
-            subject: subject,
-            date: date,
-            isRead: isRead,
-            snippet: snippet,
-            labels: labels,
-          ));
-        } catch (e) {
-          debugPrint('Error fetching message ${m.id}: $e');
+        final chunkResults = await Future.wait(futures);
+        for (final r in chunkResults) {
+          if (r != null) results.add(r);
         }
       }
 
@@ -118,7 +129,6 @@ class GmailService {
     }
   }
 
-  /// Obtiene el cuerpo del mensaje (texto plano preferido, fallback HTML sin tags, o snippet)
   Future<String> getMessageBody(String id) async {
     final client = await _authenticatedHttpClient();
     try {
@@ -127,7 +137,6 @@ class GmailService {
 
       String extractAndDecode(String? data) {
         if (data == null || data.isEmpty) return '';
-        // Gmail API returns base64url encoded string
         final normalized = base64Url.normalize(data);
         try {
           return utf8.decode(base64Url.decode(normalized));
@@ -145,11 +154,9 @@ class GmailService {
       final payload = msg.payload;
       if (payload == null) return msg.snippet ?? '';
 
-      // If payload.body has data, use it
       if (payload.body != null && (payload.body!.data ?? '').isNotEmpty) {
         bodyText = extractAndDecode(payload.body!.data);
       } else if (payload.parts != null && payload.parts!.isNotEmpty) {
-        // Try to find text/plain first, then text/html
         String? html;
         for (final p in payload.parts!) {
           final mime = p.mimeType ?? '';
@@ -161,7 +168,6 @@ class GmailService {
           if (mime.toLowerCase().contains('text/html') && data.isNotEmpty) {
             html = extractAndDecode(data);
           }
-          // multipart nested
           if ((p.parts ?? []).isNotEmpty) {
             for (final np in p.parts!) {
               final nm = np.mimeType ?? '';
@@ -178,7 +184,6 @@ class GmailService {
           }
         }
         if (bodyText.isEmpty && html != null) {
-          // Strip html tags for a readable fallback
           bodyText = html.replaceAll(RegExp(r'<[^>]*>'), ' ');
         }
       }
@@ -189,26 +194,6 @@ class GmailService {
       client.close();
     }
   }
-}
-
-class GmailMessageInfo {
-  final String id;
-  final String from;
-  final String subject;
-  final String date;
-  final bool isRead;
-  final String snippet;
-  final List<String> labels;
-
-  GmailMessageInfo({
-    required this.id,
-    required this.from,
-    required this.subject,
-    required this.date,
-    this.isRead = true,
-    this.snippet = '',
-    this.labels = const [],
-  });
 }
 
 class _GoogleAuthClient extends http.BaseClient {
