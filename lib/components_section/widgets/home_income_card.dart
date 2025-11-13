@@ -2,6 +2,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
 import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
+import 'package:app_wallet/components_section/components/ticket_card_home.dart';
 
 class HomeIncomeCard extends StatefulWidget {
   final WalletExpensesController controller;
@@ -16,8 +17,6 @@ class HomeIncomeCard extends StatefulWidget {
 }
 
 class _HomeIncomeCardState extends State<HomeIncomeCard> {
-  bool _expanded = false;
-
   @override
   Widget build(BuildContext context) {
     return riverpod.Consumer(
@@ -37,7 +36,6 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
             .where((e) => e.date.year == now.year && e.date.month == now.month)
             .toList();
         final spent = expensesThisMonth.fold(0.0, (sum, e) => sum + e.amount);
-        final percent = total > 0 ? (spent / total * 100) : 0.0;
 
         Widget buildTicketCard({required bool wide}) {
           final available = (total -
@@ -51,27 +49,21 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
               .toDouble();
 
           return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: const Border(
-                top: BorderSide(color: Color(0xFFE0E0E0), width: 1),
-                left: BorderSide(color: Color(0xFFE0E0E0), width: 1),
-                right: BorderSide(color: Color(0xFFE0E0E0), width: 1),
-                bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
-              ),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: const Color(0xFFEEEEEE), width: 0.5),
             ),
-            child: TicketCard(
-              notchDepth: 0,
-              roundTopCorners: true,
+            child: TicketCardHome(
               elevation: 8,
               color: Colors.white,
+              borderRadius: 28,
               boxShadowAll: true,
               overlays: [
                 Positioned(
-                  top: -8,
-                  right: -8,
+                  top: 8,
+                  right: 8,
                   child: IconButton(
                     padding: const EdgeInsets.all(8),
                     icon:
@@ -81,108 +73,74 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                   ),
                 ),
               ],
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AwSpacing.s6,
-                  const AwText.bold('Saldo Disponible',
-                      size: AwSize.s16, color: AwColors.modalGrey),
-                  AwSpacing.s6,
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: AwText.normal(
-                          formatNumber(available),
-                          size: 30,
-                          color: available < 0
-                              ? AwColors.red
-                              : (available == 0.0
-                                  ? AwColors.appBarColor
-                                  : AwColors.boldBlack),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Expanded(
+                          child: AwText.bold('Saldo Disponible',
+                              size: AwSize.s16, color: AwColors.modalGrey),
                         ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    // Balance centered
+                    Center(
+                      child: AwText.normal(
+                        formatNumber(available),
+                        size: 30, // keep as requested
+                        color: available < 0
+                            ? AwColors.red
+                            : (available == 0.0
+                                ? AwColors.appBarColor
+                                : AwColors.boldBlack),
                       ),
-                      Material(
-                        color: Colors.transparent,
-                        child: IconButton(
-                          padding: const EdgeInsets.all(6),
-                          constraints: const BoxConstraints(),
-                          icon: Icon(
-                            _expanded ? Icons.expand_less : Icons.expand_more,
-                            color: AwColors.modalGrey,
-                            size: 18,
+                    ),
+
+                    const SizedBox(height: 8),
+                    const Divider(height: 1, thickness: 1),
+                    const SizedBox(height: 8),
+
+                    // Ingresos (left) and Gasto (right) to avoid dead space
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const AwText.normal('Ingresos de este mes',
+                                  size: AwSize.s12, color: AwColors.modalGrey),
+                              AwSpacing.xs,
+                              AwText.bold(formatNumber(total.toDouble()),
+                                  size: AwSize.s16, color: AwColors.green),
+                            ],
                           ),
-                          onPressed: () =>
-                              setState(() => _expanded = !_expanded),
                         ),
-                      ),
-                    ],
-                  ),
-                  if (_expanded) ...[
-                    const AwDivider(),
-                    AwText.normal(
-                        'Ingreso mensual: ${formatNumber(fijo.toDouble())}',
-                        size: AwSize.s14,
-                        color: AwColors.modalGrey),
-                    AwSpacing.s6,
-                    AwText.normal(
-                        'Ingreso imprevisto: ${formatNumber(imprevisto.toDouble())}',
-                        size: AwSize.s14,
-                        color: AwColors.modalGrey),
-                    AwSpacing.s,
-                    AwText.normal(
-                        'Gasto este mes: ${formatNumber(spent)} • ${percent.toStringAsFixed(0)}% del ingreso',
-                        size: AwSize.s14,
-                        color:
-                            percent > 80 ? AwColors.red : AwColors.modalGrey),
-                    AwSpacing.s,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const AwText.normal('Gastos este mes',
+                                  size: AwSize.s12, color: AwColors.modalGrey),
+                              AwSpacing.xs,
+                              AwText.bold(formatNumber(spent),
+                                  size: AwSize.s14, color: AwColors.red),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
                   ],
-                  AwSpacing.s6,
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CompactActionButton(
-                          text: 'Estadísticas',
-                          onPressed: () {
-                            final now = DateTime.now();
-                            final target = widget.controller.monthFilter ??
-                                DateTime(now.year, now.month);
-                            final monthExpenses = widget.controller.allExpenses
-                                .where((e) =>
-                                    e.date.year == target.year &&
-                                    e.date.month == target.month)
-                                .toList();
-                            Navigator.of(ctx).push(MaterialPageRoute(
-                                builder: (_) => EstadisticasScreen(
-                                    expenses: monthExpenses)));
-                          },
-                          primary: false,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: CompactActionButton(
-                          text: 'Informe',
-                          onPressed: () {
-                            final now = DateTime.now();
-                            final target = widget.controller.monthFilter ??
-                                DateTime(now.year, now.month);
-                            final monthExpenses = widget.controller.allExpenses
-                                .where((e) =>
-                                    e.date.year == target.year &&
-                                    e.date.month == target.month)
-                                .toList();
-                            Navigator.of(ctx).push(MaterialPageRoute(
-                                builder: (_) => InformeMensualScreen(
-                                    expenses: monthExpenses)));
-                          },
-                          primary: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                ],
+                ),
               ),
             ),
           );
