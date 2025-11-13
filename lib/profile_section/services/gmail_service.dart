@@ -76,7 +76,7 @@ class GmailService {
       final messages = messagesResponse.messages ?? [];
       final List<GmailMessageInfo> results = [];
 
-      const int concurrency = 6; // number of parallel requests
+      const int concurrency = 6;
       for (var i = 0; i < messages.length; i += concurrency) {
         final chunk = messages.skip(i).take(concurrency).toList();
         final futures = chunk.map((m) async {
@@ -96,6 +96,16 @@ class GmailService {
               if (h.name?.toLowerCase() == 'from') from = h.value ?? '';
               if (h.name?.toLowerCase() == 'subject') subject = h.value ?? '';
               if (h.name?.toLowerCase() == 'date') date = h.value ?? '';
+            }
+
+            final internal = msg.internalDate;
+            if (internal != null && internal.isNotEmpty) {
+              final ms = int.tryParse(internal);
+              if (ms != null) {
+                try {
+                  date = DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true).toIso8601String();
+                } catch (_) {}
+              }
             }
 
             final labels = msg.labelIds ?? [];

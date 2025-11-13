@@ -163,7 +163,8 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         String formattedDate = m.date;
         try {
           final parsed = DateTime.parse(m.date);
-          formattedDate = DateFormat.yMMMd('es_ES').add_Hm().format(parsed.toLocal());
+          // Mostrar solo día/mes/año en formato dd/MM/yyyy usando la hora local
+          formattedDate = DateFormat('dd/MM/yyyy').format(parsed.toLocal());
         } catch (_) {}
 
         final subject = m.subject.isNotEmpty ? m.subject : '(sin asunto)';
@@ -297,10 +298,10 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       log('body: $body');
 
       final commentMatch = RegExp(r'Comentario:[\t]*(.*)', caseSensitive: false, multiLine: true).firstMatch(body);
-      comentario = commentMatch?.group(1) ?? '';
-      final firstLine = comentario.split(RegExp(r'\r?\n')).first.trim();
-      comentario = firstLine.isEmpty ? 'sin comentario' : firstLine;
-      log('comentario: $comentario');
+      final rawComment = commentMatch?.group(1) ?? '';
+      final firstLine = rawComment.split(RegExp(r'\r?\n')).first.trim();
+      comentario = firstLine.isEmpty ? null : firstLine;
+      log('comentario: ${comentario ?? '<no comment>'}');
       final amountMatch = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
       if (amountMatch != null) {
         final raw = amountMatch.group(1)!.replaceAll('.', '').replaceAll(',', '.');
@@ -320,7 +321,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
 
     DateTime parsedDate;
     try {
-      parsedDate = DateTime.parse(m.date);
+      parsedDate = DateTime.parse(m.date).toLocal();
     } catch (_) {
       parsedDate = DateTime.now();
     }
