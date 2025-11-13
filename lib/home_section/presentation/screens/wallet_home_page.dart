@@ -27,9 +27,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
               _initialLoaderHidden = true;
               final ctx = context;
               try {
-        riverpod.ProviderScope.containerOf(ctx, listen: false)
-          .read(globalLoaderProvider.notifier)
-          .state = false;
+                riverpod.ProviderScope.containerOf(ctx, listen: false).read(globalLoaderProvider.notifier).state =
+                    false;
               } catch (_) {}
             }
           } catch (_) {}
@@ -51,14 +50,12 @@ class _WalletHomePageState extends State<WalletHomePage> {
 
   void _onBottomNavTap(int index) {
     // don't keep local index state here; bottom nav state is provided by BottomNavProvider
-  final controller = context.read<WalletExpensesController>();
-  WalletNavigationService.handleBottomNavigation(
-    context, index, controller.allExpenses);
+    final controller = context.read<WalletExpensesController>();
+    WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
   }
 
   void _openAddExpenseOverlay() async {
-    final expense =
-        await WalletNavigationService.openAddExpenseOverlay(context);
+    final expense = await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
       // Detectar conectividad real antes de intentar crear el gasto
       final conn = await Connectivity().checkConnectivity();
@@ -80,15 +77,6 @@ class _WalletHomePageState extends State<WalletHomePage> {
           return Stack(
             children: [
               _buildBody(context, controller),
-              if (controller.isLoading)
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.black.withOpacity(0.4),
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                ),
             ],
           );
         },
@@ -132,8 +120,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
             onRemoveExpense: (expense) async {
               final connectivity = await Connectivity().checkConnectivity();
               final hasConnection = connectivity != ConnectivityResult.none;
-              await controller.removeExpense(expense,
-                  hasConnection: hasConnection);
+              await controller.removeExpense(expense, hasConnection: hasConnection);
             },
           )
         : const EmptyState();
@@ -164,8 +151,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     );
   }
 
-  Widget _buildMonthButtons(
-      BuildContext context, WalletExpensesController controller) {
+  Widget _buildMonthButtons(BuildContext context, WalletExpensesController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 4),
       child: Center(
@@ -202,8 +188,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
     final available = controller.getAvailableMonths(excludeCurrent: true);
     if (available.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('No hay meses disponibles para filtrar')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('No hay meses disponibles para filtrar')));
       }
       return;
     }

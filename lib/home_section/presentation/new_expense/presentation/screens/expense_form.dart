@@ -33,7 +33,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
       _selectedCategory = init.category;
       _selectedSubcategoryId = init.subcategoryId;
 
-      _amountController.text = NumberFormatHelper.formatAmount(init.amount.toString());
+      // Usar toInt() para evitar que el ".0" de un double introduzca un dígito extra
+      _amountController.text = NumberFormatHelper.formatAmount(init.amount.toInt().toString());
       _categoryController.text = init.category.toString().split('.').last;
     }
   }

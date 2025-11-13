@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:app_wallet/library_section/main_library.dart';
 
 class GmailInboxPage extends StatefulWidget {
@@ -10,6 +12,9 @@ class GmailInboxPage extends StatefulWidget {
 class _GmailInboxPageState extends State<GmailInboxPage> {
   final GmailService _service = GmailService();
   late Future<List<GmailMessageInfo>> _futureMessages;
+  double? _globalAmount;
+  final Map<String, double?> _amountCache = {};
+  final Map<String, String?> _commentCache = {};
 
   @override
   void initState() {
@@ -28,6 +33,36 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
           'from:("BancoEstado" OR "@bancoestado.cl" OR "noreply@correo.bancoestado.cl" OR "notificaciones@correo.bancoestado.cl")';
       final msgs = await _service.listLatestMessages(maxResults: 50, query: query);
       final outgoing = msgs.where((m) => _isOutgoingMessage(m)).toList();
+
+      final toCheck = <GmailMessageInfo>[];
+      for (final m in outgoing) {
+        final detected = _extractAmountFromMessage(m);
+        if (detected != null) {
+          _amountCache[m.id] = detected;
+        } else {
+          toCheck.add(m);
+        }
+      }
+
+      await Future.wait(toCheck.map((m) async {
+        try {
+          final body = await _service.getMessageBody(m.id);
+          final match = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
+          if (match != null) {
+            final raw = match.group(1)!.replaceAll('.', '').replaceAll(',', '.');
+            _amountCache[m.id] = double.tryParse(raw);
+          } else {
+            _amountCache[m.id] = null;
+          }
+
+          final commentMatch = RegExp(r'Comentario:[ \t]*(.*)', caseSensitive: false, multiLine: true).firstMatch(body);
+          _commentCache[m.id] = commentMatch?.group(1)?.trim();
+        } catch (_) {
+          _amountCache[m.id] = null;
+          _commentCache[m.id] = null;
+        }
+      }));
+
       return outgoing;
     } catch (e) {
       rethrow;
@@ -85,6 +120,30 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
     return false;
   }
 
+  String _displayName(String from) {
+    if (from.isEmpty) return from;
+    final trimmed = from.trim();
+    final match = RegExp(r'^(.*?)(?:\s*<.*>)$').firstMatch(trimmed);
+    if (match != null) {
+      var name = match.group(1)!.trim();
+      if (name.startsWith('"') && name.endsWith('"') && name.length > 1) {
+        name = name.substring(1, name.length - 1).trim();
+      }
+      return name;
+    }
+    return trimmed;
+  }
+
+  double? _extractAmountFromMessage(GmailMessageInfo m) {
+    final combined = '${m.subject} ${m.snippet} ${m.from}';
+    final match = RegExp(r'\$\s*([\d.,]+)').firstMatch(combined);
+    if (match != null) {
+      final raw = match.group(1)!.replaceAll('.', '').replaceAll(',', '.');
+      return double.tryParse(raw);
+    }
+    return null;
+  }
+
   void _refresh() {
     setState(() {
       _futureMessages = _loadMessages();
@@ -104,11 +163,18 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         String formattedDate = m.date;
         try {
           final parsed = DateTime.parse(m.date);
-          formattedDate = DateFormat.yMMMd().add_Hm().format(parsed.toLocal());
+          formattedDate = DateFormat.yMMMd('es_ES').add_Hm().format(parsed.toLocal());
         } catch (_) {}
 
         final subject = m.subject.isNotEmpty ? m.subject : '(sin asunto)';
         final snippet = m.snippet.replaceAll('\n', ' ').trim();
+        final amountDetected = _extractAmountFromMessage(m) ?? _amountCache[m.id];
+        final comentarioRaw = _commentCache[m.id];
+        String? comentarioToShow;
+        if (comentarioRaw != null) {
+          final firstLine = comentarioRaw.split(RegExp(r'\r?\n')).first.trim();
+          comentarioToShow = firstLine.isEmpty ? 'sin comentario' : firstLine;
+        }
 
         final textToAnalyze = '${subject.toLowerCase()} ${snippet.toLowerCase()} ${m.from.toLowerCase()}';
         const inKeywords = [
@@ -131,28 +197,42 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         Widget content = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(subject,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                    child: Text(m.from,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[800]),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis)),
-                const SizedBox(width: 8),
-                Text(formattedDate, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
+            AwText.bold(
+              subject,
+              maxLines: 2,
+              size: 16,
+              textOverflow: TextOverflow.ellipsis,
+              color: AwColors.boldBlack,
             ),
+            const SizedBox(height: 6),
+            AwText(
+              text: _displayName(m.from),
+              size: 13,
+              color: Colors.grey[800],
+              maxLines: 1,
+              textOverflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(width: 8),
+            AwText(
+              text: formattedDate,
+              size: 12,
+              color: Colors.grey,
+            ),
+            if (amountDetected != null)
+              AwText(
+                text: 'Monto: ${formatNumber(amountDetected)}',
+                size: 13,
+                color: indicatesOut ? Colors.red : Colors.green,
+              ),
             const SizedBox(height: 8),
-            if (snippet.isNotEmpty)
-              Text(snippet,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis),
+            if (comentarioRaw != null) ...[
+              const SizedBox(height: 8),
+              AwText(
+                text: 'Comentario: $comentarioToShow',
+                size: 14,
+                color: Colors.black87,
+              ),
+            ],
           ],
         );
 
@@ -200,14 +280,42 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
   }
 
   void _onMessageTap(GmailMessageInfo m) async {
-    String body = await _service.getMessageBody(m.id);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const WalletLoader(
+        color: AwColors.white,
+      ),
+    );
 
-    final amountMatch = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
+    String body;
+    String? comentario;
     double? amount;
-    if (amountMatch != null) {
-      final raw = amountMatch.group(1)!.replaceAll('.', '').replaceAll(',', '.');
-      amount = double.tryParse(raw);
+    try {
+      body = await _service.getMessageBody(m.id);
+      log('body: $body');
+
+      final commentMatch = RegExp(r'Comentario:[\t]*(.*)', caseSensitive: false, multiLine: true).firstMatch(body);
+      comentario = commentMatch?.group(1) ?? '';
+      final firstLine = comentario.split(RegExp(r'\r?\n')).first.trim();
+      comentario = firstLine.isEmpty ? 'sin comentario' : firstLine;
+      log('comentario: $comentario');
+      final amountMatch = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
+      if (amountMatch != null) {
+        final raw = amountMatch.group(1)!.replaceAll('.', '').replaceAll(',', '.');
+        amount = double.tryParse(raw);
+      }
+      final fallback = _extractAmountFromMessage(m);
+      setState(() {
+        _globalAmount = amount ?? fallback;
+      });
+    } catch (e) {
+      Navigator.of(context, rootNavigator: true).pop();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error cargando el correo')));
+      return;
     }
+
+    Navigator.of(context, rootNavigator: true).pop();
 
     DateTime parsedDate;
     try {
@@ -222,6 +330,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       context: context,
       builder: (ctx) {
         final maxHeight = MediaQuery.of(ctx).size.height * 0.7;
+        final maxWidth = MediaQuery.of(ctx).size.width * 1;
         return Dialog(
           backgroundColor: Colors.transparent,
           child: TicketCard(
@@ -229,9 +338,9 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
             topCornerRadius: 10,
             compactNotches: true,
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: maxHeight),
+              constraints: BoxConstraints(maxHeight: maxHeight, maxWidth: maxWidth),
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(5),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,14 +351,19 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                       size: 16,
                     ),
                     const SizedBox(height: 8),
-                    AwText(
-                      text: 'Fecha: ${DateFormat.yMMMd().add_Hm().format(parsedDate.toLocal())}',
-                    ),
                     const SizedBox(height: 8),
                     if (amount != null)
                       AwText(
-                        text: 'Monto: ${NumberFormat.simpleCurrency(locale: 'en_US').format(amount)}',
+                        text: 'Monto: ${formatNumber(amount)}',
                       ),
+                    if (comentario != null && comentario.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      AwText(
+                        text: 'Comentario: $comentario',
+                        size: 14,
+                        color: Colors.black87,
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     Expanded(
                       child: SingleChildScrollView(
@@ -273,14 +387,28 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                             Navigator.of(ctx).pop();
 
                             final expense = Expense(
-                              title: title,
+                              title: comentario ?? title,
                               amount: amount ?? 0.0,
                               date: parsedDate,
                               category: Category.serviciosCuentas,
                             );
-                            await Navigator.of(context).push(MaterialPageRoute(
-                              builder: (_) => NewExpenseScreen(initialExpense: expense),
-                            ));
+
+                            final returned = await Navigator.of(context).push<Expense?>(
+                              MaterialPageRoute(builder: (_) => NewExpenseScreen(initialExpense: expense)),
+                            );
+
+                            if (returned != null) {
+                              final conn = await Connectivity().checkConnectivity();
+                              final hasConnection = conn != ConnectivityResult.none;
+                              final controller = context.read<WalletExpensesController>();
+
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(builder: (_) => const WalletHomePage()),
+                                (route) => false,
+                              );
+
+                              await controller.addExpense(returned, hasConnection: hasConnection);
+                            }
                           },
                           buttonText: 'Agregar gasto',
                         ),
@@ -310,7 +438,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         future: _futureMessages,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: WalletLoader());
           }
           if (snapshot.hasError) {
             final err = snapshot.error.toString();
