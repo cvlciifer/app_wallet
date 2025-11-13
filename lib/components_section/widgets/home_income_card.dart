@@ -1,6 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:flutter/material.dart';
 import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
 import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
 
@@ -41,11 +40,21 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
         final percent = total > 0 ? (spent / total * 100) : 0.0;
 
         Widget buildTicketCard({required bool wide}) {
+          final available = (total -
+                  (wide
+                      ? widget.controller.allExpenses
+                          .where((e) =>
+                              e.date.year == now.year &&
+                              e.date.month == now.month)
+                          .fold(0.0, (s, e) => s + e.amount)
+                      : spent))
+              .toDouble();
+
           return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(20),
               border: const Border(
                 top: BorderSide(color: Color(0xFFE0E0E0), width: 1),
                 left: BorderSide(color: Color(0xFFE0E0E0), width: 1),
@@ -63,61 +72,34 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                 Positioned(
                   top: -8,
                   right: -8,
-                  child: Material(
-                    color: Colors.white,
-                    shape: const CircleBorder(),
-                    elevation: 2,
-                    child: IconButton(
-                      padding: const EdgeInsets.all(8),
-                      icon: const Icon(Icons.edit,
-                          size: 18, color: AwColors.appBarColor),
-                      onPressed: () => Navigator.of(ctx).push(MaterialPageRoute(
-                          builder: (_) => const IngresosPage())),
-                    ),
+                  child: IconButton(
+                    padding: const EdgeInsets.all(8),
+                    icon:
+                        const Icon(Icons.edit, size: 18, color: AwColors.black),
+                    onPressed: () => Navigator.of(ctx).push(MaterialPageRoute(
+                        builder: (_) => const IngresosPage())),
                   ),
                 ),
               ],
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 8),
-                  if (!wide)
-                    const AwText.normal('Saldo Disponible',
-                        size: AwSize.s18, color: AwColors.modalGrey)
-                  else
-                    const AwText.bold('Saldo disponible',
-                        size: AwSize.s16, color: AwColors.appBarColor),
-                  const SizedBox(height: 6),
+                  AwSpacing.s6,
+                  const AwText.bold('Saldo Disponible',
+                      size: AwSize.s16, color: AwColors.modalGrey),
+                  AwSpacing.s6,
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                        child: AwText.bold(
-                          formatNumber((total -
-                                  (wide
-                                      ? widget.controller.allExpenses
-                                          .where((e) =>
-                                              e.date.year == now.year &&
-                                              e.date.month == now.month)
-                                          .fold(0.0, (s, e) => s + e.amount)
-                                      : spent))
-                              .toDouble()),
-                          size: wide ? AwSize.s20 : AwSize.s22,
-                          color: ((total -
-                                          (wide
-                                              ? widget.controller.allExpenses
-                                                  .where((e) =>
-                                                      e.date.year == now.year &&
-                                                      e.date.month == now.month)
-                                                  .fold(0.0,
-                                                      (s, e) => s + e.amount)
-                                              : spent))
-                                      .toDouble() <
-                                  0)
+                        child: AwText.normal(
+                          formatNumber(available),
+                          size: 30,
+                          color: available < 0
                               ? AwColors.red
-                              : (wide
-                                  ? AwColors.boldBlack
-                                  : AwColors.appBarColor),
+                              : (available == 0.0
+                                  ? AwColors.appBarColor
+                                  : AwColors.boldBlack),
                         ),
                       ),
                       Material(
@@ -136,11 +118,8 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                       ),
                     ],
                   ),
-                  AwSpacing.xs,
                   if (_expanded) ...[
-                    AwSpacing.s6,
-                    const Divider(),
-                    AwSpacing.s6,
+                    const AwDivider(),
                     AwText.normal(
                         'Ingreso mensual: ${formatNumber(fijo.toDouble())}',
                         size: AwSize.s14,
@@ -153,7 +132,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                     AwSpacing.s,
                     AwText.normal(
                         'Gasto este mes: ${formatNumber(spent)} • ${percent.toStringAsFixed(0)}% del ingreso',
-                        size: AwSize.s12,
+                        size: AwSize.s14,
                         color:
                             percent > 80 ? AwColors.red : AwColors.modalGrey),
                     AwSpacing.s,
@@ -162,68 +141,47 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                   Row(
                     children: [
                       Expanded(
-                        child: SizedBox(
-                          height: AwSize.s40,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              final now = DateTime.now();
-                              final target = widget.controller.monthFilter ??
-                                  DateTime(now.year, now.month);
-
-                              final monthExpenses = widget
-                                  .controller.allExpenses
-                                  .where((e) =>
-                                      e.date.year == target.year &&
-                                      e.date.month == target.month)
-                                  .toList();
-
-                              Navigator.of(ctx).push(MaterialPageRoute(
-                                  builder: (_) => EstadisticasScreen(
-                                        expenses: monthExpenses,
-                                      )));
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AwColors.blue),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(AwSize.s16),
-                              ),
-                            ),
-                            child: const Center(
-                              child: AwText.bold(
-                                'Estadísticas',
-                                size: AwSize.s14,
-                                color: AwColors.blue,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: WalletButton.primaryButton(
-                          buttonText: 'Informe',
+                        child: CompactActionButton(
+                          text: 'Estadísticas',
                           onPressed: () {
                             final now = DateTime.now();
                             final target = widget.controller.monthFilter ??
                                 DateTime(now.year, now.month);
-
                             final monthExpenses = widget.controller.allExpenses
                                 .where((e) =>
                                     e.date.year == target.year &&
                                     e.date.month == target.month)
                                 .toList();
-
+                            Navigator.of(ctx).push(MaterialPageRoute(
+                                builder: (_) => EstadisticasScreen(
+                                    expenses: monthExpenses)));
+                          },
+                          primary: false,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: CompactActionButton(
+                          text: 'Informe',
+                          onPressed: () {
+                            final now = DateTime.now();
+                            final target = widget.controller.monthFilter ??
+                                DateTime(now.year, now.month);
+                            final monthExpenses = widget.controller.allExpenses
+                                .where((e) =>
+                                    e.date.year == target.year &&
+                                    e.date.month == target.month)
+                                .toList();
                             Navigator.of(ctx).push(MaterialPageRoute(
                                 builder: (_) => InformeMensualScreen(
-                                      expenses: monthExpenses,
-                                    )));
+                                    expenses: monthExpenses)));
                           },
-                          height: AwSize.s40,
+                          primary: true,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
