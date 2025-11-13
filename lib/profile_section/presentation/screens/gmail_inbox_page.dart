@@ -260,6 +260,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         }
 
         return GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () => _onMessageTap(m),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
