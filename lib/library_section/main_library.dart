@@ -102,6 +102,10 @@ export 'package:app_wallet/core/providers/reset_flow_provider.dart';
 export 'package:app_wallet/core/providers/global_loader_provider.dart';
 export 'package:app_wallet/core/providers/security/forgot_pin_notifier.dart';
 export 'package:app_wallet/core/models/security/forgot_pin_state.dart';
+export 'package:app_wallet/components_section/widgets/profile/recurrent_list.dart';
+export 'package:app_wallet/components_section/widgets/profile/recurrent_detail_items.dart';
+export 'package:app_wallet/components_section/widgets/profile/recurrent_item_actions.dart';
+export 'package:app_wallet/components_section/buttons/compact_action_button.dart';
 
 export 'package:app_wallet/components_section/modals/aw_alert.dart';
 export 'package:app_wallet/components_section/widgets/ticket_card.dart';

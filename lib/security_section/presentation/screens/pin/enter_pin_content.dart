@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -195,7 +196,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                                 ));
                               }
                             } catch (e, st) {
-                              if (kDebugMode) debugPrint('Forgot PIN error: $e\n$st');
+                              if (kDebugMode) log('Forgot PIN error', error: e, stackTrace: st);
                               try {
                                 loader.state = false;
                               } catch (_) {}

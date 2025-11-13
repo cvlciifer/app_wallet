@@ -11,7 +11,10 @@ class WalletExpensesController extends ChangeNotifier {
     for (var c in Category.values) c: false,
   };
 
-  SyncService syncService = SyncService(localCrud: LocalCrud(), firestore: FirebaseFirestore.instance, userEmail: '');
+  SyncService syncService = SyncService(
+      localCrud: LocalCrud(),
+      firestore: FirebaseFirestore.instance,
+      userEmail: '');
   StreamSubscription<User?>? _authSub;
   String _currentEmail = '';
   bool isLoadingExpenses = false;
@@ -52,7 +55,10 @@ class WalletExpensesController extends ChangeNotifier {
       _currentEmail = newEmail;
       // Recreate syncService for the new user and perform an immediate sync/load.
       try {
-        syncService = SyncService(localCrud: LocalCrud(), firestore: FirebaseFirestore.instance, userEmail: newEmail);
+        syncService = SyncService(
+            localCrud: LocalCrud(),
+            firestore: FirebaseFirestore.instance,
+            userEmail: newEmail);
         syncService.startAutoSync();
         // Push any local pending for the new context, then initialize DB from Firebase
         await syncService.syncPendingChanges();
@@ -106,7 +112,7 @@ class WalletExpensesController extends ChangeNotifier {
   Future<void> loadExpensesSmart() async {
     isLoadingExpenses = true;
     if (!_isDisposed) notifyListeners();
-    print('loadExpensesSmart llamado');
+    log('loadExpensesSmart llamado');
     final connectivityResult = await Connectivity().checkConnectivity();
     final hasConnection = connectivityResult != ConnectivityResult.none;
 
@@ -165,7 +171,7 @@ class WalletExpensesController extends ChangeNotifier {
 
   Future<void> removeExpense(Expense expense,
       {required bool hasConnection}) async {
-    log('removeExpense llamado con: \\\${expense.title}');
+    log('removeExpense llamado con: ${expense.title}');
     _isLoading = true;
     notifyListeners();
     try {

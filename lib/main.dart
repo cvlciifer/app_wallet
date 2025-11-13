@@ -58,8 +58,9 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
   AppLinks? _appLinks;
 
-  bool _wasBackgrounded = false;
+  DateTime? _backgroundedAt;
   bool _navigatingToPin = false;
+  AppLifecycleState? _lastLifecycleState;
 
   @override
   void initState() {
@@ -80,15 +81,34 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     super.didChangeAppLifecycleState(state);
+    log('App lifecycle event: $state (previous: $_lastLifecycleState)');
 
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      _wasBackgrounded = true;
+      if (_lastLifecycleState == AppLifecycleState.resumed || _backgroundedAt == null) {
+        _backgroundedAt = DateTime.now();
+        log('Recorded background time: $_backgroundedAt');
+      } else {
+        log('Background event ignored; last state=$_lastLifecycleState, backgroundedAt=$_backgroundedAt');
+      }
+      _lastLifecycleState = state;
       return;
     }
 
     if (state == AppLifecycleState.resumed) {
-      if (!_wasBackgrounded) return;
-      _wasBackgrounded = false;
+      log('Resumed; background timestamp was: $_backgroundedAt');
+      if (_backgroundedAt == null) {
+        log('No background timestamp — skipping PIN check');
+        return;
+      }
+      final elapsed = DateTime.now().difference(_backgroundedAt!);
+      log('Elapsed while backgrounded: ${elapsed.inSeconds}s');
+      _backgroundedAt = null;
+      _lastLifecycleState = state;
+      if (elapsed.inSeconds < 30) {
+        log('Background < 30s — skipping PIN navigation');
+        return;
+      }
+      log('Background >= 30s — proceeding to PIN checks');
 
       if (_navigatingToPin) return;
 

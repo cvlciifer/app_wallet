@@ -1,6 +1,8 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:provider/provider.dart';
+import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
+import 'package:app_wallet/components_section/widgets/home_income_card.dart';
 import 'package:app_wallet/components_section/widgets/month_selector.dart';
 
 class WalletHomePage extends StatefulWidget {
@@ -11,21 +13,41 @@ class WalletHomePage extends StatefulWidget {
 }
 
 class _WalletHomePageState extends State<WalletHomePage> {
-  // Use the controller provided by Provider (MultiProvider in main)
   bool _initialLoaderHidden = false;
+  StreamSubscription<User?>? _authSub;
 
   @override
   void initState() {
     super.initState();
-    // Attach to the provided controller after the first frame so context is available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         final provController = context.read<WalletExpensesController>();
+        try {
+          final container = riverpod.ProviderScope.containerOf(context, listen: false);
+          container.read(ingresosProvider.notifier).init();
+
+          _authSub = FirebaseAuth.instance.authStateChanges().listen((_) {
+            try {
+              container.read(ingresosProvider.notifier).init();
+            } catch (_) {}
+          });
+        } catch (_) {}
         provController.addListener(() {
           try {
+            final ctx = context;
+            try {
+              final loader = riverpod.ProviderScope.containerOf(ctx, listen: false).read(globalLoaderProvider.notifier);
+
+              if (provController.isLoadingExpenses) {
+                loader.state = false;
+              } else if (provController.isLoading) {
+                loader.state = true;
+              } else {
+                loader.state = false;
+              }
+            } catch (_) {}
             if (!_initialLoaderHidden && !provController.isLoadingExpenses) {
               _initialLoaderHidden = true;
-              final ctx = context;
               try {
                 riverpod.ProviderScope.containerOf(ctx, listen: false).read(globalLoaderProvider.notifier).state =
                     false;
@@ -34,9 +56,6 @@ class _WalletHomePageState extends State<WalletHomePage> {
           } catch (_) {}
         });
 
-        // Evitar doble inicialización: el controlador ya realiza la carga
-        // inicial (incluyendo sincronización cuando hay conexión). Simplemente
-        // pedirle que cargue el estado inteligente local/remoto.
         provController.loadExpensesSmart();
       } catch (_) {}
     });
@@ -44,12 +63,13 @@ class _WalletHomePageState extends State<WalletHomePage> {
 
   @override
   void dispose() {
-    // Do not dispose the provided controller (managed by Provider)
+    try {
+      _authSub?.cancel();
+    } catch (_) {}
     super.dispose();
   }
 
   void _onBottomNavTap(int index) {
-    // don't keep local index state here; bottom nav state is provided by BottomNavProvider
     final controller = context.read<WalletExpensesController>();
     WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
   }
@@ -57,7 +77,6 @@ class _WalletHomePageState extends State<WalletHomePage> {
   void _openAddExpenseOverlay() async {
     final expense = await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
-      // Detectar conectividad real antes de intentar crear el gasto
       final conn = await Connectivity().checkConnectivity();
       final hasConnection = conn != ConnectivityResult.none;
       final controller = context.read<WalletExpensesController>();
@@ -128,7 +147,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     if (width < 600) {
       return Column(
         children: [
-          Chart(expenses: controller.filteredExpenses),
+          HomeIncomeCard(controller: controller, isWide: false),
           monthButtons,
           Expanded(child: mainContent),
         ],
@@ -141,7 +160,9 @@ class _WalletHomePageState extends State<WalletHomePage> {
           child: Column(
             children: [
               monthButtons,
-              Expanded(child: Chart(expenses: controller.filteredExpenses)),
+              Expanded(
+                child: HomeIncomeCard(controller: controller, isWide: true),
+              ),
             ],
           ),
         ),
