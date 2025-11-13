@@ -72,7 +72,6 @@ class _IngresosImprevistosPageState
 
   Future<void> _save() async {
     if (!_isAmountValid || _isSaving) return;
-    // set global loader
     try {
       ref.read(globalLoaderProvider.notifier).state = true;
     } catch (_) {}
@@ -117,7 +116,7 @@ class _IngresosImprevistosPageState
       appBar: WalletAppBar(
         title: ' ',
         showBackArrow: false,
-        barColor: Colors.transparent,
+        barColor: AwColors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: AwColors.appBarColor),
           onPressed: () => Navigator.of(context).pop(),
@@ -129,7 +128,7 @@ class _IngresosImprevistosPageState
         child: TicketCard(
           notchDepth: 12,
           elevation: 6,
-          color: Colors.white,
+          color: AwColors.white,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(

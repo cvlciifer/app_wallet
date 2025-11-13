@@ -22,7 +22,6 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
   @override
   void initState() {
     super.initState();
-    // initialize provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         ref.read(ingresosProvider.notifier).init();
@@ -40,7 +39,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
       appBar: WalletAppBar(
         title: ' ',
         showBackArrow: false,
-        barColor: Colors.transparent,
+        barColor: AwColors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: AwColors.appBarColor),
           onPressed: () => Navigator.of(context).pop(),
@@ -54,7 +53,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
             TicketCard(
               notchDepth: 12,
               elevation: 8,
-              color: Colors.white,
+              color: AwColors.white,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -78,7 +77,6 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                         maxDigits: MaxAmountFormatter.kEightDigits,
                         maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount,
                         onAttemptOverLimit: () {
-                          // mostrar mensaje temporal
                           setState(() {
                             _showMaxError = true;
                           });
@@ -139,7 +137,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                               backgroundColor: Colors.transparent,
                               labelStyle: TextStyle(
                                 color: selected
-                                    ? Colors.white
+                                    ? AwColors.white
                                     : AwColors.boldBlack,
                               ),
                               padding: const EdgeInsets.symmetric(
@@ -184,11 +182,14 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                                 return;
                               }
                               try {
+                                // ignore: use_build_context_synchronously
                                 ScaffoldMessenger.of(context).clearSnackBars();
                               } catch (_) {}
                               if (success) {
+                                // ignore: use_build_context_synchronously
                                 Navigator.of(context).pop(true);
                               } else {
+                                // ignore: use_build_context_synchronously
                                 ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                         content:
@@ -202,7 +203,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                             }
                           },
                   ),
-                  const SizedBox(height: 30),
+                  AwSpacing.s30,
                   const AwText.bold('Previsualización',
                       size: AwSize.s18, color: AwColors.appBarColor),
                   AwSpacing.s6,
@@ -251,11 +252,11 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 30),
+                  AwSpacing.s30,
                 ],
               ),
             ),
-            const SizedBox(height: 40),
+            AwSpacing.s40,
           ],
         ),
       ),

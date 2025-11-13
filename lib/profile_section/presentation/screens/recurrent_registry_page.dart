@@ -43,7 +43,7 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
       appBar: WalletAppBar(
         title: ' ',
         showBackArrow: false,
-        barColor: Colors.transparent,
+        barColor: AwColors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: AwColors.appBarColor),
           onPressed: () => Navigator.of(context).pop(),
@@ -57,11 +57,11 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
               child: TicketCard(
                 notchDepth: 12,
                 elevation: 8,
-                color: Colors.white,
+                color: AwColors.white,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 12),
+                    AwSpacing.s12,
                     const AwText.bold('Registro de gastos recurrentes',
                         size: AwSize.s18, color: AwColors.appBarColor),
                     AwSpacing.s6,
@@ -69,45 +69,24 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                         'Aquí verás tus recurrencias y podrás editar montos o eliminar desde un mes en adelante.',
                         size: AwSize.s14,
                         color: AwColors.modalGrey),
-                    const SizedBox(height: 12),
-                    const Divider(),
-                    if (state.items.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: AwText.normal('No hay gastos recurrentes aún.',
-                            color: AwColors.modalGrey),
-                      )
-                    else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                        itemCount: state.items.length,
-                        separatorBuilder: (_, __) => const Divider(),
-                        itemBuilder: (ctx, i) {
-                          final r = state.items[i];
-                          return ListTile(
-                            title:
-                                AwText.bold(r.title, color: AwColors.boldBlack),
-                            subtitle: AwText(
-                                text:
-                                    'Monto: ${r.amount.toInt()} • ${r.months} meses • Día ${r.dayOfMonth}'),
-                            trailing:
-                                const Icon(Icons.arrow_forward_ios, size: 16),
-                            onTap: () async {
-                              final res = await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          RecurrentDetailPage(recurring: r)));
-                              if (res == true)
-                                await ref
-                                    .read(recurrentRegistryProvider.notifier)
-                                    .loadRecurrents();
-                            },
-                          );
-                        },
-                      ),
-                    const SizedBox(height: 12),
+                    AwSpacing.s12,
+                    const AwDivider(),
+                    RecurrentList(
+                      items: state.items,
+                      onTapItem: (r) async {
+                        final res = await Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  RecurrentDetailPage(recurring: r)),
+                        );
+                        if (res == true) {
+                          await ref
+                              .read(recurrentRegistryProvider.notifier)
+                              .loadRecurrents();
+                        }
+                      },
+                    ),
+                    AwSpacing.s12,
                   ],
                 ),
               ),
@@ -179,7 +158,8 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
     final tc = TextEditingController(text: current.toString());
     final ok = await showDialog<bool>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.45),
+      // ignore: deprecated_member_use
+      barrierColor: AwColors.black.withOpacity(0.45),
       builder: (ctx) => Dialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         backgroundColor: Colors.transparent,
@@ -199,13 +179,13 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
                 keyboardType: TextInputType.number,
                 label: 'Monto',
               ),
-              const SizedBox(height: 12),
+              AwSpacing.s12,
               // Centered primary save button
               WalletButton.primaryButton(
                 buttonText: 'Guardar',
                 onPressed: () => Navigator.of(ctx).pop(true),
               ),
-              const SizedBox(height: 8),
+              AwSpacing.s,
               // Cancel as an underlined text button centered
               WalletButton.textButton(
                 buttonText: 'Cancelar',
@@ -226,6 +206,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
       // refresh global state
       try {
         final controller =
+            // ignore: use_build_context_synchronously
             prov.Provider.of<WalletExpensesController>(context, listen: false);
         await controller.loadExpensesSmart();
       } catch (_) {}
@@ -253,15 +234,12 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
           );
         });
     if (ok == true) {
-      // Do a fast, local-first deletion that removes mapping rows and marks
-      // affected expenses as pendingDelete in a single transaction. This is
-      // much faster than deleting each expense remotely/synchronously and
-      // keeps the UI snappy. The background sync will attempt remote deletes.
       final success = await ref
           .read(recurrentRegistryProvider.notifier)
           .deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
       if (success) {
         try {
+          // ignore: use_build_context_synchronously
           final controller = prov.Provider.of<WalletExpensesController>(context,
               listen: false);
           await controller.loadExpensesSmart();
@@ -269,7 +247,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
       }
 
       await _loadItems();
-      // refresh parent
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pop(true);
     }
   }
@@ -280,7 +258,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
       appBar: WalletAppBar(
         title: ' ',
         showBackArrow: false,
-        barColor: Colors.transparent,
+        barColor: AwColors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: AwColors.appBarColor),
           onPressed: () => Navigator.of(context).pop(),
@@ -294,11 +272,11 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
               child: TicketCard(
                 notchDepth: 12,
                 elevation: 8,
-                color: Colors.white,
+                color: AwColors.white,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 12),
+                    AwSpacing.s12,
                     AwText.bold(widget.recurring.title,
                         size: AwSize.s18, color: AwColors.appBarColor),
                     AwSpacing.s6,
@@ -306,36 +284,13 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
                         'Día del mes: ${widget.recurring.dayOfMonth} • ${widget.recurring.months} meses',
                         size: AwSize.s14,
                         color: AwColors.modalGrey),
-                    const SizedBox(height: 12),
-                    const Divider(),
-                    if (_items.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: AwText.normal(
-                            'No hay items para esta recurrencia.',
-                            color: AwColors.modalGrey),
-                      )
-                    else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                        itemCount: _items.length,
-                        separatorBuilder: (_, __) => const Divider(),
-                        itemBuilder: (ctx, i) {
-                          final r = _items[i];
-                          final dt = DateTime.fromMillisecondsSinceEpoch(
-                              r['fecha'] as int);
-                          return ListTile(
-                            title: AwText.bold(
-                                '${dt.year}-${dt.month.toString().padLeft(2, '0')}',
-                                color: AwColors.boldBlack),
-                            subtitle: AwText(text: 'Monto: ${r['cantidad']}'),
-                            onTap: () => _showActionsForItem(r),
-                          );
-                        },
-                      ),
-                    const SizedBox(height: 12),
+                    AwSpacing.s12,
+                    const AwDivider(),
+                    RecurrentDetailItems(
+                      items: _items,
+                      onTapItem: (row) => _showActionsForItem(row),
+                    ),
+                    AwSpacing.s12,
                   ],
                 ),
               ),
@@ -345,56 +300,14 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
 
   void _showActionsForItem(Map<String, dynamic> row) async {
     final idx = row['month_index'] as int;
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: false,
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: TicketCard(
-              roundTopCorners: true,
-              topCornerRadius: 12,
-              compactNotches: true,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading:
-                        const Icon(Icons.edit, color: AwColors.appBarColor),
-                    title: const AwText.bold('Editar desde este mes'),
-                    onTap: () => Navigator.of(ctx).pop('edit'),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.delete, color: Colors.redAccent),
-                    title: const AwText.bold('Borrar desde este mes'),
-                    onTap: () => Navigator.of(ctx).pop('delete'),
-                  ),
-                  const Divider(height: 1),
-                  const SizedBox(height: 8),
-                  // Centered Cancel underlined
-                  WalletButton.textButton(
-                    buttonText: 'Cancelar',
-                    onPressed: () => Navigator.of(ctx).pop(null),
-                    alignment: MainAxisAlignment.center,
-                    colorText: AwColors.blue,
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    final choice = await RecurrentItemActions.show(context);
 
     if (choice == 'edit') {
       await _editAmount(idx, row);
       // reload both registry and global expenses
       try {
         final controller =
+            // ignore: use_build_context_synchronously
             prov.Provider.of<WalletExpensesController>(context, listen: false);
         await controller.loadExpensesSmart();
       } catch (_) {}

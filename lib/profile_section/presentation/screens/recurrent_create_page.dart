@@ -1,4 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as prov;
 import 'package:app_wallet/core/providers/profile/recurrent_create_provider.dart';
@@ -12,7 +13,6 @@ class RecurrentCreatePage extends ConsumerStatefulWidget {
 }
 
 class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
-  // Submission state is now managed by the RecurrentCreateProvider
   final _titleController = TextEditingController();
   final _categoryController = TextEditingController(text: 'Elige categoría');
   final _amountController = TextEditingController();
@@ -87,7 +87,6 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
       return;
     }
 
-    // Show global loader while we persist and refresh global state
     ref.read(globalLoaderProvider.notifier).state = true;
     try {
       final success =
@@ -101,7 +100,6 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                 category: _selectedCategory,
                 subcategoryId: _selectedSubcategoryId,
               );
-      // Trigger global refresh via existing controller to preserve app behavior
       try {
         final controller =
             prov.Provider.of<WalletExpensesController>(context, listen: false);
@@ -117,14 +115,13 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
             const SnackBar(content: Text('Error creando recurrente')));
       }
     } catch (e, st) {
-      if (kDebugMode) debugPrint('Error creando recurrente: $e\n$st');
-      if (mounted)
+      if (kDebugMode) log('Error creando recurrente', error: e, stackTrace: st);
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Error creando recurrente')));
+      }
     } finally {
-      // Hide global loader once creation + global refresh finished (or failed)
       ref.read(globalLoaderProvider.notifier).state = false;
-      // provider clears isSubmitting in its finally; we don't need local state
     }
   }
 
@@ -190,7 +187,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
             TicketCard(
               notchDepth: 12,
               elevation: 8,
-              color: Colors.white,
+              color: AwColors.white,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -208,13 +205,13 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                         maxLength: 50,
                         hideCounter: true,
                         flat: false),
-                    const SizedBox(height: 12),
+                    AwSpacing.s12,
                     CategoryPicker(
                         controller: _categoryController,
                         selectedCategory: _selectedCategory,
                         selectedSubcategoryId: _selectedSubcategoryId,
                         onSelect: _selectCategory),
-                    const SizedBox(height: 16),
+                    AwSpacing.m,
                     // Local amount input styled as rounded outline to match IngresosPage
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -223,12 +220,12 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
+                            color: AwColors.greyLight,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const AwText.bold('CLP \$'),
                         ),
-                        const SizedBox(width: 16),
+                        AwSpacing.m,
                         Expanded(
                           flex: 8,
                           child: CustomTextField(
@@ -243,11 +240,11 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    AwSpacing.s20,
                     const AwText.bold('Día del mes', color: AwColors.boldBlack),
-                    const SizedBox(height: 8),
+                    AwSpacing.s,
                     _buildDayGrid(),
-                    const SizedBox(height: 16),
+                    AwSpacing.m,
                     // Responsive layout: on narrow screens, stack selectors vertically; on wide screens, place in a row.
                     LayoutBuilder(builder: (ctx, constraints) {
                       final isNarrow = constraints.maxWidth < 420;
@@ -257,7 +254,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                             children: [
                               const AwText.bold('Mes y año de inicio',
                                   color: AwColors.boldBlack),
-                              const SizedBox(height: 8),
+                              AwSpacing.s,
                               Row(children: [
                                 Expanded(
                                   child: DropdownButton<int>(
@@ -272,7 +269,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                                         () => _selectedStartMonth = v ?? 1),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                AwSpacing.s,
                                 Expanded(
                                   child: DropdownButton<int>(
                                     isExpanded: true,
@@ -288,10 +285,10 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                                   ),
                                 ),
                               ]),
-                              const SizedBox(height: 12),
+                              AwSpacing.s12,
                               const AwText.bold('Meses',
                                   color: AwColors.boldBlack),
-                              const SizedBox(height: 8),
+                              AwSpacing.s,
                               DropdownButton<int>(
                                 isExpanded: true,
                                 value: _selectedMonths,
@@ -311,7 +308,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                             child: Row(children: [
                           const AwText.bold('Mes y año de inicio',
                               color: AwColors.boldBlack),
-                          const SizedBox(width: 12),
+                          AwSpacing.s12,
                           DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedStartMonth,
@@ -322,7 +319,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                             onChanged: (v) =>
                                 setState(() => _selectedStartMonth = v ?? 1),
                           ),
-                          const SizedBox(width: 8),
+                          AwSpacing.s,
                           DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedStartYear,
@@ -335,11 +332,11 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                                 _selectedStartYear = v ?? DateTime.now().year),
                           ),
                         ])),
-                        const SizedBox(width: 12),
+                        AwSpacing.s12,
                         Expanded(
                             child: Row(children: [
                           const AwText.bold('Meses', color: AwColors.boldBlack),
-                          const SizedBox(width: 12),
+                          AwSpacing.s12,
                           DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedMonths,
@@ -353,7 +350,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                         ])),
                       ]);
                     }),
-                    const SizedBox(height: 20),
+                    AwSpacing.s20,
                     WalletButton.primaryButton(
                         buttonText:
                             (ref.watch(recurrentCreateProvider).isSubmitting ||
@@ -365,10 +362,10 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                                     ref.watch(globalLoaderProvider))
                                 ? null
                                 : _onCreate),
-                    const SizedBox(height: 30),
+                    AwSpacing.s30,
                   ]),
             ),
-            const SizedBox(height: 40),
+            AwSpacing.s40,
           ]),
         );
       }),

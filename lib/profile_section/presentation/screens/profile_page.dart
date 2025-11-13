@@ -1,4 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
 import 'package:app_wallet/profile_section/presentation/screens/ingresos_imprevistos_page.dart';
@@ -73,15 +74,16 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
           children: [
             AwSpacing.m,
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const CircleAvatar(
                     radius: 36,
                     backgroundColor: AwColors.blue,
                     child: Icon(Icons.person, size: 40, color: AwColors.white),
                   ),
-                  const SizedBox(width: 16),
+                  AwSpacing.w20,
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,6 +222,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       final remainingDuration =
                           blockedUntil ?? const Duration(days: 1);
                       if (!mounted) return;
+                      // ignore: use_build_context_synchronously
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => PinLockedPage(
                                 remaining: remainingDuration,
@@ -228,17 +231,20 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                               )));
                     } else {
                       try {
+                        // ignore: use_build_context_synchronously
                         final success = await Navigator.of(context).push<bool>(
                             MaterialPageRoute(
                                 builder: (_) => const ForgotPinPage()));
                         if (success == true) {
                           if (!mounted) return;
+                          // ignore: use_build_context_synchronously
                           Navigator.of(context).push(MaterialPageRoute(
                               builder: (_) => const SetPinPage()));
                         }
                       } catch (e, st) {
                         if (kDebugMode)
-                          debugPrint('Restablecer PIN error: $e\n$st');
+                          log('Restablecer PIN error',
+                              error: e, stackTrace: st);
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -249,7 +255,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                     }
                   } catch (e, st) {
                     if (kDebugMode)
-                      debugPrint('Error checking PIN state: $e\n$st');
+                      log('Error checking PIN state', error: e, stackTrace: st);
                     try {
                       loader.state = false;
                     } catch (_) {}

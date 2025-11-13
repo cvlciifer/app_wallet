@@ -42,8 +42,6 @@ class RecurrentCreateNotifier extends StateNotifier<RecurrentCreateState> {
     }
   }
 
-  /// Create from raw form fields. The heavy lifting of generating Expense
-  /// instances and persisting them is delegated to the service.
   Future<bool> createFromForm({
     required String title,
     required double amount,
