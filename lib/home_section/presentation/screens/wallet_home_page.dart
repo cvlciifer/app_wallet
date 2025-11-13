@@ -23,8 +23,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
       try {
         final provController = context.read<WalletExpensesController>();
         try {
-          final container =
-              riverpod.ProviderScope.containerOf(context, listen: false);
+          final container = riverpod.ProviderScope.containerOf(context, listen: false);
           container.read(ingresosProvider.notifier).init();
 
           _authSub = FirebaseAuth.instance.authStateChanges().listen((_) {
@@ -37,9 +36,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
           try {
             final ctx = context;
             try {
-              final loader =
-                  riverpod.ProviderScope.containerOf(ctx, listen: false)
-                      .read(globalLoaderProvider.notifier);
+              final loader = riverpod.ProviderScope.containerOf(ctx, listen: false).read(globalLoaderProvider.notifier);
 
               if (provController.isLoadingExpenses) {
                 loader.state = false;
@@ -52,9 +49,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
             if (!_initialLoaderHidden && !provController.isLoadingExpenses) {
               _initialLoaderHidden = true;
               try {
-                riverpod.ProviderScope.containerOf(ctx, listen: false)
-                    .read(globalLoaderProvider.notifier)
-                    .state = false;
+                riverpod.ProviderScope.containerOf(ctx, listen: false).read(globalLoaderProvider.notifier).state =
+                    false;
               } catch (_) {}
             }
           } catch (_) {}
@@ -75,13 +71,11 @@ class _WalletHomePageState extends State<WalletHomePage> {
 
   void _onBottomNavTap(int index) {
     final controller = context.read<WalletExpensesController>();
-    WalletNavigationService.handleBottomNavigation(
-        context, index, controller.allExpenses);
+    WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
   }
 
   void _openAddExpenseOverlay() async {
-    final expense =
-        await WalletNavigationService.openAddExpenseOverlay(context);
+    final expense = await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
       final conn = await Connectivity().checkConnectivity();
       final hasConnection = conn != ConnectivityResult.none;
@@ -145,8 +139,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
             onRemoveExpense: (expense) async {
               final connectivity = await Connectivity().checkConnectivity();
               final hasConnection = connectivity != ConnectivityResult.none;
-              await controller.removeExpense(expense,
-                  hasConnection: hasConnection);
+              await controller.removeExpense(expense, hasConnection: hasConnection);
             },
           )
         : const EmptyState();
@@ -179,8 +172,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     );
   }
 
-  Widget _buildMonthButtons(
-      BuildContext context, WalletExpensesController controller) {
+  Widget _buildMonthButtons(BuildContext context, WalletExpensesController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 4),
       child: Center(
@@ -217,8 +209,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
     final available = controller.getAvailableMonths(excludeCurrent: true);
     if (available.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('No hay meses disponibles para filtrar')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('No hay meses disponibles para filtrar')));
       }
       return;
     }

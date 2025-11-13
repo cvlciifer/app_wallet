@@ -97,22 +97,22 @@ class _CustomTextFieldState extends State<CustomTextField> {
         style: TextStyle(fontSize: effectiveTextSize),
         decoration: InputDecoration(
           labelText: widget.label.isNotEmpty ? widget.label : null,
-          labelStyle: widget.label.isNotEmpty
-              ? TextStyle(color: Colors.black, fontSize: effectiveTextSize)
-              : null,
+          labelStyle: widget.label.isNotEmpty ? TextStyle(color: Colors.black, fontSize: effectiveTextSize) : null,
           hintText: showHint ? widget.hintText : null,
-          hintStyle:
-              TextStyle(fontSize: effectiveTextSize, color: AwColors.grey),
+          hintStyle: TextStyle(fontSize: effectiveTextSize, color: AwColors.grey),
           prefixText: widget.prefixText,
           counterText: widget.hideCounter ? '' : null,
           border: effectiveBorder,
           enabledBorder: effectiveBorder,
           focusedBorder: flat
-              ? UnderlineInputBorder(
-                  borderSide: BorderSide(color: AwColors.appBarColor))
+              ? const UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AwColors.appBarColor,
+                  ),
+                )
               : OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: AwColors.appBarColor),
+                  borderSide: const BorderSide(color: AwColors.appBarColor),
                 ),
           contentPadding: EdgeInsets.symmetric(
             horizontal: 16,

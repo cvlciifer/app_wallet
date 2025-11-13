@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
 
 class NewExpenseScreen extends StatefulWidget {
-  const NewExpenseScreen({super.key});
+  final Expense? initialExpense;
+
+  const NewExpenseScreen({super.key, this.initialExpense});
 
   @override
   State<NewExpenseScreen> createState() {
@@ -75,6 +77,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
             padding: EdgeInsets.fromLTRB(16, 24, 16, keyboardSpace + 16),
             child: ExpenseForm(
               onSubmit: _handleExpenseSubmit,
+              initialExpense: widget.initialExpense,
             ),
           );
         },

@@ -60,6 +60,8 @@ dependencies:
   crypto: ^3.0.3
   cryptography: ^2.0.0
   app_links: ^3.0.0 
+  googleapis: ^11.0.0
+  googleapis_auth: ^1.4.0
   
 dev_dependencies:
   flutter_test:

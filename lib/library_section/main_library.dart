@@ -56,7 +56,7 @@ export 'package:app_wallet/home_section/presentation/new_expense/presentation/mo
 export 'package:app_wallet/components_section/widgets/calendar_selector.dart';
 export 'package:app_wallet/components_section/widgets/category_list.dart';
 export 'package:app_wallet/components_section/widgets/pie_chart.dart';
-export 'package:app_wallet/profile_section/presentation/screens/profile_page.dart';
+export 'package:app_wallet/profile_section/profile_main.dart';
 export 'package:app_wallet/wallet_controllers/wallet_expenses_controller.dart';
 export 'package:app_wallet/core/navigation/wallet_navigation_service.dart';
 export 'package:app_wallet/components_section/appbar/wallet_expenses_appbar.dart';
@@ -64,7 +64,7 @@ export 'package:app_wallet/components_section/filters/wallet_filters_button.dart
 export 'package:app_wallet/components_section/buttons/buttons.dart';
 export 'package:app_wallet/components_section/utils/format_number.dart';
 export 'package:app_wallet/components_section/utils/number_format_helper.dart';
-export 'package:app_wallet/components_section/widgets/expense_form/expense_form.dart';
+export 'package:app_wallet/home_section/presentation/new_expense/presentation/screens/expense_form.dart';
 export 'package:app_wallet/components_section/widgets/expense_form/category_selector.dart';
 export 'package:app_wallet/components_section/widgets/expense_form/category_picker_dialog.dart';
 export 'package:app_wallet/components_section/widgets/expense_form/custom_text_field.dart';
@@ -81,7 +81,6 @@ export 'package:app_wallet/security_section/presentation/screens/alias_input_pag
 export 'package:app_wallet/core/services/alias_service.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/confirm_pin_page.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/set_pin_page.dart';
-// moved security-related reusable widgets into components_section/widgets/pin
 export 'package:app_wallet/components_section/widgets/pin/pin.dart';
 export 'package:app_wallet/components_section/widgets/pin/numeric_keypad.dart';
 export 'package:app_wallet/components_section/widgets/pin/pin_failure_popup.dart';
@@ -109,10 +108,15 @@ export 'package:app_wallet/components_section/widgets/profile/recurrent_item_act
 export 'package:app_wallet/components_section/buttons/compact_action_button.dart';
 
 export 'package:app_wallet/components_section/modals/aw_alert.dart';
-export 'package:app_wallet/components_section/components/ticket_card.dart';
-export 'package:app_wallet/components_section/components/form_header.dart';
-export 'package:app_wallet/components_section/components/category_picker.dart';
-export 'package:app_wallet/components_section/components/amount_input.dart';
+export 'package:app_wallet/components_section/widgets/ticket_card.dart';
+export 'package:app_wallet/components_section/widgets/form_header.dart';
+export 'package:app_wallet/components_section/widgets/category_picker.dart';
+export 'package:app_wallet/components_section/widgets/amount_input.dart';
 export 'package:app_wallet/core/providers/bottom_nav_provider.dart';
 export 'package:provider/provider.dart';
 export 'package:shared_preferences/shared_preferences.dart';
+export 'package:app_wallet/profile_section/presentation/models/gmail_message_info.dart';
+export 'package:app_wallet/profile_section/services/gmail_service.dart';
+export 'package:firebase_remote_config/firebase_remote_config.dart';
+export 'dart:async';
+export 'package:app_links/app_links.dart';
