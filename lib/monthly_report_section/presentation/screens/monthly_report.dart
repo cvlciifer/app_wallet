@@ -3,7 +3,8 @@ import 'package:app_wallet/library_section/main_library.dart';
 class InformeMensualScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  const InformeMensualScreen({Key? key, required this.expenses}) : super(key: key);
+  const InformeMensualScreen({Key? key, required this.expenses})
+      : super(key: key);
 
   @override
   _InformeMensualScreenState createState() => _InformeMensualScreenState();
@@ -29,13 +30,19 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   }
 
   void _initializeSelectedMonthYear() {
-    final expenses = widget.expenses.isNotEmpty ? widget.expenses : (context.read<WalletExpensesController>().allExpenses);
+    final expenses = widget.expenses.isNotEmpty
+        ? widget.expenses
+        : (context.read<WalletExpensesController>().allExpenses);
     final years = expenses.map((e) => e.date.year).toSet().toList();
     years.sort((a, b) => b.compareTo(a));
     if (years.isNotEmpty) {
       selectedYear = years.first;
     }
-    final months = expenses.where((e) => e.date.year == selectedYear).map((e) => e.date.month).toSet().toList();
+    final months = expenses
+        .where((e) => e.date.year == selectedYear)
+        .map((e) => e.date.month)
+        .toSet()
+        .toList();
     months.sort();
     if (months.isNotEmpty) {
       selectedMonth = months.first;
@@ -49,7 +56,11 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   }
 
   List<int> getAvailableMonthsForYear(int year) {
-    final months = widget.expenses.where((e) => e.date.year == year).map((e) => e.date.month).toSet().toList();
+    final months = widget.expenses
+        .where((e) => e.date.year == year)
+        .map((e) => e.date.month)
+        .toSet()
+        .toList();
     months.sort();
     return months;
   }
@@ -61,7 +72,6 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize selected month/year from global controller monthFilter on first build
     if (!_initializedFromController) {
       try {
         final controller = context.read<WalletExpensesController>();
@@ -74,10 +84,12 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
       _initializedFromController = true;
     }
     final filteredExpenses = widget.expenses.where((expense) {
-      return expense.date.month == selectedMonth && expense.date.year == selectedYear;
+      return expense.date.month == selectedMonth &&
+          expense.date.year == selectedYear;
     }).toList();
 
-    final double totalExpenses = filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
+    final double totalExpenses =
+        filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
     final expenseBuckets = Category.values.map((category) {
       return WalletExpenseBucket.forCategory(filteredExpenses, category);
     }).toList();
@@ -116,11 +128,13 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
             const SizedBox(height: 10.0),
             Builder(builder: (context) {
               final availableYears = getAvailableYears();
-              if (!availableYears.contains(selectedYear) && availableYears.isNotEmpty) {
+              if (!availableYears.contains(selectedYear) &&
+                  availableYears.isNotEmpty) {
                 selectedYear = availableYears.first;
               }
               final availableMonths = getAvailableMonthsForYear(selectedYear);
-              if (!availableMonths.contains(selectedMonth) && availableMonths.isNotEmpty) {
+              if (!availableMonths.contains(selectedMonth) &&
+                  availableMonths.isNotEmpty) {
                 selectedMonth = availableMonths.first;
               }
 
@@ -147,13 +161,16 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                     children: [
                       TextButton(
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 12.0),
                           alignment: Alignment.centerLeft,
                           backgroundColor: Colors.transparent,
-                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                          shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero),
                         ),
                         onPressed: () {
-                          final categoryExpenses = filteredExpenses.where((expense) {
+                          final categoryExpenses =
+                              filteredExpenses.where((expense) {
                             return expense.category == bucket.category;
                           }).toList();
                           Navigator.of(context).push(
@@ -179,15 +196,26 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                                 children: [
                                   Text(
                                     bucket.category.displayName,
-                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurface,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium!
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
                                         ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     'Total: ${formatNumber(bucket.totalExpenses)}',
-                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall!
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withOpacity(0.6),
                                         ),
                                   ),
                                 ],
