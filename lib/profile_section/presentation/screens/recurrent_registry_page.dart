@@ -243,15 +243,12 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: WalletAppBar(
-        title: ' ',
-        showBackArrow: false,
-        barColor: AwColors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AwColors.appBarColor),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: const [],
+      appBar: const WalletAppBar(
+        title: AwText.bold('Registros', color: AwColors.white, size: AwSize.s18),
+        showBackArrow: true,
+        barColor: AwColors.appBarColor,
+        automaticallyImplyLeading: true,
+        actions: [],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
