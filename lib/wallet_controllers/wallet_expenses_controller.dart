@@ -53,6 +53,16 @@ class WalletExpensesController extends ChangeNotifier {
       final newEmail = user?.email ?? '';
       if (newEmail == _currentEmail) return;
       _currentEmail = newEmail;
+      // Invalidate any cached uid/email in the LocalCrud so subsequent
+      // DB calls resolve the new authenticated user immediately.
+      try {
+        await syncService.localCrud.resetCachedUser();
+      } catch (_) {}
+      // Clear current in-memory expenses immediately so UI doesn't show the
+      // previous account's data while we reload for the new user.
+      _allExpenses.clear();
+      _filteredExpenses.clear();
+      notifyListeners();
       // Recreate syncService for the new user and perform an immediate sync/load.
       try {
         syncService = SyncService(

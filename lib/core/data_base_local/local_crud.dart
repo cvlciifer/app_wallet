@@ -30,6 +30,9 @@ class LocalCrud {
   Future<void> reconcileRemoteExpenses(List<Expense> remoteExpenses) => reconcileRemoteExpensesImpl(remoteExpenses);
   Future<void> reconstructRecurrencesFromExpenses(List<Expense> expenses) => reconstructRecurrencesFromExpensesImpl(expenses);
   Future<Map<String, int>> getGastosCountByUid() => getGastosCountByUidImpl();
+  // Clear cached uid/email used by getUserUid/getUserEmail so callers can
+  // force resolution from FirebaseAuth/SharedPreferences immediately.
+  Future<void> resetCachedUser() => resetCachedUserImpl();
   
   // Recurring expenses
   Future<void> insertRecurring(RecurringExpense recurring, List<Expense> generatedExpenses) => insertRecurringImpl(recurring, generatedExpenses);
@@ -47,6 +50,15 @@ class LocalCrud {
   Future<void> updateIncomeSyncStatus(String incomeId, SyncStatus status) => updateIncomeSyncStatusImpl(incomeId, status);
   Future<void> replaceAllIncomes(List<Map<String, dynamic>> incomes) => replaceAllIncomesImpl(incomes);
   Future<void> deleteIncome(String incomeId) => deleteIncomeLocal(incomeId);
+}
+
+Future<void> resetCachedUserImpl() async {
+  _cachedUserUid = null;
+  _cachedUserUidAt = null;
+  _cachedUserEmail = null;
+  _cachedUserEmailAt = null;
+  // No DB changes here; this simply forces next getUserUid/getUserEmail to
+  // re-resolve from FirebaseAuth or persisted prefs.
 }
 
 Future<List<Expense>> getAllExpensesImpl() async {
