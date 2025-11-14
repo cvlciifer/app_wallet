@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 
@@ -19,21 +20,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
   String? _alias;
   String? _secondPin;
   final GlobalKey<PinEntryAreaState> _pinKey = GlobalKey<PinEntryAreaState>();
-
-  @override
-  void initState() {
-    super.initState();
-    _alias = widget.alias;
-    if (_alias == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        try {
-          final a = await AliasService().getAliasForCurrentUser();
-          if (!mounted) return;
-          setState(() => _alias = a);
-        } catch (_) {}
-      });
-    }
-  }
+  OverlayEntry? _overlayEntry;
 
   void _onCompleted(String pin) {
     setState(() {
@@ -50,6 +37,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
       return;
     }
     final uid = AuthService().getCurrentUser()?.uid;
+
     if (uid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Usuario no identificado')));
@@ -57,31 +45,19 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
     }
     final pinService = PinService();
     try {
-  try {
-    ProviderScope.containerOf(context, listen: false)
-    .read(globalLoaderProvider.notifier)
-    .state = true;
-  } catch (_) {}
+      _showOverlay();
+      setState(() {});
 
       await pinService.setPin(
           accountId: uid,
           pin: _secondPin!,
           digits: widget.digits,
           alias: widget.alias);
-
-  try {
-    ProviderScope.containerOf(context, listen: false)
-    .read(globalLoaderProvider.notifier)
-    .state = false;
-  } catch (_) {}
     } catch (e) {
       final msg = e.toString();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-  try {
-    ProviderScope.containerOf(context, listen: false)
-    .read(globalLoaderProvider.notifier)
-    .state = false;
-  } catch (_) {}
+      _hideOverlay();
+      setState(() {});
       return;
     }
 
@@ -90,6 +66,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           .read(resetFlowProvider.notifier)
           .clear();
     } catch (_) {}
+
     try {
       final aliasOk = await AliasService().syncAliasForCurrentUser();
       log('ConfirmPinPage: syncAliasForCurrentUser result=$aliasOk',
@@ -106,13 +83,59 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Error guardando el PIN. Intenta de nuevo.')));
+      setState(() {});
       return;
     }
     if (!mounted) return;
+
+    setState(() {});
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const WalletHomePage()),
       (route) => false,
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _alias = widget.alias;
+    if (_alias == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          final a = await AliasService().getAliasForCurrentUser();
+          if (!mounted) return;
+          setState(() => _alias = a);
+        } catch (_) {}
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _hideOverlay();
+    super.dispose();
+  }
+
+  void _showOverlay() {
+    if (_overlayEntry != null) return;
+    _overlayEntry = OverlayEntry(builder: (context) {
+      return Positioned.fill(
+        child: Material(
+          color: Colors.black45,
+          child: const Center(child: WalletLoader(color: AwColors.appBarColor)),
+        ),
+      );
+    });
+    try {
+      Overlay.of(context).insert(_overlayEntry!);
+    } catch (_) {}
+  }
+
+  void _hideOverlay() {
+    try {
+      _overlayEntry?.remove();
+    } catch (_) {}
+    _overlayEntry = null;
   }
 
   @override
@@ -130,9 +153,16 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                   AwSpacing.s12,
                   GreetingHeader(alias: _alias ?? widget.alias),
                   AwSpacing.s12,
-                  const AwText.bold('Confirma tu PIN',
+                  AwText.bold('Confirma tu PIN',
                       size: AwSize.s16, color: AwColors.appBarColor),
-                  AwSpacing.s12,
+                  AwSpacing.s,
+                  const AwText.normal(
+                    'Confirma el PIN que ingresaste anteriormente para activar el acceso local.',
+                    color: AwColors.boldBlack,
+                    size: AwSize.s14,
+                    textAlign: TextAlign.center,
+                  ),
+                  AwSpacing.s20,
                   PinEntryArea(
                     key: _pinKey,
                     digits: widget.digits,
@@ -156,17 +186,14 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                               return ElevatedButton(
                                 style: ButtonStyle(
                                   backgroundColor:
-                                      // ignore: deprecated_member_use
                                       MaterialStateProperty.resolveWith(
                                           (states) => states.contains(
-                                                  // ignore: deprecated_member_use
                                                   MaterialState.disabled)
                                               ? AwColors.blueGrey
                                               : AwColors.appBarColor),
                                   foregroundColor:
-                                      // ignore: deprecated_member_use
                                       MaterialStateProperty.resolveWith(
-                                          (states) => Colors.white),
+                                          (_) => Colors.white),
                                 ),
                                 onPressed: ready
                                     ? () {
