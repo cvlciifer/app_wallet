@@ -9,8 +9,7 @@ class RecurrentRegistryPage extends ConsumerStatefulWidget {
   const RecurrentRegistryPage({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<RecurrentRegistryPage> createState() =>
-      _RecurrentRegistryPageState();
+  ConsumerState<RecurrentRegistryPage> createState() => _RecurrentRegistryPageState();
 }
 
 class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
@@ -21,8 +20,7 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller =
-          prov.Provider.of<WalletExpensesController>(context, listen: false);
+      _controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
       _controller?.addListener(_onControllerChanged);
       ref.read(recurrentRegistryProvider.notifier).loadRecurrents();
     });
@@ -40,21 +38,25 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(recurrentRegistryProvider);
     return Scaffold(
-      appBar: WalletAppBar(
-        title: ' ',
-        showBackArrow: false,
-        barColor: AwColors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AwColors.appBarColor),
-          onPressed: () => Navigator.of(context).pop(),
+      appBar: const WalletAppBar(
+        title: AwText.bold(
+          'Registros',
+          color: AwColors.white,
         ),
+        showBackArrow: false,
+        barColor: AwColors.appBarColor,
+        automaticallyImplyLeading: true,
         actions: const [],
       ),
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: WalletLoader(),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
               child: TicketCard(
+                compactNotches: true,
+                roundTopCorners: true,
                 notchDepth: 12,
                 elevation: 8,
                 color: AwColors.white,
@@ -62,8 +64,11 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AwSpacing.s12,
-                    const AwText.bold('Registro de gastos recurrentes',
-                        size: AwSize.s18, color: AwColors.appBarColor),
+                    const AwText.bold(
+                      'Registro de gastos recurrentes',
+                      size: AwSize.s18,
+                      color: AwColors.white,
+                    ),
                     AwSpacing.s6,
                     const AwText.normal(
                         'Aquí verás tus recurrencias y podrás editar montos o eliminar desde un mes en adelante.',
@@ -75,14 +80,10 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                       items: state.items,
                       onTapItem: (r) async {
                         final res = await Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  RecurrentDetailPage(recurring: r)),
+                          MaterialPageRoute(builder: (_) => RecurrentDetailPage(recurring: r)),
                         );
                         if (res == true) {
-                          await ref
-                              .read(recurrentRegistryProvider.notifier)
-                              .loadRecurrents();
+                          await ref.read(recurrentRegistryProvider.notifier).loadRecurrents();
                         }
                       },
                     ),
@@ -105,12 +106,10 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
 // Detail page
 class RecurrentDetailPage extends ConsumerStatefulWidget {
   final RecurringExpense recurring;
-  const RecurrentDetailPage({Key? key, required this.recurring})
-      : super(key: key);
+  const RecurrentDetailPage({Key? key, required this.recurring}) : super(key: key);
 
   @override
-  ConsumerState<RecurrentDetailPage> createState() =>
-      _RecurrentDetailPageState();
+  ConsumerState<RecurrentDetailPage> createState() => _RecurrentDetailPageState();
 }
 
 class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
@@ -123,8 +122,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller =
-          prov.Provider.of<WalletExpensesController>(context, listen: false);
+      _controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
       _controller?.addListener(_onControllerChanged);
       _loadItems();
     });
@@ -143,9 +141,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
     if (!mounted) return;
     setState(() => _loading = true);
     try {
-      final rows = await ref
-          .read(recurrentRegistryProvider.notifier)
-          .getRecurringItems(widget.recurring.id);
+      final rows = await ref.read(recurrentRegistryProvider.notifier).getRecurringItems(widget.recurring.id);
       if (!mounted) return;
       setState(() => _items = rows);
     } catch (_) {}
@@ -171,8 +167,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AwText.bold('Editar monto',
-                  color: AwColors.blue, size: AwSize.s16),
+              const AwText.bold('Editar monto', color: AwColors.blue, size: AwSize.s16),
               const SizedBox(height: 8),
               CustomTextField(
                 controller: tc,
@@ -201,8 +196,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
       final newAmt = double.tryParse(tc.text) ?? current.toDouble();
       await ref
           .read(recurrentRegistryProvider.notifier)
-          .updateRecurringItemAmount(
-              widget.recurring.id, row['month_index'] as int, newAmt);
+          .updateRecurringItemAmount(widget.recurring.id, row['month_index'] as int, newAmt);
       // refresh global state
       try {
         final controller =
@@ -224,24 +218,18 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
                 text:
                     'Se eliminarán los gastos de este mes y siguientes de la recurrencia. Esta acción no afecta meses anteriores.'),
             actions: [
-              TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('Cancelar')),
-              TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: const Text('Eliminar')),
+              TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+              TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Eliminar')),
             ],
           );
         });
     if (ok == true) {
-      final success = await ref
-          .read(recurrentRegistryProvider.notifier)
-          .deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
+      final success =
+          await ref.read(recurrentRegistryProvider.notifier).deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
       if (success) {
         try {
           // ignore: use_build_context_synchronously
-          final controller = prov.Provider.of<WalletExpensesController>(context,
-              listen: false);
+          final controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
           await controller.loadExpensesSmart();
         } catch (_) {}
       }
@@ -277,13 +265,10 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AwSpacing.s12,
-                    AwText.bold(widget.recurring.title,
-                        size: AwSize.s18, color: AwColors.appBarColor),
+                    AwText.bold(widget.recurring.title, size: AwSize.s18, color: AwColors.appBarColor),
                     AwSpacing.s6,
-                    AwText.normal(
-                        'Día del mes: ${widget.recurring.dayOfMonth} • ${widget.recurring.months} meses',
-                        size: AwSize.s14,
-                        color: AwColors.modalGrey),
+                    AwText.normal('Día del mes: ${widget.recurring.dayOfMonth} • ${widget.recurring.months} meses',
+                        size: AwSize.s14, color: AwColors.modalGrey),
                     AwSpacing.s12,
                     const AwDivider(),
                     RecurrentDetailItems(
