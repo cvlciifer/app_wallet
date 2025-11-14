@@ -13,6 +13,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
   bool groupBySubcategory = false;
+  bool _initializedFromController = false;
 
   List<int> getAvailableYears() {
     final years = widget.expenses.map((e) => e.date.year).toSet().toList();
@@ -98,13 +99,26 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Prefer the global monthFilter if present (set from Home). Initialize once.
+    if (!_initializedFromController) {
+      try {
+        final controller = context.read<WalletExpensesController>();
+        final mf = controller.monthFilter;
+        if (mf != null) {
+          selectedMonth = mf.month;
+          selectedYear = mf.year;
+        }
+      } catch (_) {}
+      _initializedFromController = true;
+    }
     // Aseguramos que las listas de años y meses disponibles reflejen los gastos
-    final availableYears = getAvailableYears();
+    final expenses = widget.expenses.isNotEmpty ? widget.expenses : (context.read<WalletExpensesController>().allExpenses);
+    final availableYears = expenses.map((e) => e.date.year).toSet().toList();
     if (!availableYears.contains(selectedYear) && availableYears.isNotEmpty) {
       selectedYear = availableYears.first;
     }
-
-    final availableMonths = getAvailableMonthsForYear(selectedYear);
+    final availableMonths = expenses.where((e) => e.date.year == selectedYear).map((e) => e.date.month).toSet().toList();
+    availableMonths.sort();
     if (!availableMonths.contains(selectedMonth) && availableMonths.isNotEmpty) {
       selectedMonth = availableMonths.first;
     }

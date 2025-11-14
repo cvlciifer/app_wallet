@@ -112,13 +112,17 @@ class _AliasInputPageState extends State<AliasInputPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const WalletAppBar(
+        title: AwText.normal('Alias', color: AwColors.white),
+        automaticallyImplyLeading: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AwSpacing.xxl,
+              AwSpacing.xl,
               Padding(
                 padding: const EdgeInsets.only(top: 24.0),
                 child: Center(
@@ -126,6 +130,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
+                          // ignore: deprecated_member_use
                           color: AwColors.grey.withOpacity(0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 4),

@@ -23,7 +23,11 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
       builder: (ctx, ref, _) {
         final ingresosState = ref.watch(ingresosProvider);
         final now = DateTime.now();
-        final id = '${now.year}${now.month.toString().padLeft(2, '0')}';
+        final selectedMonth =
+            widget.controller.monthFilter ?? DateTime(now.year, now.month);
+
+        final id =
+            '${selectedMonth.year}${selectedMonth.month.toString().padLeft(2, '0')}';
         final existing = ingresosState.localIncomes[id];
         final fijo =
             existing != null ? (existing['ingreso_fijo'] as int? ?? 0) : 0;
@@ -33,7 +37,9 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
         final total = fijo + imprevisto;
 
         final expensesThisMonth = widget.controller.allExpenses
-            .where((e) => e.date.year == now.year && e.date.month == now.month)
+            .where((e) =>
+                e.date.year == selectedMonth.year &&
+                e.date.month == selectedMonth.month)
             .toList();
         final spent = expensesThisMonth.fold(0.0, (sum, e) => sum + e.amount);
 
@@ -42,8 +48,8 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                   (wide
                       ? widget.controller.allExpenses
                           .where((e) =>
-                              e.date.year == now.year &&
-                              e.date.month == now.month)
+                              e.date.year == selectedMonth.year &&
+                              e.date.month == selectedMonth.month)
                           .fold(0.0, (s, e) => s + e.amount)
                       : spent))
               .toDouble();
@@ -59,7 +65,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
               elevation: 8,
               color: Colors.white,
               borderRadius: 28,
-              boxShadowAll: true,
+              shadowOpacity: 0.26,
               overlays: [
                 Positioned(
                   top: 8,
@@ -107,7 +113,6 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                     const Divider(height: 1, thickness: 1),
                     const SizedBox(height: 8),
 
-                    // Ingresos (left) and Gasto (right) to avoid dead space
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -115,8 +120,10 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const AwText.normal('Ingresos de este mes',
-                                  size: AwSize.s12, color: AwColors.modalGrey),
+                              AwText.normal(
+                                  'Ingresos de ${toBeginningOfSentenceCase(DateFormat('MMMM', 'es').format(selectedMonth))}',
+                                  size: AwSize.s12,
+                                  color: AwColors.modalGrey),
                               AwSpacing.xs,
                               AwText.bold(formatNumber(total.toDouble()),
                                   size: AwSize.s16, color: AwColors.green),
@@ -128,8 +135,10 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const AwText.normal('Gastos este mes',
-                                  size: AwSize.s12, color: AwColors.modalGrey),
+                              AwText.normal(
+                                  'Gastos de ${toBeginningOfSentenceCase(DateFormat('MMMM', 'es').format(selectedMonth))}',
+                                  size: AwSize.s12,
+                                  color: AwColors.modalGrey),
                               AwSpacing.xs,
                               AwText.bold(formatNumber(spent),
                                   size: AwSize.s14, color: AwColors.red),
@@ -146,7 +155,6 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
           );
         }
 
-        // Return depending on width
         if (!widget.isWide) {
           return Column(
             children: [

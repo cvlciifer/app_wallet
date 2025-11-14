@@ -12,6 +12,7 @@ class InformeMensualScreen extends StatefulWidget {
 class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
+  bool _initializedFromController = false;
 
   @override
   void initState() {
@@ -28,13 +29,13 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   }
 
   void _initializeSelectedMonthYear() {
-    if (widget.expenses.isEmpty) return;
-    final years = widget.expenses.map((e) => e.date.year).toSet().toList();
+    final expenses = widget.expenses.isNotEmpty ? widget.expenses : (context.read<WalletExpensesController>().allExpenses);
+    final years = expenses.map((e) => e.date.year).toSet().toList();
     years.sort((a, b) => b.compareTo(a));
     if (years.isNotEmpty) {
       selectedYear = years.first;
     }
-    final months = widget.expenses.where((e) => e.date.year == selectedYear).map((e) => e.date.month).toSet().toList();
+    final months = expenses.where((e) => e.date.year == selectedYear).map((e) => e.date.month).toSet().toList();
     months.sort();
     if (months.isNotEmpty) {
       selectedMonth = months.first;
@@ -60,6 +61,18 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Initialize selected month/year from global controller monthFilter on first build
+    if (!_initializedFromController) {
+      try {
+        final controller = context.read<WalletExpensesController>();
+        final mf = controller.monthFilter;
+        if (mf != null) {
+          selectedMonth = mf.month;
+          selectedYear = mf.year;
+        }
+      } catch (_) {}
+      _initializedFromController = true;
+    }
     final filteredExpenses = widget.expenses.where((expense) {
       return expense.date.month == selectedMonth && expense.date.year == selectedYear;
     }).toList();
