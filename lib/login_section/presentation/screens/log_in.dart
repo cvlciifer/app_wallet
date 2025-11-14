@@ -101,9 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                          _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                         ),
                         onPressed: () {
                           setState(() {
@@ -125,8 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => ForgotPasswordScreen()),
+                        MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
                       );
                     },
                   ),
@@ -139,37 +136,31 @@ class _LoginScreenState extends State<LoginScreen> {
                         setState(() {
                           _errorMessage = null;
                         });
-                        if (_emailController.text.trim().isEmpty ||
-                            _passwordController.text.trim().isEmpty) {
+                        if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
                           if (!mounted) return;
                           setState(() {
-                            _errorMessage =
-                                'Por favor, ingresa tu email y contraseña.';
+                            _errorMessage = 'Por favor, ingresa tu email y contraseña.';
                           });
                           return;
                         }
-                        String emailPattern =
-                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+                        String emailPattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
                         RegExp regex = RegExp(emailPattern);
                         if (!regex.hasMatch(_emailController.text.trim())) {
                           if (!mounted) return;
                           setState(() {
-                            _errorMessage =
-                                'Por favor, ingresa un email válido.';
+                            _errorMessage = 'Por favor, ingresa un email válido.';
                           });
                           return;
                         }
                         if (_passwordController.text.trim().length < 6) {
                           if (!mounted) return;
                           setState(() {
-                            _errorMessage =
-                                'La contraseña debe tener al menos 6 caracteres.';
+                            _errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
                           });
                           return;
                         }
 
-                        final loginProvider =
-                            Provider.of<LoginProvider>(context, listen: false);
+                        final loginProvider = Provider.of<LoginProvider>(context, listen: false);
                         await loginProvider.loginUser(
                           email: _emailController.text.trim(),
                           password: _passwordController.text.trim(),
@@ -178,14 +169,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (!mounted) return;
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(
-                                  builder: (_) => const AuthWrapper()),
+                              MaterialPageRoute(builder: (_) => const AuthWrapper()),
                             );
                           },
                           onError: (error) {
                             String translatedError;
-                            if (error ==
-                                'The supplied auth credential is incorrect, malformed or has expired.') {
+                            if (error == 'The supplied auth credential is incorrect, malformed or has expired.') {
                               translatedError =
                                   'Las credenciales de autenticación proporcionadas son incorrectas, están mal formadas o han expirado.';
                             } else {
@@ -203,23 +192,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   AwSpacing.s20,
                   WalletButton.iconButtonText(
-                    icon: Icons.g_translate,
+                    icon: Icons.login_sharp,
                     buttonText: 'Continuar con Google',
                     onPressed: () async {
                       setState(() {
                         _errorMessage = null;
                       });
 
-                      final loginProvider =
-                          Provider.of<LoginProvider>(context, listen: false);
+                      final loginProvider = Provider.of<LoginProvider>(context, listen: false);
 
                       await loginProvider.signInWithGoogle(
                         onSuccess: () {
                           if (!mounted) return;
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(
-                                builder: (_) => const AuthWrapper()),
+                            MaterialPageRoute(builder: (_) => const AuthWrapper()),
                           );
                         },
                         onError: (error) {
@@ -241,8 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => RegisterScreen()),
+                            MaterialPageRoute(builder: (context) => RegisterScreen()),
                           );
                         },
                       ),

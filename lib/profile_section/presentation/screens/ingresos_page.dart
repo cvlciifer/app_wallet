@@ -15,8 +15,7 @@ class IngresosPage extends ConsumerStatefulWidget {
 
 class _IngresosPageState extends ConsumerState<IngresosPage> {
   final TextEditingController _amountController = TextEditingController();
-  final NumberFormat _clpFormatter =
-      NumberFormat.currency(locale: 'es_CL', symbol: '', decimalDigits: 0);
+  final NumberFormat _clpFormatter = NumberFormat.currency(locale: 'es_CL', symbol: '', decimalDigits: 0);
   bool _showMaxError = false;
 
   @override
@@ -36,14 +35,12 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
     final ctrl = ref.read(ingresosProvider.notifier);
 
     return Scaffold(
-      appBar: WalletAppBar(
-        title: ' ',
-        showBackArrow: false,
-        barColor: AwColors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AwColors.appBarColor),
-          onPressed: () => Navigator.of(context).pop(),
+      appBar: const WalletAppBar(
+        title: AwText.bold(
+          'Ingreso Mensual',
+          color: AwColors.white,
         ),
+        automaticallyImplyLeading: true,
         actions: const [],
       ),
       body: SingleChildScrollView(
@@ -58,14 +55,9 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AwSpacing.s12,
-                  const AwText.bold('Ingresos mensuales',
-                      size: AwSize.s18, color: AwColors.appBarColor),
-                  AwSpacing.s6,
-                  const AwText.normal('Ingresa monto y duración (meses).',
-                      size: AwSize.s14, color: AwColors.modalGrey),
+                  const AwText.normal('Ingresa monto y duración (meses).', size: AwSize.s14, color: AwColors.modalGrey),
                   const SizedBox(height: 12),
-                  const AwText.normal('Monto por mes (CLP)',
-                      size: AwSize.s14, color: AwColors.black54),
+                  const AwText.normal('Monto por mes (CLP)', size: AwSize.s14, color: AwColors.black54),
                   AwSpacing.s6,
                   CustomTextField(
                     controller: _amountController,
@@ -99,22 +91,18 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                       final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
                       final current = int.tryParse(digits) ?? 0;
                       setState(() {
-                        _showMaxError =
-                            current >= MaxAmountFormatter.kEightDigitsMaxAmount;
+                        _showMaxError = current >= MaxAmountFormatter.kEightDigitsMaxAmount;
                       });
                     },
                   ),
                   if (_showMaxError)
                     const Padding(
                       padding: EdgeInsets.only(top: 4.0),
-                      child: AwText.normal(
-                          'Tope máximo: 8 dígitos (99.999.999)',
-                          color: AwColors.red,
-                          size: AwSize.s14),
+                      child:
+                          AwText.normal('Tope máximo: 8 dígitos (99.999.999)', color: AwColors.red, size: AwSize.s14),
                     ),
                   AwSpacing.s12,
-                  const AwText.normal('Número de meses (1-12)',
-                      size: AwSize.s14, color: AwColors.black54),
+                  const AwText.normal('Número de meses (1-12)', size: AwSize.s14, color: AwColors.black54),
                   AwSpacing.s6,
                   // ChoiceChip selector
                   SizedBox(
@@ -136,12 +124,9 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                               selectedColor: AwColors.appBarColor,
                               backgroundColor: Colors.transparent,
                               labelStyle: TextStyle(
-                                color: selected
-                                    ? AwColors.white
-                                    : AwColors.boldBlack,
+                                color: selected ? AwColors.white : AwColors.boldBlack,
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),
                           );
                         }),
@@ -154,30 +139,23 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                     onPressed: state.isSaving
                         ? null
                         : () async {
-                            final parsed = int.tryParse(_amountController.text
-                                    .replaceAll(RegExp(r'[^0-9]'), '')) ??
-                                0;
-                            final amount = parsed >
-                                    MaxAmountFormatter.kEightDigitsMaxAmount
+                            final parsed = int.tryParse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+                            final amount = parsed > MaxAmountFormatter.kEightDigitsMaxAmount
                                 ? MaxAmountFormatter.kEightDigitsMaxAmount
                                 : parsed;
                             if (amount <= 0) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Ingrese monto válido')));
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(content: Text('Ingrese monto válido')));
                               return;
                             }
                             try {
-                              ref.read(globalLoaderProvider.notifier).state =
-                                  true;
+                              ref.read(globalLoaderProvider.notifier).state = true;
                             } catch (_) {}
                             try {
                               final success = await ctrl.save(amount);
                               if (!mounted) {
                                 try {
-                                  ref
-                                      .read(globalLoaderProvider.notifier)
-                                      .state = false;
+                                  ref.read(globalLoaderProvider.notifier).state = false;
                                 } catch (_) {}
                                 return;
                               }
@@ -190,41 +168,31 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                                 Navigator.of(context).pop(true);
                               } else {
                                 // ignore: use_build_context_synchronously
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Error guardando ingresos')));
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(content: Text('Error guardando ingresos')));
                               }
                             } finally {
                               try {
-                                ref.read(globalLoaderProvider.notifier).state =
-                                    false;
+                                ref.read(globalLoaderProvider.notifier).state = false;
                               } catch (_) {}
                             }
                           },
                   ),
                   AwSpacing.s30,
-                  const AwText.bold('Previsualización',
-                      size: AwSize.s18, color: AwColors.appBarColor),
+                  const AwText.bold('Previsualización', size: AwSize.s18, color: AwColors.appBarColor),
                   AwSpacing.s6,
                   Column(
                     children: state.previewMonths.map((d) {
                       final fijo = (_amountController.text.isEmpty)
                           ? 0
-                          : (int.tryParse(_amountController.text
-                                  .replaceAll(RegExp(r'[^0-9]'), '')) ??
-                              0);
-                      final id =
-                          '${d.year}${d.month.toString().padLeft(2, '0')}';
+                          : (int.tryParse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0);
+                      final id = '${d.year}${d.month.toString().padLeft(2, '0')}';
                       final existing = state.localIncomes[id];
-                      final imprevisto = existing != null
-                          ? (existing['ingreso_imprevisto'] as int? ?? 0)
-                          : 0;
+                      final imprevisto = existing != null ? (existing['ingreso_imprevisto'] as int? ?? 0) : 0;
                       final total = fijo + imprevisto;
 
-                      final monthLabel = d.month == DateTime.now().month
-                          ? 'Mes actual'
-                          : DateFormat('MMMM yyyy').format(d);
+                      final monthLabel =
+                          d.month == DateTime.now().month ? 'Mes actual' : DateFormat('MMMM yyyy').format(d);
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -235,8 +203,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                           totalText: _clpFormatter.format(total),
                           onTap: () async {
                             final monthDate = DateTime(d.year, d.month, 1);
-                            final saved =
-                                await Navigator.of(context).push<bool>(
+                            final saved = await Navigator.of(context).push<bool>(
                               MaterialPageRoute(
                                 builder: (_) => IngresosImprevistosPage(
                                   initialMonth: monthDate,
