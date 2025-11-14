@@ -106,6 +106,7 @@ export 'package:app_wallet/components_section/widgets/profile/recurrent_list.dar
 export 'package:app_wallet/components_section/widgets/profile/recurrent_detail_items.dart';
 export 'package:app_wallet/components_section/widgets/profile/recurrent_item_actions.dart';
 export 'package:app_wallet/components_section/buttons/compact_action_button.dart';
+export 'package:app_wallet/components_section/widgets/profile/months_count_selector_arrow.dart';
 
 export 'package:app_wallet/components_section/modals/aw_alert.dart';
 export 'package:app_wallet/components_section/widgets/ticket_card.dart';

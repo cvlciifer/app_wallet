@@ -3,7 +3,8 @@ import 'package:app_wallet/library_section/main_library.dart';
 class EstadisticasScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  const EstadisticasScreen({Key? key, required this.expenses}) : super(key: key);
+  const EstadisticasScreen({Key? key, required this.expenses})
+      : super(key: key);
 
   @override
   _EstadisticasScreenState createState() => _EstadisticasScreenState();
@@ -13,6 +14,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
   bool groupBySubcategory = false;
+  bool _initializedFromController = false;
 
   List<int> getAvailableYears() {
     final years = widget.expenses.map((e) => e.date.year).toSet().toList();
@@ -21,7 +23,11 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   }
 
   List<int> getAvailableMonthsForYear(int year) {
-    final months = widget.expenses.where((e) => e.date.year == year).map((e) => e.date.month).toSet().toList();
+    final months = widget.expenses
+        .where((e) => e.date.year == year)
+        .map((e) => e.date.month)
+        .toSet()
+        .toList();
     months.sort();
     return months;
   }
@@ -34,7 +40,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   List<Map<String, dynamic>> _getFilteredData() {
     final filteredExpenses = widget.expenses.where((expense) {
       final expenseDate = expense.date;
-      return expenseDate.month == selectedMonth && expenseDate.year == selectedYear;
+      return expenseDate.month == selectedMonth &&
+          expenseDate.year == selectedYear;
     }).toList();
 
     if (!groupBySubcategory) {
@@ -42,7 +49,9 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         return WalletExpenseBucket.forCategory(filteredExpenses, category);
       }).toList();
 
-      return walletExpenseBuckets.where((bucket) => bucket.totalExpenses > 0).map((bucket) {
+      return walletExpenseBuckets
+          .where((bucket) => bucket.totalExpenses > 0)
+          .map((bucket) {
         return {
           'label': bucket.category.displayName,
           'amount': bucket.totalExpenses,
@@ -91,26 +100,47 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
           'color': Colors.grey,
         });
       }
-      result.sort((a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
+      result.sort(
+          (a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
       return result;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_initializedFromController) {
+      try {
+        final controller = context.read<WalletExpensesController>();
+        final mf = controller.monthFilter;
+        if (mf != null) {
+          selectedMonth = mf.month;
+          selectedYear = mf.year;
+        }
+      } catch (_) {}
+      _initializedFromController = true;
+    }
     // Aseguramos que las listas de años y meses disponibles reflejen los gastos
-    final availableYears = getAvailableYears();
+    final expenses = widget.expenses.isNotEmpty
+        ? widget.expenses
+        : (context.read<WalletExpensesController>().allExpenses);
+    final availableYears = expenses.map((e) => e.date.year).toSet().toList();
     if (!availableYears.contains(selectedYear) && availableYears.isNotEmpty) {
       selectedYear = availableYears.first;
     }
-
-    final availableMonths = getAvailableMonthsForYear(selectedYear);
-    if (!availableMonths.contains(selectedMonth) && availableMonths.isNotEmpty) {
+    final availableMonths = expenses
+        .where((e) => e.date.year == selectedYear)
+        .map((e) => e.date.month)
+        .toSet()
+        .toList();
+    availableMonths.sort();
+    if (!availableMonths.contains(selectedMonth) &&
+        availableMonths.isNotEmpty) {
       selectedMonth = availableMonths.first;
     }
 
     final data = _getFilteredData();
-    final totalAmount = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
+    final totalAmount =
+        data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
     return Scaffold(
       backgroundColor: AwColors.white,
@@ -137,7 +167,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                     children: [
                       TextButton(
                         onPressed: () {
-                          if (groupBySubcategory) setState(() => groupBySubcategory = false);
+                          if (groupBySubcategory)
+                            setState(() => groupBySubcategory = false);
                         },
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
@@ -147,12 +178,18 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                         child: Text(
                           'Categoria',
                           style: TextStyle(
-                            color: groupBySubcategory ? AwColors.black : AwColors.appBarColor,
+                            color: groupBySubcategory
+                                ? AwColors.black
+                                : AwColors.appBarColor,
                             fontSize: AwSize.s16,
                           ),
                         ),
                       ),
-                      Container(height: 2, color: groupBySubcategory ? Colors.transparent : AwColors.appBarColor),
+                      Container(
+                          height: 2,
+                          color: groupBySubcategory
+                              ? Colors.transparent
+                              : AwColors.appBarColor),
                     ],
                   ),
                 ),
@@ -163,7 +200,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                     children: [
                       TextButton(
                         onPressed: () {
-                          if (!groupBySubcategory) setState(() => groupBySubcategory = true);
+                          if (!groupBySubcategory)
+                            setState(() => groupBySubcategory = true);
                         },
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
@@ -173,12 +211,18 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                         child: Text(
                           'Subcategoria',
                           style: TextStyle(
-                            color: groupBySubcategory ? AwColors.appBarColor : AwColors.black,
+                            color: groupBySubcategory
+                                ? AwColors.appBarColor
+                                : AwColors.black,
                             fontSize: AwSize.s16,
                           ),
                         ),
                       ),
-                      Container(height: 2, color: groupBySubcategory ? AwColors.appBarColor : Colors.transparent),
+                      Container(
+                          height: 2,
+                          color: groupBySubcategory
+                              ? AwColors.appBarColor
+                              : Colors.transparent),
                     ],
                   ),
                 ),
@@ -222,7 +266,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   AwSpacing.m,
-                                  WalletCategoryList(data: data, formatNumber: formatNumber),
+                                  WalletCategoryList(
+                                      data: data, formatNumber: formatNumber),
                                 ],
                               ),
                             ),

@@ -27,7 +27,9 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
   }
 
   void setMonths(int m) {
-    state = state.copyWith(months: m);
+    final int clamped = m < 1 ? 1 : (m > 12 ? 12 : m);
+    if (clamped == state.months) return;
+    state = state.copyWith(months: clamped);
     generatePreview();
   }
 

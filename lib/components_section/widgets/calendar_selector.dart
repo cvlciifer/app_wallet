@@ -1,4 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:intl/intl.dart';
 
 class WalletMonthYearSelector extends StatelessWidget {
   final int selectedMonth;
@@ -34,7 +35,8 @@ class WalletMonthYearSelector extends StatelessWidget {
           items: availableMonths.map((m) {
             return DropdownMenuItem(
               value: m,
-              child: AwText(text: DateFormat('MMMM').format(DateTime(0, m))),
+              child:
+                  AwText(text: DateFormat('MMMM', 'es').format(DateTime(0, m))),
             );
           }).toList(),
           onChanged: (value) => onMonthChanged(value!),

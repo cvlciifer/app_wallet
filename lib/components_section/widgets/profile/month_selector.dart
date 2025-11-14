@@ -64,7 +64,7 @@ class MonthSelector extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       AwText.bold(
-                        DateFormat('MMMM').format(month),
+                        DateFormat('MMMM', 'es').format(month),
                         size: AwSize.s14,
                         color: AwColors.boldBlack,
                       ),

@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/profile_section/presentation/screens/ingresos_imprevistos_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,7 +83,9 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AwText.bold(
-                        alias != null && alias!.isNotEmpty ? 'Hola, $alias 👋' : 'Hola...👋',
+                        alias != null && alias!.isNotEmpty
+                            ? 'Hola, $alias 👋'
+                            : 'Hola...👋',
                         color: AwColors.modalPurple,
                         size: AwSize.s16,
                         textOverflow: TextOverflow.ellipsis,
@@ -119,7 +120,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: AwText.bold('Configuraciones', color: AwColors.blue, size: AwSize.s18),
+              child: AwText.bold('Configuraciones',
+                  color: AwColors.blue, size: AwSize.s18),
             ),
           ),
           AwSpacing.s12,
@@ -127,7 +129,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             child: SafeArea(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                   child: Column(
                     children: [
                       SizedBox(
@@ -138,11 +141,15 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           onTap: () async {
                             try {
                               final result = await Navigator.of(context)
-                                  .push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
+                                  .push<bool>(MaterialPageRoute(
+                                      builder: (_) =>
+                                          const RecurrentCreatePage()));
                               if (!mounted) return;
                               if (result == true) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(content: Text('Gasto recurrente creado')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Gasto recurrente creado')));
                               }
                             } catch (_) {}
                           },
@@ -156,13 +163,15 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.list_alt,
                           onTap: () async {
                             try {
-                              await Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (_) => const RecurrentRegistryPage()));
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const RecurrentRegistryPage()));
                             } catch (_) {}
                           },
                         ),
                       ),
-                      AwSpacing.s12,
+                      AwSpacing.s6,
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
@@ -171,26 +180,32 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           onTap: () {
                             () async {
                               try {
-                                final result = await Navigator.of(context).push<String>(
-                                    MaterialPageRoute(builder: (_) => const AliasInputPage(initialSetup: false)));
+                                final result = await Navigator.of(context)
+                                    .push<String>(MaterialPageRoute(
+                                        builder: (_) => const AliasInputPage(
+                                            initialSetup: false)));
                                 if (result != null && result.isNotEmpty) {
                                   setState(() {
                                     alias = result;
                                   });
                                   if (mounted) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(content: Text('Alias actualizado: $result')));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'Alias actualizado: $result')));
                                   }
                                 }
                               } catch (e) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(content: Text('No se pudo abrir cambiar alias')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'No se pudo abrir cambiar alias')));
                               }
                             }();
                           },
                         ),
                       ),
-                      AwSpacing.s,
+                      AwSpacing.s6,
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
@@ -198,41 +213,52 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.email,
                           onTap: () async {
                             try {
-                              await Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (_) => const GmailInboxPage()));
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) => const GmailInboxPage()));
                             } catch (e) {
-                              if (kDebugMode) log('Error abriendo GmailInboxPage: $e');
+                              if (kDebugMode)
+                                log('Error abriendo GmailInboxPage: $e');
                               if (mounted)
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('No se pudo abrir la bandeja de correos')));
+                                    const SnackBar(
+                                        content: Text(
+                                            'No se pudo abrir la bandeja de correos')));
                             }
                           },
                         ),
                       ),
-                      AwSpacing.s,
+                      AwSpacing.s6,
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
                           title: 'Restablecer mi PIN',
                           icon: Icons.lock_reset,
                           onTap: () async {
-                            final loader = ref.read(globalLoaderProvider.notifier);
+                            final loader =
+                                ref.read(globalLoaderProvider.notifier);
                             loader.state = true;
                             try {
                               final uid = user?.uid;
                               final pinService = PinService();
-                              final remaining = await pinService.pinChangeRemainingCount(accountId: uid ?? '');
-                              final blockedUntil = await pinService.pinChangeBlockedUntilNextDay(accountId: uid ?? '');
+                              final remaining =
+                                  await pinService.pinChangeRemainingCount(
+                                      accountId: uid ?? '');
+                              final blockedUntil =
+                                  await pinService.pinChangeBlockedUntilNextDay(
+                                      accountId: uid ?? '');
 
-                              final isBlocked =
-                                  (remaining <= 0) || (blockedUntil != null && blockedUntil > Duration.zero);
+                              final isBlocked = (remaining <= 0) ||
+                                  (blockedUntil != null &&
+                                      blockedUntil > Duration.zero);
 
                               try {
                                 loader.state = false;
                               } catch (_) {}
 
                               if (isBlocked) {
-                                final remainingDuration = blockedUntil ?? const Duration(days: 1);
+                                final remainingDuration =
+                                    blockedUntil ?? const Duration(days: 1);
                                 if (!mounted) return;
                                 Navigator.of(context).push(MaterialPageRoute(
                                     builder: (_) => PinLockedPage(
@@ -243,21 +269,32 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                               } else {
                                 try {
                                   final success = await Navigator.of(context)
-                                      .push<bool>(MaterialPageRoute(builder: (_) => const ForgotPinPage()));
+                                      .push<bool>(MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ForgotPinPage()));
                                   if (success == true) {
                                     if (!mounted) return;
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SetPinPage()));
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const SetPinPage()));
                                   }
                                 } catch (e, st) {
-                                  if (kDebugMode) log('Restablecer PIN error', error: e, stackTrace: st);
+                                  if (kDebugMode)
+                                    log('Restablecer PIN error',
+                                        error: e, stackTrace: st);
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('No se pudo abrir restablecer PIN')));
+                                        const SnackBar(
+                                            content: Text(
+                                                'No se pudo abrir restablecer PIN')));
                                   }
                                 }
                               }
                             } catch (e, st) {
-                              if (kDebugMode) log('Error checking PIN state', error: e, stackTrace: st);
+                              if (kDebugMode)
+                                log('Error checking PIN state',
+                                    error: e, stackTrace: st);
                               try {
                                 loader.state = false;
                               } catch (_) {}
@@ -265,7 +302,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           },
                         ),
                       ),
-                      AwSpacing.s12,
+                      AwSpacing.s6,
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
@@ -273,13 +310,16 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.attach_money,
                           onTap: () async {
                             try {
-                              final result = await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(builder: (_) => const IngresosPage()),
+                              final result =
+                                  await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(
+                                    builder: (_) => const IngresosPage()),
                               );
                               if (result == true) {
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(const SnackBar(content: Text('Ingresos guardados')));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('Ingresos guardados')));
                                 }
                               }
                             } catch (_) {}
@@ -294,13 +334,18 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.savings,
                           onTap: () async {
                             try {
-                              final result = await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(builder: (_) => const IngresosImprevistosPage()),
+                              final result =
+                                  await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const IngresosImprevistosPage()),
                               );
                               if (!mounted) return;
                               if (result == true) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(content: Text('Ingreso imprevisto guardado')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Ingreso imprevisto guardado')));
                               }
                             } catch (_) {}
                           },

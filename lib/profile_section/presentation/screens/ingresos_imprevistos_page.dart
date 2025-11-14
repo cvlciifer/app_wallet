@@ -9,13 +9,17 @@ class IngresosImprevistosPage extends ConsumerStatefulWidget {
   final DateTime? initialMonth;
   final int? initialImprevisto;
 
-  const IngresosImprevistosPage({Key? key, this.initialMonth, this.initialImprevisto}) : super(key: key);
+  const IngresosImprevistosPage(
+      {Key? key, this.initialMonth, this.initialImprevisto})
+      : super(key: key);
 
   @override
-  ConsumerState<IngresosImprevistosPage> createState() => _IngresosImprevistosPageState();
+  ConsumerState<IngresosImprevistosPage> createState() =>
+      _IngresosImprevistosPageState();
 }
 
-class _IngresosImprevistosPageState extends ConsumerState<IngresosImprevistosPage> {
+class _IngresosImprevistosPageState
+    extends ConsumerState<IngresosImprevistosPage> {
   final TextEditingController _amountCtrl = TextEditingController();
   int _selectedMonthOffset = 0;
   Timer? _maxErrorTimer;
@@ -28,16 +32,19 @@ class _IngresosImprevistosPageState extends ConsumerState<IngresosImprevistosPag
     super.initState();
     if (widget.initialMonth != null) {
       final now = DateTime.now();
-      final diff = (widget.initialMonth!.year - now.year) * 12 + (widget.initialMonth!.month - now.month);
+      final diff = (widget.initialMonth!.year - now.year) * 12 +
+          (widget.initialMonth!.month - now.month);
       _selectedMonthOffset = diff.clamp(0, 11);
     }
     if (widget.initialImprevisto != null && widget.initialImprevisto! > 0) {
-      final fmt = NumberFormat.currency(locale: 'es_CL', symbol: '', decimalDigits: 0);
+      final fmt =
+          NumberFormat.currency(locale: 'es_CL', symbol: '', decimalDigits: 0);
       _amountCtrl.text = fmt.format(widget.initialImprevisto);
       // initialize validity based on provided initial value
       final digits = _amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
       final current = int.tryParse(digits) ?? 0;
-      _isAmountValid = digits.isNotEmpty && current <= MaxAmountFormatter.kEightDigitsMaxAmount;
+      _isAmountValid = digits.isNotEmpty &&
+          current <= MaxAmountFormatter.kEightDigitsMaxAmount;
     }
     _amountCtrl.addListener(_onAmountChanged);
   }
@@ -53,7 +60,8 @@ class _IngresosImprevistosPageState extends ConsumerState<IngresosImprevistosPag
   void _onAmountChanged() {
     final digits = _amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
     final current = int.tryParse(digits) ?? 0;
-    final valid = digits.isNotEmpty && current <= MaxAmountFormatter.kEightDigitsMaxAmount;
+    final valid = digits.isNotEmpty &&
+        current <= MaxAmountFormatter.kEightDigitsMaxAmount;
     if (valid != _isAmountValid) {
       if (!mounted) return;
       setState(() {
@@ -71,17 +79,21 @@ class _IngresosImprevistosPageState extends ConsumerState<IngresosImprevistosPag
       _isSaving = true;
     });
 
-    final value = int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    final value =
+        int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
     final now = DateTime.now();
     final target = DateTime(now.year, now.month + _selectedMonthOffset, 1);
 
     bool saved = false;
     try {
-      saved = await ref.read(imprevistosProvider.notifier).saveImprevisto(target, 0, value);
+      saved = await ref
+          .read(imprevistosProvider.notifier)
+          .saveImprevisto(target, 0, value);
     } catch (e) {
       log('ingresos_imprevistos._save error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error guardando imprevisto')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error guardando imprevisto')));
       }
     } finally {
       try {
@@ -123,12 +135,13 @@ class _IngresosImprevistosPageState extends ConsumerState<IngresosImprevistosPag
                 // const AwText.bold('Ingresos imprevistos', size: AwSize.s18, color: AwColors.appBarColor),
                 AwSpacing.s6,
                 AwText.normal(
-                  'Ingresa un monto imprevisto. Este valor se verá reflejado en ${DateFormat('MMMM yyyy').format(monthLabel)}.',
+                  'Ingresa un monto imprevisto. Este valor se verá reflejado en ${DateFormat('MMMM yyyy', 'es').format(monthLabel)}.',
                   size: AwSize.s14,
                   color: AwColors.modalGrey,
                 ),
                 AwSpacing.s18,
-                const AwText.normal('Mes seleccionado', size: AwSize.s14, color: AwColors.grey),
+                const AwText.normal('Mes seleccionado',
+                    size: AwSize.s14, color: AwColors.grey),
                 AwSpacing.s6,
                 MonthSelector(
                   month: monthLabel,
@@ -146,7 +159,8 @@ class _IngresosImprevistosPageState extends ConsumerState<IngresosImprevistosPag
                   },
                 ),
                 AwSpacing.s12,
-                const AwText.normal('Valor imprevisto (CLP)', size: AwSize.s14, color: AwColors.grey),
+                const AwText.normal('Valor imprevisto (CLP)',
+                    size: AwSize.s14, color: AwColors.grey),
                 AwSpacing.s6,
                 CustomTextField(
                   controller: _amountCtrl,
@@ -179,7 +193,8 @@ class _IngresosImprevistosPageState extends ConsumerState<IngresosImprevistosPag
                 if (_showMaxError)
                   const Padding(
                     padding: EdgeInsets.only(top: 8.0),
-                    child: AwText.normal('Tope máximo: 8 dígitos (99.999.999)', color: AwColors.red, size: AwSize.s14),
+                    child: AwText.normal('Tope máximo: 8 dígitos (99.999.999)',
+                        color: AwColors.red, size: AwSize.s14),
                   ),
                 AwSpacing.s18,
                 SizedBox(
