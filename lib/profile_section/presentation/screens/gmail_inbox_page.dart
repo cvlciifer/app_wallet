@@ -90,6 +90,10 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       'ha realizado una compra en',
       'le informamos que su pago ha sido procesado exitosamente',
       'se ha cargado el monto correspondiente a su tarjeta',
+      'Se ha realizado una compra por',
+      'Notificación de compra',
+      'Se ha realizado un giro en',
+      'Acabas de realizar una Transferencia Electronica',
     ];
 
     final normalized = textToAnalyze.replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
