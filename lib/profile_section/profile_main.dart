@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/profile_section/presentation/screens/header_label.dart';
+import 'package:app_wallet/profile_section/presentation/screens/settings_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WalletProfilePage extends ConsumerStatefulWidget {
@@ -58,9 +59,10 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
     return Scaffold(
       backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
-        title: AwText.normal('Mi Wallet', color: AwColors.white),
+        title: AwText.bold('Mi Wallet', color: AwColors.white),
         actions: [],
         barColor: AwColors.appBarColor,
+        automaticallyImplyLeading: true,
       ),
       body: Column(
         children: [
@@ -101,14 +103,27 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                             maxLines: 1,
                           ),
                           AwSpacing.s6,
-                          UnderlinedButton(
-                            text: 'Cerrar sesión',
-                            icon: Icons.logout,
-                            color: AwColors.white,
-                            alignment: Alignment.centerLeft,
-                            onTap: () {
-                              LogOutDialog.showLogOutDialog(context);
-                            },
+                          // Row que contiene la fecha a la izquierda y el botón 'Cerrar sesión' a la derecha
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              AwText.normal(
+                                // Fecha de hoy en formato DD/MM/YYYY
+                                "${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}",
+                                color: AwColors.white.withOpacity(0.95),
+                                size: AwSize.s14,
+                                textOverflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                              UnderlinedButton(
+                                text: 'Cerrar sesión',
+                                icon: Icons.logout,
+                                color: AwColors.white,
+                                onTap: () {
+                                  LogOutDialog.showLogOutDialog(context);
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -123,7 +138,11 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: AwText.bold('Configuraciones', color: AwColors.blue, size: AwSize.s18),
+              child: AwText.bold(
+                'Menú',
+                color: AwColors.blue,
+                size: AwSize.s18,
+              ),
             ),
           ),
           AwSpacing.s12,
@@ -134,6 +153,19 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                   child: Column(
                     children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: SettingsCard(
+                          title: 'Configuración',
+                          icon: Icons.settings,
+                          onTap: () async {
+                            try {
+                              await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
+                            } catch (_) {}
+                          },
+                        ),
+                      ),
+                      AwSpacing.s6,
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
@@ -170,34 +202,6 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
-                          title: 'Actualizar alias',
-                          icon: Icons.person_outline,
-                          onTap: () {
-                            () async {
-                              try {
-                                final result = await Navigator.of(context).push<String>(
-                                    MaterialPageRoute(builder: (_) => const AliasInputPage(initialSetup: false)));
-                                if (result != null && result.isNotEmpty) {
-                                  setState(() {
-                                    alias = result;
-                                  });
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(content: Text('Alias actualizado: $result')));
-                                  }
-                                }
-                              } catch (e) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(content: Text('No se pudo abrir cambiar alias')));
-                              }
-                            }();
-                          },
-                        ),
-                      ),
-                      AwSpacing.s6,
-                      SizedBox(
-                        width: double.infinity,
-                        child: SettingsCard(
                           title: 'Ver correos (Gmail)',
                           icon: Icons.email,
                           onTap: () async {
@@ -209,62 +213,6 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                               if (mounted)
                                 ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('No se pudo abrir la bandeja de correos')));
-                            }
-                          },
-                        ),
-                      ),
-                      AwSpacing.s6,
-                      SizedBox(
-                        width: double.infinity,
-                        child: SettingsCard(
-                          title: 'Restablecer mi PIN',
-                          icon: Icons.lock_reset,
-                          onTap: () async {
-                            final loader = ref.read(globalLoaderProvider.notifier);
-                            loader.state = true;
-                            try {
-                              final uid = user?.uid;
-                              final pinService = PinService();
-                              final remaining = await pinService.pinChangeRemainingCount(accountId: uid ?? '');
-                              final blockedUntil = await pinService.pinChangeBlockedUntilNextDay(accountId: uid ?? '');
-
-                              final isBlocked =
-                                  (remaining <= 0) || (blockedUntil != null && blockedUntil > Duration.zero);
-
-                              try {
-                                loader.state = false;
-                              } catch (_) {}
-
-                              if (isBlocked) {
-                                final remainingDuration = blockedUntil ?? const Duration(days: 1);
-                                if (!mounted) return;
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (_) => PinLockedPage(
-                                          remaining: remainingDuration,
-                                          accountId: uid,
-                                          allowBack: true,
-                                        )));
-                              } else {
-                                try {
-                                  final success = await Navigator.of(context)
-                                      .push<bool>(MaterialPageRoute(builder: (_) => const ForgotPinPage()));
-                                  if (success == true) {
-                                    if (!mounted) return;
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SetPinPage()));
-                                  }
-                                } catch (e, st) {
-                                  if (kDebugMode) log('Restablecer PIN error', error: e, stackTrace: st);
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('No se pudo abrir restablecer PIN')));
-                                  }
-                                }
-                              }
-                            } catch (e, st) {
-                              if (kDebugMode) log('Error checking PIN state', error: e, stackTrace: st);
-                              try {
-                                loader.state = false;
-                              } catch (_) {}
                             }
                           },
                         ),

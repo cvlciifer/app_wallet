@@ -25,33 +25,32 @@ class HeaderLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final boxShadow = (shadowOpacity > 0)
-        ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(shadowOpacity),
-              blurRadius: 10.0,
-              spreadRadius: 0,
-              offset: const Offset(0, 3),
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(shadowOpacity * 0.6),
-              blurRadius: 28.0,
-              spreadRadius: 0,
-              offset: const Offset(0, 12),
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(shadowOpacity * 0.35),
-              blurRadius: 48.0,
-              spreadRadius: 0,
-              offset: const Offset(0, 24),
-            ),
-          ]
-        : null;
+    final effectiveOpacity = shadowOpacity > 0 ? shadowOpacity : 0.22;
+    final boxShadow = [
+      BoxShadow(
+        color: Colors.black.withOpacity(effectiveOpacity),
+        blurRadius: 10.0,
+        spreadRadius: 0,
+        offset: const Offset(0, 3),
+      ),
+      BoxShadow(
+        color: Colors.black.withOpacity(effectiveOpacity * 0.6),
+        blurRadius: 28.0,
+        spreadRadius: 0,
+        offset: const Offset(0, 12),
+      ),
+      BoxShadow(
+        color: Colors.black.withOpacity(effectiveOpacity * 0.35),
+        blurRadius: 48.0,
+        spreadRadius: 0,
+        offset: const Offset(0, 24),
+      ),
+    ];
 
     final decoration = cardStyle
         ? BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF62597C), Color(0xFF7B7295)],
+              colors: [Color.fromARGB(255, 108, 136, 198), Color.fromARGB(255, 85, 111, 143)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
