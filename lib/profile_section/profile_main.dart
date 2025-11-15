@@ -1,11 +1,7 @@
 import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/profile_section/presentation/screens/ingresos_imprevistos_page.dart';
+import 'package:app_wallet/profile_section/presentation/screens/header_label.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
-import 'package:app_wallet/profile_section/presentation/screens/recurrent_create_page.dart';
-import 'package:app_wallet/profile_section/presentation/screens/recurrent_registry_page.dart';
-import 'package:app_wallet/profile_section/presentation/screens/gmail_inbox_page.dart';
 
 class WalletProfilePage extends ConsumerStatefulWidget {
   final String? userEmail;
@@ -60,59 +56,66 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.normal('Mi Wallet', color: AwColors.white),
         actions: [],
+        barColor: AwColors.appBarColor,
       ),
       body: Column(
         children: [
           AwSpacing.m,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  radius: 36,
-                  backgroundColor: AwColors.blue,
-                  child: Icon(Icons.person, size: 40, color: AwColors.white),
+            child: SizedBox(
+              width: double.infinity,
+              child: HeaderLabel(
+                cardStyle: true,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const CircleAvatar(
+                      radius: 36,
+                      backgroundColor: AwColors.blue,
+                      child: Icon(Icons.person, size: 40, color: AwColors.white),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AwText.bold(
+                            alias != null && alias!.isNotEmpty ? 'Hola, $alias 👋' : 'Hola...👋',
+                            color: AwColors.white,
+                            size: AwSize.s24,
+                            textOverflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          AwSpacing.s6,
+                          AwText.bold(
+                            userEmail ?? '',
+                            color: AwColors.white.withOpacity(0.95),
+                            size: AwSize.s14,
+                            textOverflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          AwSpacing.s6,
+                          UnderlinedButton(
+                            text: 'Cerrar sesión',
+                            icon: Icons.logout,
+                            color: AwColors.white,
+                            alignment: Alignment.centerLeft,
+                            onTap: () {
+                              LogOutDialog.showLogOutDialog(context);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AwText.bold(
-                        alias != null && alias!.isNotEmpty
-                            ? 'Hola, $alias 👋'
-                            : 'Hola...👋',
-                        color: AwColors.modalPurple,
-                        size: AwSize.s16,
-                        textOverflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                      AwSpacing.s6,
-                      AwText.bold(
-                        userEmail ?? 'correo@ejemplo.com',
-                        color: AwColors.boldBlack,
-                        size: AwSize.s16,
-                        textOverflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                      AwSpacing.s6,
-                      UnderlinedButton(
-                        text: 'Cerrar sesión',
-                        icon: Icons.logout,
-                        color: AwColors.red,
-                        alignment: Alignment.centerLeft,
-                        onTap: () {
-                          LogOutDialog.showLogOutDialog(context);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           AwSpacing.s20,
@@ -120,8 +123,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: AwText.bold('Configuraciones',
-                  color: AwColors.blue, size: AwSize.s18),
+              child: AwText.bold('Configuraciones', color: AwColors.blue, size: AwSize.s18),
             ),
           ),
           AwSpacing.s12,
@@ -129,8 +131,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             child: SafeArea(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                   child: Column(
                     children: [
                       SizedBox(
@@ -141,15 +142,11 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           onTap: () async {
                             try {
                               final result = await Navigator.of(context)
-                                  .push<bool>(MaterialPageRoute(
-                                      builder: (_) =>
-                                          const RecurrentCreatePage()));
+                                  .push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
                               if (!mounted) return;
                               if (result == true) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Gasto recurrente creado')));
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(content: Text('Gasto recurrente creado')));
                               }
                             } catch (_) {}
                           },
@@ -163,10 +160,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.list_alt,
                           onTap: () async {
                             try {
-                              await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          const RecurrentRegistryPage()));
+                              await Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (_) => const RecurrentRegistryPage()));
                             } catch (_) {}
                           },
                         ),
@@ -180,26 +175,20 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           onTap: () {
                             () async {
                               try {
-                                final result = await Navigator.of(context)
-                                    .push<String>(MaterialPageRoute(
-                                        builder: (_) => const AliasInputPage(
-                                            initialSetup: false)));
+                                final result = await Navigator.of(context).push<String>(
+                                    MaterialPageRoute(builder: (_) => const AliasInputPage(initialSetup: false)));
                                 if (result != null && result.isNotEmpty) {
                                   setState(() {
                                     alias = result;
                                   });
                                   if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                'Alias actualizado: $result')));
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(SnackBar(content: Text('Alias actualizado: $result')));
                                   }
                                 }
                               } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'No se pudo abrir cambiar alias')));
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(content: Text('No se pudo abrir cambiar alias')));
                               }
                             }();
                           },
@@ -213,17 +202,13 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.email,
                           onTap: () async {
                             try {
-                              await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) => const GmailInboxPage()));
+                              await Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (_) => const GmailInboxPage()));
                             } catch (e) {
-                              if (kDebugMode)
-                                log('Error abriendo GmailInboxPage: $e');
+                              if (kDebugMode) log('Error abriendo GmailInboxPage: $e');
                               if (mounted)
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'No se pudo abrir la bandeja de correos')));
+                                    const SnackBar(content: Text('No se pudo abrir la bandeja de correos')));
                             }
                           },
                         ),
@@ -235,30 +220,23 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           title: 'Restablecer mi PIN',
                           icon: Icons.lock_reset,
                           onTap: () async {
-                            final loader =
-                                ref.read(globalLoaderProvider.notifier);
+                            final loader = ref.read(globalLoaderProvider.notifier);
                             loader.state = true;
                             try {
                               final uid = user?.uid;
                               final pinService = PinService();
-                              final remaining =
-                                  await pinService.pinChangeRemainingCount(
-                                      accountId: uid ?? '');
-                              final blockedUntil =
-                                  await pinService.pinChangeBlockedUntilNextDay(
-                                      accountId: uid ?? '');
+                              final remaining = await pinService.pinChangeRemainingCount(accountId: uid ?? '');
+                              final blockedUntil = await pinService.pinChangeBlockedUntilNextDay(accountId: uid ?? '');
 
-                              final isBlocked = (remaining <= 0) ||
-                                  (blockedUntil != null &&
-                                      blockedUntil > Duration.zero);
+                              final isBlocked =
+                                  (remaining <= 0) || (blockedUntil != null && blockedUntil > Duration.zero);
 
                               try {
                                 loader.state = false;
                               } catch (_) {}
 
                               if (isBlocked) {
-                                final remainingDuration =
-                                    blockedUntil ?? const Duration(days: 1);
+                                final remainingDuration = blockedUntil ?? const Duration(days: 1);
                                 if (!mounted) return;
                                 Navigator.of(context).push(MaterialPageRoute(
                                     builder: (_) => PinLockedPage(
@@ -269,32 +247,21 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                               } else {
                                 try {
                                   final success = await Navigator.of(context)
-                                      .push<bool>(MaterialPageRoute(
-                                          builder: (_) =>
-                                              const ForgotPinPage()));
+                                      .push<bool>(MaterialPageRoute(builder: (_) => const ForgotPinPage()));
                                   if (success == true) {
                                     if (!mounted) return;
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const SetPinPage()));
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SetPinPage()));
                                   }
                                 } catch (e, st) {
-                                  if (kDebugMode)
-                                    log('Restablecer PIN error',
-                                        error: e, stackTrace: st);
+                                  if (kDebugMode) log('Restablecer PIN error', error: e, stackTrace: st);
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                'No se pudo abrir restablecer PIN')));
+                                        const SnackBar(content: Text('No se pudo abrir restablecer PIN')));
                                   }
                                 }
                               }
                             } catch (e, st) {
-                              if (kDebugMode)
-                                log('Error checking PIN state',
-                                    error: e, stackTrace: st);
+                              if (kDebugMode) log('Error checking PIN state', error: e, stackTrace: st);
                               try {
                                 loader.state = false;
                               } catch (_) {}
@@ -310,16 +277,13 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.attach_money,
                           onTap: () async {
                             try {
-                              final result =
-                                  await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(
-                                    builder: (_) => const IngresosPage()),
+                              final result = await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(builder: (_) => const IngresosPage()),
                               );
                               if (result == true) {
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('Ingresos guardados')));
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(const SnackBar(content: Text('Ingresos guardados')));
                                 }
                               }
                             } catch (_) {}
@@ -334,18 +298,13 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.savings,
                           onTap: () async {
                             try {
-                              final result =
-                                  await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(
-                                    builder: (_) =>
-                                        const IngresosImprevistosPage()),
+                              final result = await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(builder: (_) => const IngresosImprevistosPage()),
                               );
                               if (!mounted) return;
                               if (result == true) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'Ingreso imprevisto guardado')));
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(content: Text('Ingreso imprevisto guardado')));
                               }
                             } catch (_) {}
                           },
