@@ -44,6 +44,8 @@ class _AliasInputPageState extends State<AliasInputPage> {
     }
     final normalized = alias.isEmpty ? null : alias;
 
+    // Save alias locally and mark pending for background sync.
+
     if (widget.initialSetup) {
       final uidCheck = AuthService().getCurrentUser()?.uid;
       final pinServiceCheck = PinService();
@@ -65,24 +67,32 @@ class _AliasInputPageState extends State<AliasInputPage> {
           const SnackBar(content: Text('Usuario no identificado')));
       return;
     }
-    final pinService = PinService();
-    await pinService.setAlias(accountId: uid, alias: normalized ?? '');
-
+    // Use AliasService to save alias and mark pending sync flag
+    final aliasService = AliasService();
     try {
-      final ok = await AliasService().syncAliasForCurrentUser();
-      if (!ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                'Alias guardado localmente, pero no se pudo sincronizar')));
-      }
+      await aliasService.setAliasForCurrentUser(normalized ?? '');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error sincronizando alias: $e')));
+            SnackBar(content: Text('Error guardando alias localmente: $e')));
       }
+      return;
     }
-    if (!mounted) return;
 
+    // Inform user it's saved locally immediately
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Alias guardado localmente. Se sincronizará al reconectar')));
+    }
+
+    // Attempt background sync without blocking UI; SyncService will retry if it fails.
+    Future.microtask(() async {
+      try {
+        await aliasService.syncAliasForCurrentUser();
+      } catch (_) {}
+    });
+
+    if (!mounted) return;
     Navigator.of(context).pop(normalized);
   }
 

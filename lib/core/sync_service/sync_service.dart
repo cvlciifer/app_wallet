@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../home_section/presentation/new_expense/presentation/models/expense.dart';
 import '../data_base_local/local_crud.dart';
+import '../services/alias_service.dart';
 
 enum SyncStatus { synced, pendingCreate, pendingUpdate, pendingDelete }
 
@@ -290,9 +291,26 @@ class SyncService {
         log('Error syncing pending incomes: $e\n$st');
       }
     } finally {
+      // After syncing pending creates/updates/deletes, also attempt to sync
+      // lightweight user metadata like alias. This keeps alias updates
+      // eventually consistent with Firestore even if they were done offline.
+      try {
+        await _syncLightUserMetadata();
+      } catch (_) {}
       _syncingPending = false;
       log('syncPendingChanges: fin');
     }
+  }
+
+  /// Also attempt to sync lightweight user metadata (alias) when connectivity
+  /// is restored. AliasService handles local storage; this will attempt to
+  /// sync the alias for the current user to Firestore.
+  Future<void> _syncLightUserMetadata() async {
+    try {
+      // Defer import to avoid circular deps at top level
+      final aliasSvc = AliasService();
+      await aliasSvc.syncAliasForCurrentUser();
+    } catch (_) {}
   }
 
   /// Detecta conexión y sincroniza automáticamente

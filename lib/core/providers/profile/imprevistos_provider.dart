@@ -34,14 +34,25 @@ class ImprevistosNotifier extends StateNotifier<ImprevistosState> {
       if (match.isNotEmpty) fijo = (match['ingreso_fijo'] as int?) ?? fijo;
 
       final id = '${target.year}${target.month.toString().padLeft(2, '0')}';
+      // Local-first write
       try {
-        await upsertIncomeEntry(target, fijo, value, docId: id);
-        await createIncomeLocalImpl(target, fijo, value,
-            id: id, syncStatus: SyncStatus.synced.index);
-      } catch (_) {
         await createIncomeLocalImpl(target, fijo, value,
             id: id, syncStatus: SyncStatus.pendingCreate.index);
-      }
+      } catch (_) {}
+
+      // Background attempt to push to Firestore
+      Future.microtask(() async {
+        try {
+          await upsertIncomeEntry(target, fijo, value, docId: id);
+          await createIncomeLocalImpl(target, fijo, value,
+              id: id, syncStatus: SyncStatus.synced.index);
+        } catch (_) {
+          try {
+            await createIncomeLocalImpl(target, fijo, value,
+                id: id, syncStatus: SyncStatus.pendingCreate.index);
+          } catch (_) {}
+        }
+      });
 
       try {
         await ref.read(ingresosProvider.notifier).loadLocalIncomes();

@@ -212,18 +212,23 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           title: 'Ver correos (Gmail)',
                           icon: Icons.email,
                           onTap: () async {
+                            final connectivity = await Connectivity().checkConnectivity();
+                            if (connectivity == ConnectivityResult.none) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  content: Text('No es posible abrir correos sin conexión')));
+                              return;
+                            }
                             try {
                               await Navigator.of(context).push(
                                   MaterialPageRoute(
                                       builder: (_) => const GmailInboxPage()));
                             } catch (e) {
-                              if (kDebugMode)
-                                log('Error abriendo GmailInboxPage: $e');
+                              if (kDebugMode) log('Error abriendo GmailInboxPage: $e');
                               if (mounted)
                                 ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                        content: Text(
-                                            'No se pudo abrir la bandeja de correos')));
+                                        content: Text('No se pudo abrir la bandeja de correos')));
                             }
                           },
                         ),
@@ -235,8 +240,14 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           title: 'Restablecer mi PIN',
                           icon: Icons.lock_reset,
                           onTap: () async {
-                            final loader =
-                                ref.read(globalLoaderProvider.notifier);
+                            final connectivity = await Connectivity().checkConnectivity();
+                            if (connectivity == ConnectivityResult.none) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  content: Text('No es posible restablecer el PIN sin conexión')));
+                              return;
+                            }
+                            final loader = ref.read(globalLoaderProvider.notifier);
                             loader.state = true;
                             try {
                               final uid = user?.uid;
