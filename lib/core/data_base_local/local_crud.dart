@@ -402,7 +402,7 @@ Future<void> deleteExpenseImpl(String expenseId, {bool localOnly = false}) async
 
         if (recurrenceId != null) {
           // Count remaining mapping items for this recurrence
-          final remaining = await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId]);
+          final remaining = (await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId])).toList();
           if (remaining.isEmpty) {
             // No months left — remove recurrence metadata
             await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [recurrenceId]);
@@ -458,7 +458,7 @@ Future<void> deleteExpenseOfflineImpl(String expenseId) async {
         }
 
         if (recurrenceId != null) {
-          final remaining = await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId]);
+          final remaining = (await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId])).toList();
           if (remaining.isEmpty) {
             await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [recurrenceId]);
           } else {
@@ -1016,11 +1016,24 @@ Future<void> deleteRecurrenceFromMonthImpl(String recurrenceId, int fromMonthInd
   final db = await _db();
   // Find the fecha of the selected month_index (cutoff). If not found, do nothing.
   final selectedRows = await db.query('gastos_recurrentes_items', where: 'recurrence_id = ? AND month_index = ?', whereArgs: [recurrenceId, fromMonthIndex], limit: 1);
+  // Log what we found for debugging deletion issues
+  try {
+    log('deleteRecurrenceFromMonthImpl: selectedRows count=${selectedRows.length} for recurrence=$recurrenceId fromMonthIndex=$fromMonthIndex');
+    if (selectedRows.isNotEmpty) {
+      log('deleteRecurrenceFromMonthImpl: selectedRow fecha=${selectedRows.first['fecha']} uid_item=${selectedRows.first['uid_item']}');
+    }
+  } catch (_) {}
   if (selectedRows.isEmpty) return;
   final cutoffFecha = selectedRows.first['fecha'] as int;
 
   // delete all items whose fecha >= cutoffFecha (i.e. from the selected month onward)
   final rows = await db.query('gastos_recurrentes_items', where: 'recurrence_id = ? AND fecha >= ?', whereArgs: [recurrenceId, cutoffFecha]);
+  try {
+    log('deleteRecurrenceFromMonthImpl: rows to delete count=${rows.length} for recurrence=$recurrenceId cutoffFecha=$cutoffFecha');
+    for (final r in rows) {
+      log('deleteRecurrenceFromMonthImpl: will delete uid_item=${r['uid_item']} expense_id=${r['expense_id']} fecha=${r['fecha']} month_index=${r['month_index']}');
+    }
+  } catch (_) {}
   if (rows.isEmpty) return;
   await db.transaction((txn) async {
     for (final r in rows) {
@@ -1036,7 +1049,7 @@ Future<void> deleteRecurrenceFromMonthImpl(String recurrenceId, int fromMonthInd
       await txn.delete('gastos_recurrentes_items', where: 'uid_item = ?', whereArgs: [r['uid_item']]);
     }
     // Recompute remaining items and reindex month_index; delete metadata if none left
-    final remaining = await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId]);
+    final remaining = (await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId])).toList();
     if (remaining.isEmpty) {
       await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [recurrenceId]);
     } else {

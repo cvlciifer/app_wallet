@@ -8,10 +8,12 @@ class RecurrentCreatePage extends ConsumerStatefulWidget {
   const RecurrentCreatePage({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<RecurrentCreatePage> createState() => _RecurrentCreatePageState();
+  ConsumerState<RecurrentCreatePage> createState() =>
+      _RecurrentCreatePageState();
 }
 
 class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
+  OverlayEntry? _overlayEntry;
   final _titleController = TextEditingController();
   final _categoryController = TextEditingController(text: 'Elige categoría');
   final _amountController = TextEditingController();
@@ -66,7 +68,8 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
     final creating = ref.read(recurrentCreateProvider).isSubmitting;
     final globalLoading = ref.read(globalLoaderProvider);
     if (creating || globalLoading) return;
-    final numericValue = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
+    final numericValue =
+        _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
     final enteredAmount = int.tryParse(numericValue);
     final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
     final titleEmpty = _titleController.text.trim().isEmpty;
@@ -80,41 +83,67 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
     }
 
     if (_selectedMonths < 2 || _selectedMonths > 12) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleccione entre 2 y 12 meses')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Seleccione entre 2 y 12 meses')));
       return;
     }
 
-    ref.read(globalLoaderProvider.notifier).state = true;
+    _showOverlay();
     try {
-      final success = await ref.read(recurrentCreateProvider.notifier).createFromForm(
-            title: _titleController.text.trim(),
-            amount: enteredAmount.toDouble(),
-            dayOfMonth: _selectedDay,
-            months: _selectedMonths,
-            startMonth: _selectedStartMonth,
-            startYear: _selectedStartYear,
-            category: _selectedCategory,
-            subcategoryId: _selectedSubcategoryId,
-          );
+      final success =
+          await ref.read(recurrentCreateProvider.notifier).createFromForm(
+                title: _titleController.text.trim(),
+                amount: enteredAmount.toDouble(),
+                dayOfMonth: _selectedDay,
+                months: _selectedMonths,
+                startMonth: _selectedStartMonth,
+                startYear: _selectedStartYear,
+                category: _selectedCategory,
+                subcategoryId: _selectedSubcategoryId,
+              );
       try {
-        final controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
+        final controller =
+            prov.Provider.of<WalletExpensesController>(context, listen: false);
         await controller.loadExpensesSmart();
       } catch (_) {}
       if (!mounted) return;
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gasto recurrente creado')));
         Navigator.of(context).pop(true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error creando recurrente')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error creando recurrente')));
       }
     } catch (e, st) {
       if (kDebugMode) log('Error creando recurrente', error: e, stackTrace: st);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error creando recurrente')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error creando recurrente')));
       }
     } finally {
-      ref.read(globalLoaderProvider.notifier).state = false;
+      _hideOverlay();
     }
+  }
+
+  void _showOverlay() {
+    if (_overlayEntry != null) return;
+    _overlayEntry = OverlayEntry(builder: (context) {
+      return Positioned.fill(
+        child: Material(
+          color: Colors.black45,
+          child: const Center(child: WalletLoader(color: AwColors.appBarColor)),
+        ),
+      );
+    });
+    try {
+      Overlay.of(context).insert(_overlayEntry!);
+    } catch (_) {}
+  }
+
+  void _hideOverlay() {
+    try {
+      _overlayEntry?.remove();
+    } catch (_) {}
+    _overlayEntry = null;
   }
 
   void _showValidationDialog([String? details]) {
@@ -122,9 +151,14 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
     showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
-            content: AwText(text: contentText),
-            actions: [WalletButton.primaryButton(buttonText: 'Cerrar.', onPressed: () => Navigator.pop(ctx))]));
+                title: const AwText.bold('Entrada no válida',
+                    color: AwColors.boldBlack),
+                content: AwText(text: contentText),
+                actions: [
+                  WalletButton.primaryButton(
+                      buttonText: 'Cerrar.',
+                      onPressed: () => Navigator.pop(ctx))
+                ]));
   }
 
   Widget _buildDayGrid() {
@@ -145,7 +179,8 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
               color: selected ? AwColors.blue : AwColors.greyLight,
               borderRadius: BorderRadius.circular(6),
             ),
-            child: AwText.normal(d.toString(), color: selected ? AwColors.white : AwColors.boldBlack),
+            child: AwText.normal(d.toString(),
+                color: selected ? AwColors.white : AwColors.boldBlack),
           ),
         );
       }).toList(),
@@ -175,148 +210,182 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
               notchDepth: 12,
               elevation: 8,
               color: AwColors.white,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                AwSpacing.s12,
-                const FormHeader(
-                    title: 'Crear gasto recurrente',
-                    subtitle: 'Ingresa título, categoría, monto y selecciona día del mes y duración.',
-                    titleSize: AwSize.s18,
-                    titleColor: AwColors.appBarColor),
-                AwSpacing.s12,
-                CustomTextField(
-                    controller: _titleController, label: 'Título', maxLength: 50, hideCounter: true, flat: false),
-                AwSpacing.s12,
-                CategoryPicker(
-                    controller: _categoryController,
-                    selectedCategory: _selectedCategory,
-                    selectedSubcategoryId: _selectedSubcategoryId,
-                    onSelect: _selectCategory),
-                AwSpacing.m,
-                // Local amount input styled as rounded outline to match IngresosPage
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AwColors.greyLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const AwText.bold('CLP \$'),
-                    ),
+                    AwSpacing.s12,
+                    const FormHeader(
+                        title: 'Crear gasto recurrente',
+                        subtitle:
+                            'Ingresa título, categoría, monto y selecciona día del mes y duración.',
+                        titleSize: AwSize.s18,
+                        titleColor: AwColors.appBarColor),
+                    AwSpacing.s12,
+                    CustomTextField(
+                        controller: _titleController,
+                        label: 'Título',
+                        maxLength: 50,
+                        hideCounter: true,
+                        flat: false),
+                    AwSpacing.s12,
+                    CategoryPicker(
+                        controller: _categoryController,
+                        selectedCategory: _selectedCategory,
+                        selectedSubcategoryId: _selectedSubcategoryId,
+                        onSelect: _selectCategory),
                     AwSpacing.m,
-                    Expanded(
-                      flex: 8,
-                      child: CustomTextField(
-                        controller: _amountController,
-                        label: 'Precio',
-                        keyboardType: TextInputType.number,
-                        inputFormatters: NumberFormatHelper.getAmountFormatters(),
-                        onChanged: _handleAmountChange,
-                        flat: false,
-                      ),
-                    ),
-                  ],
-                ),
-                AwSpacing.s20,
-                const AwText.bold('Día del mes', color: AwColors.boldBlack),
-                AwSpacing.s,
-                _buildDayGrid(),
-                AwSpacing.m,
-                // Responsive layout: on narrow screens, stack selectors vertically; on wide screens, place in a row.
-                LayoutBuilder(builder: (ctx, constraints) {
-                  final isNarrow = constraints.maxWidth < 420;
-                  if (isNarrow) {
-                    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      const AwText.bold('Mes y año de inicio', color: AwColors.boldBlack),
-                      AwSpacing.s,
-                      Row(children: [
+                    // Local amount input styled as rounded outline to match IngresosPage
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AwColors.greyLight,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const AwText.bold('CLP \$'),
+                        ),
+                        AwSpacing.m,
                         Expanded(
-                          child: DropdownButton<int>(
+                          flex: 8,
+                          child: CustomTextField(
+                            controller: _amountController,
+                            label: 'Precio',
+                            keyboardType: TextInputType.number,
+                            inputFormatters:
+                                NumberFormatHelper.getAmountFormatters(),
+                            onChanged: _handleAmountChange,
+                            flat: false,
+                          ),
+                        ),
+                      ],
+                    ),
+                    AwSpacing.s20,
+                    const AwText.bold('Día del mes', color: AwColors.boldBlack),
+                    AwSpacing.s,
+                    _buildDayGrid(),
+                    AwSpacing.m,
+                    // Responsive layout: on narrow screens, stack selectors vertically; on wide screens, place in a row.
+                    LayoutBuilder(builder: (ctx, constraints) {
+                      final isNarrow = constraints.maxWidth < 420;
+                      if (isNarrow) {
+                        return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const AwText.bold('Mes y año de inicio',
+                                  color: AwColors.boldBlack),
+                              AwSpacing.s,
+                              Row(children: [
+                                Expanded(
+                                  child: DropdownButton<int>(
+                                    isExpanded: true,
+                                    value: _selectedStartMonth,
+                                    items: List.generate(12, (i) => i + 1)
+                                        .map((m) => DropdownMenuItem(
+                                            value: m,
+                                            child: Text(_monthNames[m - 1])))
+                                        .toList(),
+                                    onChanged: (v) => setState(
+                                        () => _selectedStartMonth = v ?? 1),
+                                  ),
+                                ),
+                                AwSpacing.s,
+                                Expanded(
+                                  child: DropdownButton<int>(
+                                    isExpanded: true,
+                                    value: _selectedStartYear,
+                                    items: List.generate(
+                                            3, (i) => DateTime.now().year + i)
+                                        .map((y) => DropdownMenuItem(
+                                            value: y, child: Text('$y')))
+                                        .toList(),
+                                    onChanged: (v) => setState(() =>
+                                        _selectedStartYear =
+                                            v ?? DateTime.now().year),
+                                  ),
+                                ),
+                              ]),
+                              AwSpacing.s12,
+                              const AwText.bold('Meses',
+                                  color: AwColors.boldBlack),
+                              AwSpacing.s,
+                              DropdownButton<int>(
+                                isExpanded: true,
+                                value: _selectedMonths,
+                                items: List.generate(11, (i) => i + 2)
+                                    .map((m) => DropdownMenuItem(
+                                        value: m, child: Text('$m')))
+                                    .toList(),
+                                onChanged: (v) =>
+                                    setState(() => _selectedMonths = v ?? 2),
+                              ),
+                            ]);
+                      }
+
+                      // wide
+                      return Row(children: [
+                        Expanded(
+                            child: Row(children: [
+                          const AwText.bold('Mes y año de inicio',
+                              color: AwColors.boldBlack),
+                          AwSpacing.s12,
+                          DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedStartMonth,
                             items: List.generate(12, (i) => i + 1)
-                                .map((m) => DropdownMenuItem(value: m, child: Text(_monthNames[m - 1])))
+                                .map((m) => DropdownMenuItem(
+                                    value: m, child: Text(_monthNames[m - 1])))
                                 .toList(),
-                            onChanged: (v) => setState(() => _selectedStartMonth = v ?? 1),
+                            onChanged: (v) =>
+                                setState(() => _selectedStartMonth = v ?? 1),
                           ),
-                        ),
-                        AwSpacing.s,
-                        Expanded(
-                          child: DropdownButton<int>(
+                          AwSpacing.s,
+                          DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedStartYear,
-                            items: List.generate(3, (i) => DateTime.now().year + i)
-                                .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
-                                .toList(),
-                            onChanged: (v) => setState(() => _selectedStartYear = v ?? DateTime.now().year),
+                            items:
+                                List.generate(3, (i) => DateTime.now().year + i)
+                                    .map((y) => DropdownMenuItem(
+                                        value: y, child: Text('$y')))
+                                    .toList(),
+                            onChanged: (v) => setState(() =>
+                                _selectedStartYear = v ?? DateTime.now().year),
                           ),
-                        ),
-                      ]),
-                      AwSpacing.s12,
-                      const AwText.bold('Meses', color: AwColors.boldBlack),
-                      AwSpacing.s,
-                      DropdownButton<int>(
-                        isExpanded: true,
-                        value: _selectedMonths,
-                        items: List.generate(11, (i) => i + 2)
-                            .map((m) => DropdownMenuItem(value: m, child: Text('$m')))
-                            .toList(),
-                        onChanged: (v) => setState(() => _selectedMonths = v ?? 2),
-                      ),
-                    ]);
-                  }
-
-                  // wide
-                  return Row(children: [
-                    Expanded(
-                        child: Row(children: [
-                      const AwText.bold('Mes y año de inicio', color: AwColors.boldBlack),
-                      AwSpacing.s12,
-                      DropdownButton<int>(
-                        isExpanded: true,
-                        value: _selectedStartMonth,
-                        items: List.generate(12, (i) => i + 1)
-                            .map((m) => DropdownMenuItem(value: m, child: Text(_monthNames[m - 1])))
-                            .toList(),
-                        onChanged: (v) => setState(() => _selectedStartMonth = v ?? 1),
-                      ),
-                      AwSpacing.s,
-                      DropdownButton<int>(
-                        isExpanded: true,
-                        value: _selectedStartYear,
-                        items: List.generate(3, (i) => DateTime.now().year + i)
-                            .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
-                            .toList(),
-                        onChanged: (v) => setState(() => _selectedStartYear = v ?? DateTime.now().year),
-                      ),
-                    ])),
-                    AwSpacing.s12,
-                    Expanded(
-                        child: Row(children: [
-                      const AwText.bold('Meses', color: AwColors.boldBlack),
-                      AwSpacing.s12,
-                      DropdownButton<int>(
-                        isExpanded: true,
-                        value: _selectedMonths,
-                        items: List.generate(11, (i) => i + 2)
-                            .map((m) => DropdownMenuItem(value: m, child: Text('$m')))
-                            .toList(),
-                        onChanged: (v) => setState(() => _selectedMonths = v ?? 2),
-                      ),
-                    ])),
-                  ]);
-                }),
-                AwSpacing.s20,
-                WalletButton.primaryButton(
-                    buttonText: (ref.watch(recurrentCreateProvider).isSubmitting || ref.watch(globalLoaderProvider))
-                        ? 'Creando...'
-                        : 'Crear recurrente',
-                    onPressed: (ref.watch(recurrentCreateProvider).isSubmitting || ref.watch(globalLoaderProvider))
-                        ? null
-                        : _onCreate),
-                AwSpacing.s30,
-              ]),
+                        ])),
+                        AwSpacing.s12,
+                        Expanded(
+                            child: Row(children: [
+                          const AwText.bold('Meses', color: AwColors.boldBlack),
+                          AwSpacing.s12,
+                          DropdownButton<int>(
+                            isExpanded: true,
+                            value: _selectedMonths,
+                            items: List.generate(11, (i) => i + 2)
+                                .map((m) => DropdownMenuItem(
+                                    value: m, child: Text('$m')))
+                                .toList(),
+                            onChanged: (v) =>
+                                setState(() => _selectedMonths = v ?? 2),
+                          ),
+                        ])),
+                      ]);
+                    }),
+                    AwSpacing.s20,
+                    WalletButton.primaryButton(
+                        buttonText:
+                            (ref.watch(recurrentCreateProvider).isSubmitting ||
+                                    ref.watch(globalLoaderProvider))
+                                ? 'Creando...'
+                                : 'Crear recurrente',
+                        onPressed:
+                            (ref.watch(recurrentCreateProvider).isSubmitting ||
+                                    ref.watch(globalLoaderProvider))
+                                ? null
+                                : _onCreate),
+                    AwSpacing.s30,
+                  ]),
             ),
             AwSpacing.s40,
           ]),

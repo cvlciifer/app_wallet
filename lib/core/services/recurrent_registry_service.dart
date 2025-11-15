@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:app_wallet/core/data_base_local/local_crud.dart';
 import 'package:app_wallet/core/models/recurring_expense.dart';
 
@@ -17,5 +19,21 @@ class RecurrentRegistryService {
 
   Future<void> deleteRecurrenceFromMonth(
           String recurrenceId, int fromMonthIndex) =>
-      _local.deleteRecurrenceFromMonth(recurrenceId, fromMonthIndex);
+            _local.deleteRecurrenceFromMonth(recurrenceId, fromMonthIndex);
+
+    Future<void> deleteRecurrenceFromMonthLogged(
+            String recurrenceId, int fromMonthIndex) async {
+        developer.log('service.deleteRecurrenceFromMonth called',
+                name: 'recurrent_registry_service',
+                error: {'recurrenceId': recurrenceId, 'fromMonthIndex': fromMonthIndex});
+        try {
+            await _local.deleteRecurrenceFromMonth(recurrenceId, fromMonthIndex);
+            developer.log('service.deleteRecurrenceFromMonth completed',
+                    name: 'recurrent_registry_service');
+        } catch (e, st) {
+            developer.log('service.deleteRecurrenceFromMonth threw',
+                    name: 'recurrent_registry_service', error: '$e\n$st');
+            rethrow;
+        }
+    }
 }

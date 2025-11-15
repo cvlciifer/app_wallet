@@ -60,7 +60,8 @@ class RecurrentRegistryNotifier extends StateNotifier<RecurrentesState> {
   Future<bool> deleteRecurrenceFromMonth(
       String recurrenceId, int fromMonthIndex) async {
     try {
-      await _service.deleteRecurrenceFromMonth(recurrenceId, fromMonthIndex);
+      await _service.deleteRecurrenceFromMonthLogged(
+          recurrenceId, fromMonthIndex);
       await loadRecurrents();
       return true;
     } catch (e, st) {

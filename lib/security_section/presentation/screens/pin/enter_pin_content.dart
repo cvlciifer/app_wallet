@@ -35,16 +35,19 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
     bool ok = false;
     try {
       ok = await notifier.verifyPin(pin: pin);
-    } finally {
+    } catch (e) {
+      // on error ensure loader is cleared
       try {
         loader.state = false;
       } catch (_) {}
+      rethrow;
     }
 
     if (!mounted) return;
 
     if (ok) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const WalletHomePage()));
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const WalletHomePage()));
     } else {
       setState(() {
         _showFailurePopup = true;
@@ -66,13 +69,17 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
 
     ref.listen(resetFlowProvider, (previous, next) {
       if (next.status == ResetFlowStatus.allowed) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const SetPinPage()));
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const SetPinPage()));
       }
     });
 
-    ref.listen<EnterPinState>(enterPinProvider(widget.accountId), (previous, next) async {
-      final wasLocked = previous?.lockedRemaining != null && previous!.lockedRemaining! > Duration.zero;
-      final isLocked = next.lockedRemaining != null && next.lockedRemaining! > Duration.zero;
+    ref.listen<EnterPinState>(enterPinProvider(widget.accountId),
+        (previous, next) async {
+      final wasLocked = previous?.lockedRemaining != null &&
+          previous!.lockedRemaining! > Duration.zero;
+      final isLocked =
+          next.lockedRemaining != null && next.lockedRemaining! > Duration.zero;
       if (!wasLocked && isLocked) {
         if (!mounted) return;
         try {
@@ -102,7 +109,8 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                   AwSpacing.s12,
                   GreetingHeader(alias: state.alias),
                   AwSpacing.s12,
-                  const AwText.bold('Ingresa tu PIN', size: AwSize.s16, color: AwColors.appBarColor),
+                  const AwText.bold('Ingresa tu PIN',
+                      size: AwSize.s16, color: AwColors.appBarColor),
                   AwSpacing.s12,
                   PinEntryArea(
                     key: _pinKey,
@@ -125,22 +133,29 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                                 style: ButtonStyle(
                                   backgroundColor:
                                       // ignore: deprecated_member_use
-                                      MaterialStateProperty.resolveWith((states) => states.contains(
-                                          // ignore: deprecated_member_use
-                                          MaterialState.disabled) ? AwColors.blueGrey : AwColors.appBarColor),
+                                      MaterialStateProperty.resolveWith(
+                                          (states) => states.contains(
+                                                  // ignore: deprecated_member_use
+                                                  MaterialState.disabled)
+                                              ? AwColors.blueGrey
+                                              : AwColors.appBarColor),
                                   foregroundColor:
                                       // ignore: deprecated_member_use
-                                      MaterialStateProperty.resolveWith((states) => Colors.white),
+                                      MaterialStateProperty.resolveWith(
+                                          (states) => Colors.white),
                                 ),
                                 onPressed: enabled
                                     ? () {
-                                        final pin = _pinKey.currentState?.currentPin ?? '';
+                                        final pin =
+                                            _pinKey.currentState?.currentPin ??
+                                                '';
                                         _onCompleted(pin);
                                       }
                                     : null,
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 14.0),
-                                  child: AwText.bold('Continuar', color: Colors.white),
+                                  child: AwText.bold('Continuar',
+                                      color: Colors.white),
                                 ),
                               );
                             }),
@@ -156,21 +171,27 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                             await AuthService().clearLoginState();
                             if (!mounted) return;
                             Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                              MaterialPageRoute(
+                                  builder: (_) => const LoginScreen()),
                             );
                           },
                           onForgotPin: () async {
                             final email = AuthService().getCurrentUser()?.email;
-                            final loader = ref.read(globalLoaderProvider.notifier);
+                            final loader =
+                                ref.read(globalLoaderProvider.notifier);
                             loader.state = true;
                             try {
                               final pinService = PinService();
-                              final remaining = await pinService.pinChangeRemainingCount(accountId: widget.accountId);
+                              final remaining =
+                                  await pinService.pinChangeRemainingCount(
+                                      accountId: widget.accountId);
                               final blockedUntil =
-                                  await pinService.pinChangeBlockedUntilNextDay(accountId: widget.accountId);
+                                  await pinService.pinChangeBlockedUntilNextDay(
+                                      accountId: widget.accountId);
 
-                              final isBlocked =
-                                  (remaining <= 0) || (blockedUntil != null && blockedUntil > Duration.zero);
+                              final isBlocked = (remaining <= 0) ||
+                                  (blockedUntil != null &&
+                                      blockedUntil > Duration.zero);
 
                               // hide loader before navigating
                               try {
@@ -178,7 +199,8 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                               } catch (_) {}
 
                               if (isBlocked) {
-                                final remainingDuration = blockedUntil ?? const Duration(days: 1);
+                                final remainingDuration =
+                                    blockedUntil ?? const Duration(days: 1);
                                 if (!mounted) return;
                                 Navigator.of(context).push(MaterialPageRoute(
                                     builder: (_) => PinLockedPage(
@@ -196,7 +218,9 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                                 ));
                               }
                             } catch (e, st) {
-                              if (kDebugMode) log('Forgot PIN error', error: e, stackTrace: st);
+                              if (kDebugMode)
+                                log('Forgot PIN error',
+                                    error: e, stackTrace: st);
                               try {
                                 loader.state = false;
                               } catch (_) {}
@@ -212,7 +236,8 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
           ),
           if (_showFailurePopup) ...[
             EnterPinFailed(
-                remainingAttempts: (PinService.maxAttempts - state.attempts).clamp(0, PinService.maxAttempts)),
+                remainingAttempts: (PinService.maxAttempts - state.attempts)
+                    .clamp(0, PinService.maxAttempts)),
           ],
           if (_showSuccessPopup) ...[
             const EnterPinSuccessful(),
