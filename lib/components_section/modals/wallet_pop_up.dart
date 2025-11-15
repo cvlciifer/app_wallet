@@ -423,9 +423,22 @@ class WalletPopup {
   }
 
   static void closePopUp() {
-    if (_context != null && Navigator.canPop(_context!)) {
-      Navigator.pop(_context!);
-      _context = null;
+    if (_context == null) return;
+    try {
+      if (_context is Element && !(_context as Element).mounted) {
+        _context = null;
+        return;
+      }
+    } catch (_) {
+      // ignore
     }
+    try {
+      if (Navigator.canPop(_context!)) {
+        Navigator.pop(_context!);
+      }
+    } catch (_) {
+      // ignore errors when navigator not available
+    }
+    _context = null;
   }
 }
