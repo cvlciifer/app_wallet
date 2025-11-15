@@ -97,6 +97,13 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                                 .loadRecurrents();
                           } catch (_) {}
                           try {
+                            final controller =
+                                prov.Provider.of<WalletExpensesController>(
+                                    context,
+                                    listen: false);
+                            await controller.loadExpensesSmart();
+                          } catch (_) {}
+                          try {
                             ref.read(globalLoaderProvider.notifier).state =
                                 false;
                           } catch (_) {}
@@ -260,6 +267,12 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
             .read(recurrentRegistryProvider.notifier)
             .deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
         if (success) {
+          try {
+            final controller = prov.Provider.of<WalletExpensesController>(
+                context,
+                listen: false);
+            await controller.loadExpensesSmart();
+          } catch (_) {}
           Navigator.of(context).pop(true);
           return;
         } else {
