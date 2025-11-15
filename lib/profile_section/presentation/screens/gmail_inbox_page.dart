@@ -40,7 +40,18 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
           await _service.listLatestMessages(maxResults: 50, query: query);
       final outgoing = msgs.where((m) => _isOutgoingMessage(m)).toList();
 
+      // Mensajes que deben ser revisados (cuerpo) para detectar frases de ingreso
       final toCheck = <GmailMessageInfo>[];
+      final Set<String> excludeIds = {}; // ids a excluir de la lista (ingresos)
+
+      String _normalizeText(String s) => s
+          .toLowerCase()
+          .replaceAll('á', 'a')
+          .replaceAll('é', 'e')
+          .replaceAll('í', 'i')
+          .replaceAll('ó', 'o')
+          .replaceAll('ú', 'u');
+      final incomePhrase = _normalizeText('Has recibido una transferencia');
       for (final m in outgoing) {
         final detected = _extractAmountFromMessage(m);
         if (detected != null) {
@@ -53,6 +64,11 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       await Future.wait(toCheck.map((m) async {
         try {
           final body = await _service.getMessageBody(m.id);
+          final normalizedBody = _normalizeText(body);
+          if (normalizedBody.contains(incomePhrase)) {
+            // marca para excluir: es un ingreso recibido
+            excludeIds.add(m.id);
+          }
           final match = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
           if (match != null) {
             final raw =
@@ -72,7 +88,36 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
         }
       }));
 
-      return outgoing;
+      // Además revisamos los mensajes que no requerían extracción previa (contienen el monto en subject/snippet)
+      // y que aún no hayan sido verificados para la frase de ingreso.
+      for (final m in outgoing) {
+        if (excludeIds.contains(m.id)) continue;
+
+        final combined = '${m.subject} ${m.snippet} ${m.from}';
+        final normalizedCombined = _normalizeText(combined);
+        if (normalizedCombined.contains(incomePhrase)) {
+          excludeIds.add(m.id);
+          continue;
+        }
+
+        // Si no fue verificado en la pasada anterior (no está en _amountCache), pedimos el cuerpo solo para detectar la frase
+        if (!_amountCache.containsKey(m.id) && !_commentCache.containsKey(m.id)) {
+          try {
+            final body = await _service.getMessageBody(m.id);
+            final normalizedBody = _normalizeText(body);
+            if (normalizedBody.contains(incomePhrase)) {
+              excludeIds.add(m.id);
+            }
+          } catch (_) {
+            // ignore errors fetching body for phrase check
+          }
+        }
+      }
+
+      // Filtramos los mensajes de salida para quitar los que representan ingresos recibidos
+      final filtered = outgoing.where((m) => !excludeIds.contains(m.id)).toList();
+
+      return filtered;
     } catch (e) {
       rethrow;
     }
