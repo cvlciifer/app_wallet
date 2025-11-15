@@ -33,10 +33,12 @@ class WalletMonthYearSelector extends StatelessWidget {
         DropdownButton<int>(
           value: selectedMonth,
           items: availableMonths.map((m) {
+            final label = toBeginningOfSentenceCase(
+                    DateFormat('MMMM', 'es').format(DateTime(0, m))) ??
+                DateFormat('MMMM', 'es').format(DateTime(0, m));
             return DropdownMenuItem(
               value: m,
-              child:
-                  AwText(text: DateFormat('MMMM', 'es').format(DateTime(0, m))),
+              child: AwText(text: label),
             );
           }).toList(),
           onChanged: (value) => onMonthChanged(value!),

@@ -38,51 +38,59 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
     final uid = AuthService().getCurrentUser()?.uid;
     final state = ref.watch(forgotPinProvider(uid));
 
-    return PinPageScaffold(
-      transparentAppBar: true,
-      allowBack: true,
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (state.alias != null && state.alias!.isNotEmpty) ...[
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: AwText.bold(
-                    'Hola ${state.alias!}, ¿no recuerdas tu PIN?',
-                    size: AwSize.s30,
-                    color: AwColors.appBarColor,
-                  ),
-                ),
-                AwSpacing.s12,
-              ],
-              if (!(state.alias != null && state.alias!.isNotEmpty)) ...[
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: AwText.bold('Hola, ¿no recuerdas tu PIN?',
-                      size: AwSize.s30, color: AwColors.appBarColor),
-                ),
-                AwSpacing.s12,
-              ],
-              const Align(
-                  alignment: Alignment.centerLeft,
-                  child: AwText.normal(
-                      'No te preocupes, te ayudaremos a crear uno nuevo.',
-                      color: AwColors.boldBlack,
-                      size: AwSize.s14)),
-              AwSpacing.s6,
-              const Align(
-                  alignment: Alignment.centerLeft,
-                  child: AwText.normal(
-                      'Para continuar, debes abrir ese enlace desde este mismo dispositivo.',
-                      color: AwColors.boldBlack,
-                      size: AwSize.s14)),
-              AwSpacing.s20,
-              _buildSendAreaWithState(state),
-              AwSpacing.s12,
-            ],
+    return Scaffold(
+      appBar: const WalletAppBar(
+        title: AwText.bold('Restablecer mi PIN', color: Colors.white),
+        showBackArrow: true,
+        barColor: AwColors.appBarColor,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: AwSpacing.paddingPage,
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (state.alias != null && state.alias!.isNotEmpty) ...[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: AwText.bold(
+                        'Hola ${state.alias!}, ¿no recuerdas tu PIN?',
+                        size: AwSize.s30,
+                        color: AwColors.appBarColor,
+                      ),
+                    ),
+                    AwSpacing.s12,
+                  ],
+                  if (!(state.alias != null && state.alias!.isNotEmpty)) ...[
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: AwText.bold('Hola, ¿no recuerdas tu PIN?',
+                          size: AwSize.s30, color: AwColors.appBarColor),
+                    ),
+                    AwSpacing.s12,
+                  ],
+                  const Align(
+                      alignment: Alignment.centerLeft,
+                      child: AwText.normal(
+                          'No te preocupes, te ayudaremos a crear uno nuevo.',
+                          color: AwColors.boldBlack,
+                          size: AwSize.s14)),
+                  AwSpacing.s6,
+                  const Align(
+                      alignment: Alignment.centerLeft,
+                      child: AwText.normal(
+                          'Para continuar, debes abrir ese enlace desde este mismo dispositivo.',
+                          color: AwColors.boldBlack,
+                          size: AwSize.s14)),
+                  AwSpacing.s20,
+                  _buildSendAreaWithState(state),
+                  AwSpacing.s12,
+                ],
+              ),
+            ),
           ),
         ),
       ),

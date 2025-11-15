@@ -146,10 +146,12 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                                           const RecurrentCreatePage()));
                               if (!mounted) return;
                               if (result == true) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Gasto recurrente creado')));
+                                WalletPopup.showNotificationSuccess(
+                                  context: context,
+                                  title: 'Gasto recurrente creado',
+                                  visibleTime: 2,
+                                  isDismissible: true,
+                                );
                               }
                             } catch (_) {}
                           },
@@ -188,18 +190,14 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                                   setState(() {
                                     alias = result;
                                   });
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                'Alias actualizado: $result')));
-                                  }
                                 }
                               } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'No se pudo abrir cambiar alias')));
+                                WalletPopup.showNotificationWarningOrange(
+                                  context: context,
+                                  message: 'No se pudo abrir cambiar alias',
+                                  visibleTime: 2,
+                                  isDismissible: true,
+                                );
                               }
                             }();
                           },
@@ -212,6 +210,20 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           title: 'Ver correos (Gmail)',
                           icon: Icons.email,
                           onTap: () async {
+                            final connectivity =
+                                await Connectivity().checkConnectivity();
+                            if (connectivity == ConnectivityResult.none) {
+                              if (!mounted) return;
+                              WalletPopup.showNotificationWarningOrange(
+                                // ignore: use_build_context_synchronously
+                                context: context,
+                                message:
+                                    'No es posible abrir correos sin conexión',
+                                visibleTime: 2,
+                                isDismissible: true,
+                              );
+                              return;
+                            }
                             try {
                               await Navigator.of(context).push(
                                   MaterialPageRoute(
@@ -219,11 +231,17 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                             } catch (e) {
                               if (kDebugMode)
                                 log('Error abriendo GmailInboxPage: $e');
-                              if (mounted)
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'No se pudo abrir la bandeja de correos')));
+                              if (mounted) {
+                                WalletPopup.showNotificationWarningOrange(
+                                  // ignore: use_build_context_synchronously
+                                  context: context,
+                                  message:
+                                      'No es posible abrir la bandeja de correos',
+                                  visibleTime: 2,
+                                  isDismissible: true,
+                                );
+                                return;
+                              }
                             }
                           },
                         ),
@@ -235,6 +253,20 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           title: 'Restablecer mi PIN',
                           icon: Icons.lock_reset,
                           onTap: () async {
+                            final connectivity =
+                                await Connectivity().checkConnectivity();
+                            if (connectivity == ConnectivityResult.none) {
+                              if (!mounted) return;
+                              WalletPopup.showNotificationWarningOrange(
+                                // ignore: use_build_context_synchronously
+                                context: context,
+                                message:
+                                    'No es posible restablecer el PIN sin conexión',
+                                visibleTime: 2,
+                                isDismissible: true,
+                              );
+                              return;
+                            }
                             final loader =
                                 ref.read(globalLoaderProvider.notifier);
                             loader.state = true;
@@ -284,10 +316,13 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                                     log('Restablecer PIN error',
                                         error: e, stackTrace: st);
                                   if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                'No se pudo abrir restablecer PIN')));
+                                    WalletPopup.showNotificationWarningOrange(
+                                      context: context,
+                                      message:
+                                          'No se pudo abrir restablecer PIN',
+                                      visibleTime: 2,
+                                      isDismissible: true,
+                                    );
                                   }
                                 }
                               }
@@ -317,9 +352,12 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                               );
                               if (result == true) {
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('Ingresos guardados')));
+                                  WalletPopup.showNotificationSuccess(
+                                    context: context,
+                                    title: 'Ingresos guardados',
+                                    visibleTime: 2,
+                                    isDismissible: true,
+                                  );
                                 }
                               }
                             } catch (_) {}
@@ -342,10 +380,12 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                               );
                               if (!mounted) return;
                               if (result == true) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'Ingreso imprevisto guardado')));
+                                WalletPopup.showNotificationSuccess(
+                                  context: context,
+                                  title: 'Ingreso imprevisto guardado',
+                                  visibleTime: 2,
+                                  isDismissible: true,
+                                );
                               }
                             } catch (_) {}
                           },

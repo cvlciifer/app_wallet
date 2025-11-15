@@ -49,20 +49,40 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
     state = state.copyWith(isSaving: true);
     try {
       final now = DateTime.now();
+      // Local-first: persist all income entries locally with pendingCreate
+      // status so the UI and reports work offline immediately. Then attempt
+      // to push to Firestore in background; if successful, update the local
+      // sync_status to synced.
+      final List<Map<String, dynamic>> localRows = [];
       for (var i = 0; i < m; i++) {
         final date = DateTime(now.year, now.month + i, 1);
         final id = '${date.year}${date.month.toString().padLeft(2, '0')}';
         try {
-          await upsertIncomeEntry(date, amount, null, docId: id);
           await createIncomeLocalImpl(date, amount, null,
-              id: id, syncStatus: SyncStatus.synced.index);
+              id: id, syncStatus: SyncStatus.pendingCreate.index);
         } catch (_) {
-          try {
-            await createIncomeLocalImpl(date, amount, null,
-                id: id, syncStatus: SyncStatus.pendingCreate.index);
-          } catch (_) {}
+          // best-effort: if writing local fails, continue
         }
+        localRows.add({'date': date, 'id': id});
       }
+
+      // Background sync: try to push each entry to Firestore and update local status
+      Future.microtask(() async {
+        for (final row in localRows) {
+          final DateTime date = row['date'] as DateTime;
+          final id = row['id'] as String;
+          try {
+            await upsertIncomeEntry(date, amount, null, docId: id);
+            await createIncomeLocalImpl(date, amount, null,
+                id: id, syncStatus: SyncStatus.synced.index);
+          } catch (_) {
+            try {
+              await createIncomeLocalImpl(date, amount, null,
+                  id: id, syncStatus: SyncStatus.pendingCreate.index);
+            } catch (_) {}
+          }
+        }
+      });
       await loadLocalIncomes();
       generatePreview();
       return true;
