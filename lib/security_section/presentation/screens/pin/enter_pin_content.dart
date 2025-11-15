@@ -19,6 +19,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
   bool _showSuccessPopup = false;
   Timer? _successTimer;
   int _currentLength = 0;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -28,6 +29,8 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
   }
 
   Future<void> _onCompleted(String pin) async {
+    if (_submitting) return;
+    _submitting = true;
     final notifier = ref.read(enterPinProvider(widget.accountId).notifier);
     final loader = ref.read(globalLoaderProvider.notifier);
     loader.state = true;
@@ -35,12 +38,13 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
     bool ok = false;
     try {
       ok = await notifier.verifyPin(pin: pin);
-    } catch (e) {
-      // on error ensure loader is cleared
+    } finally {
+      // ensure loader is cleared always (success, failure or exception)
       try {
         loader.state = false;
       } catch (_) {}
-      rethrow;
+      _submitting = false;
+      if (mounted) setState(() {});
     }
 
     if (!mounted) return;
@@ -60,6 +64,25 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
         setState(() => _showFailurePopup = false);
         _pinKey.currentState?.clear();
       });
+      try {
+        final pinService = PinService();
+        final lock =
+            await pinService.lockedRemaining(accountId: widget.accountId);
+        if (lock != null && lock > Duration.zero) {
+          if (!mounted) return;
+          try {
+            ref.read(globalLoaderProvider.notifier).state = false;
+          } catch (_) {}
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => PinLockedPage(
+                    remaining: lock,
+                    accountId: widget.accountId,
+                    allowBack: false,
+                    returnToEnterPin: true,
+                  )));
+          return;
+        }
+      } catch (_) {}
     }
   }
 
@@ -89,7 +112,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
             builder: (_) => PinLockedPage(
                   remaining: next.lockedRemaining ?? Duration.zero,
                   accountId: widget.accountId,
-                  allowBack: true,
+                  allowBack: false,
                   returnToEnterPin: true,
                 )));
         return;
