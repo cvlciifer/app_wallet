@@ -12,12 +12,17 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
 
   Future<void> init() async {
     await loadLocalIncomes();
-    generatePreview();
+    // Ensure startOffset is within allowed sliding window relative to now
+    setStartOffset(state.startOffset);
   }
 
   void setStartOffset(int offset) {
-    if (offset == state.startOffset) return;
-    state = state.copyWith(startOffset: offset);
+    // Clamp offset to [-12, +12] relative to current month so the UI only
+    // allows selecting start months within one year back/forward.
+    final clamped = offset < -12 ? -12 : (offset > 12 ? 12 : offset);
+    if (clamped == state.startOffset) return;
+    state = state.copyWith(startOffset: clamped);
+    generatePreview();
   }
 
   Future<void> loadLocalIncomes() async {

@@ -91,7 +91,9 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                 const AwText.normal('Mes de inicio', size: AwSize.s14, color: AwColors.grey),
                 AwSpacing.s6,
                 MonthSelector(
-                  month: _addMonths(DateTime.now(), state.startOffset),
+                  month: state.previewMonths.isNotEmpty
+                      ? state.previewMonths.first
+                      : _addMonths(DateTime.now(), state.startOffset),
                   canPrev: state.startOffset > -12,
                   canNext: state.startOffset < 12,
                   onPrev: () => ctrl.setStartOffset(state.startOffset - 1),

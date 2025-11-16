@@ -4,6 +4,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/components_section/widgets/profile/month_selector.dart';
 import 'package:app_wallet/core/providers/profile/imprevistos_provider.dart';
+import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
 
 class IngresosImprevistosPage extends ConsumerStatefulWidget {
   final DateTime? initialMonth;
@@ -36,6 +37,13 @@ class _IngresosImprevistosPageState
           (widget.initialMonth!.month - now.month);
       // Allow offsets from -12 (12 months back) to +12 (12 months forward)
       _selectedMonthOffset = diff.clamp(-12, 12);
+    }
+    else {
+      // If no explicit initial month provided, sync initial offset from ingresosProvider
+      try {
+        final providerOffset = ref.read(ingresosProvider).startOffset;
+        _selectedMonthOffset = providerOffset.clamp(-12, 12);
+      } catch (_) {}
     }
     if (widget.initialImprevisto != null && widget.initialImprevisto! > 0) {
       final fmt =
@@ -153,11 +161,18 @@ class _IngresosImprevistosPageState
                     setState(() {
                       if (_selectedMonthOffset > -12) _selectedMonthOffset--;
                     });
+                    // propagate selection to ingresos provider so both screens share the same start month
+                    try {
+                      ref.read(ingresosProvider.notifier).setStartOffset(_selectedMonthOffset);
+                    } catch (_) {}
                   },
                   onNext: () {
                     setState(() {
                       if (_selectedMonthOffset < 12) _selectedMonthOffset++;
                     });
+                    try {
+                      ref.read(ingresosProvider.notifier).setStartOffset(_selectedMonthOffset);
+                    } catch (_) {}
                   },
                 ),
                 AwSpacing.s12,
