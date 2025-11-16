@@ -373,6 +373,27 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
     } else if (choice == 'delete') {
       await _deleteFromThisMonth(idx);
       // _deleteFromThisMonth already refreshes global state
+    } else if (choice == 'delete_single') {
+      final ok = await ref
+          .read(recurrentRegistryProvider.notifier)
+          .deleteRecurrenceSingleMonth(widget.recurring.id, idx);
+      if (ok) {
+        try {
+          if (_controller != null) {
+            await _controller!.loadExpensesSmart();
+          } else {
+            final controller = prov.Provider.of<WalletExpensesController>(
+                context,
+                listen: false);
+            await controller.loadExpensesSmart();
+          }
+        } catch (_) {}
+        await _loadItems();
+        // If no items left, close page so UI updates
+        if (_items.isEmpty) {
+          if (mounted) Navigator.of(context).pop(true);
+        }
+      }
     }
   }
 

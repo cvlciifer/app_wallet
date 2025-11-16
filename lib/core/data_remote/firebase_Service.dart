@@ -145,11 +145,11 @@ Future<void> createIncomeEntry(DateTime date, int ingresoFijo, int ingresoImprev
 }
 
 /// Upsert (create or update) an income entry for the given date (1er día del mes).
-Future<void> upsertIncomeEntry(DateTime date, int ingresoFijo, int? ingresoImprevisto, {String? docId}) async {
+Future<bool> upsertIncomeEntry(DateTime date, int ingresoFijo, int? ingresoImprevisto, {String? docId}) async {
   String? userEmail = getUserEmail();
   if (userEmail == null) {
     log('upsertIncomeEntry: no hay usuario autenticado');
-    return;
+    return false;
   }
 
   try {
@@ -178,7 +178,9 @@ Future<void> upsertIncomeEntry(DateTime date, int ingresoFijo, int? ingresoImpre
       await docRef.set(payload);
       log('Ingreso creado en Firestore para id=$id fecha=$date');
     }
-  } catch (e) {
-    log('Error en upsertIncomeEntry: $e');
+    return true;
+  } catch (e, st) {
+    log('Error en upsertIncomeEntry: $e\n$st');
+    return false;
   }
 }

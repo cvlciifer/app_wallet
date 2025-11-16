@@ -30,6 +30,12 @@ class RecurrentItemActions {
                     onTap: () => Navigator.of(ctx).pop('delete'),
                   ),
                   const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                    title: const AwText.bold('Borrar solo este mes'),
+                    onTap: () => Navigator.of(ctx).pop('delete_single'),
+                  ),
+                  const Divider(height: 1),
                   AwSpacing.s,
                   WalletButton.textButton(
                     buttonText: 'Cancelar',

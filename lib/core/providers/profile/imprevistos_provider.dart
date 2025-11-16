@@ -43,13 +43,15 @@ class ImprevistosNotifier extends StateNotifier<ImprevistosState> {
       // Background attempt to push to Firestore
       Future.microtask(() async {
         try {
-          await upsertIncomeEntry(target, fijo, value, docId: id);
-          await createIncomeLocalImpl(target, fijo, value,
-              id: id, syncStatus: SyncStatus.synced.index);
+          final ok = await upsertIncomeEntry(target, fijo, value, docId: id);
+          if (ok) {
+            await createIncomeLocalImpl(target, fijo, value, id: id, syncStatus: SyncStatus.synced.index);
+          } else {
+            await createIncomeLocalImpl(target, fijo, value, id: id, syncStatus: SyncStatus.pendingCreate.index);
+          }
         } catch (_) {
           try {
-            await createIncomeLocalImpl(target, fijo, value,
-                id: id, syncStatus: SyncStatus.pendingCreate.index);
+            await createIncomeLocalImpl(target, fijo, value, id: id, syncStatus: SyncStatus.pendingCreate.index);
           } catch (_) {}
         }
       });

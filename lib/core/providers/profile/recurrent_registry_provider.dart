@@ -70,6 +70,18 @@ class RecurrentRegistryNotifier extends StateNotifier<RecurrentesState> {
       return false;
     }
   }
+
+  Future<bool> deleteRecurrenceSingleMonth(String recurrenceId, int monthIndex) async {
+    try {
+      await _service.deleteRecurrenceSingleMonthLogged(recurrenceId, monthIndex);
+      await loadRecurrents();
+      return true;
+    } catch (e, st) {
+      developer.log('deleteRecurrenceSingleMonth error: $e',
+          error: e, stackTrace: st, name: 'recurrent_registry_provider');
+      return false;
+    }
+  }
 }
 
 final recurrentRegistryProvider =
