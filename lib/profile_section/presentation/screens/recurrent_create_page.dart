@@ -189,6 +189,42 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Compute allowed start range: from now -12 months to now +12 months
+    final now = DateTime.now();
+    final startRange = DateTime(now.year, now.month - 12, 1);
+    final endRange = DateTime(now.year, now.month + 12, 1);
+
+    List<int> yearsInRange() {
+      final years = <int>{};
+      var dt = startRange;
+      while (!dt.isAfter(endRange)) {
+        years.add(dt.year);
+        dt = DateTime(dt.year, dt.month + 1, 1);
+      }
+      final list = years.toList()..sort();
+      return list;
+    }
+
+    List<int> monthsForYear(int year) {
+      final months = <int>[];
+      var dt = startRange;
+      while (!dt.isAfter(endRange)) {
+        if (dt.year == year) months.add(dt.month);
+        dt = DateTime(dt.year, dt.month + 1, 1);
+      }
+      return months;
+    }
+
+    // Ensure selected start year/month are within allowed range
+    final allowedYears = yearsInRange();
+    if (!allowedYears.contains(_selectedStartYear)) {
+      _selectedStartYear = allowedYears.first;
+    }
+    final allowedMonthsForSelectedYear = monthsForYear(_selectedStartYear);
+    if (!allowedMonthsForSelectedYear.contains(_selectedStartMonth)) {
+      _selectedStartMonth = allowedMonthsForSelectedYear.first;
+    }
+
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
       appBar: const WalletAppBar(
@@ -215,11 +251,11 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                   children: [
                     AwSpacing.s12,
                     const FormHeader(
-                        title: 'Crear gasto recurrente',
-                        subtitle:
-                            'Ingresa título, categoría, monto y selecciona día del mes y duración.',
-                        titleSize: AwSize.s18,
-                        titleColor: AwColors.appBarColor),
+                      title: 'Crear gasto recurrente',
+                      subtitle:
+                        'Un gasto recurrente es aquel que se repite durante un período determinado, como una cuota, una suscripción o un pago mensual. Ingresa la fecha de inicio (día, mes y año) y el número de meses que este gasto se mantendrá.',
+                      titleSize: AwSize.s18,
+                      titleColor: AwColors.appBarColor),
                     AwSpacing.s12,
                     CustomTextField(
                         controller: _titleController,
@@ -282,13 +318,13 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                                   child: DropdownButton<int>(
                                     isExpanded: true,
                                     value: _selectedStartMonth,
-                                    items: List.generate(12, (i) => i + 1)
+                                    items: allowedMonthsForSelectedYear
                                         .map((m) => DropdownMenuItem(
                                             value: m,
                                             child: Text(_monthNames[m - 1])))
                                         .toList(),
                                     onChanged: (v) => setState(
-                                        () => _selectedStartMonth = v ?? 1),
+                                        () => _selectedStartMonth = v ?? allowedMonthsForSelectedYear.first),
                                   ),
                                 ),
                                 AwSpacing.s,
@@ -296,14 +332,15 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                                   child: DropdownButton<int>(
                                     isExpanded: true,
                                     value: _selectedStartYear,
-                                    items: List.generate(
-                                            3, (i) => DateTime.now().year + i)
-                                        .map((y) => DropdownMenuItem(
-                                            value: y, child: Text('$y')))
+                                    items: allowedYears
+                                        .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
                                         .toList(),
-                                    onChanged: (v) => setState(() =>
-                                        _selectedStartYear =
-                                            v ?? DateTime.now().year),
+                                    onChanged: (v) => setState(() {
+                                      final newYear = v ?? allowedYears.first;
+                                      _selectedStartYear = newYear;
+                                      final months = monthsForYear(newYear);
+                                      _selectedStartMonth = months.isNotEmpty ? months.first : 1;
+                                    }),
                                   ),
                                 ),
                               ]),
@@ -331,27 +368,25 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                           const AwText.bold('Mes y año de inicio',
                               color: AwColors.boldBlack),
                           AwSpacing.s12,
-                          DropdownButton<int>(
+                            DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedStartMonth,
-                            items: List.generate(12, (i) => i + 1)
-                                .map((m) => DropdownMenuItem(
-                                    value: m, child: Text(_monthNames[m - 1])))
-                                .toList(),
-                            onChanged: (v) =>
-                                setState(() => _selectedStartMonth = v ?? 1),
-                          ),
+                            items: allowedMonthsForSelectedYear
+                              .map((m) => DropdownMenuItem(value: m, child: Text(_monthNames[m - 1])))
+                              .toList(),
+                            onChanged: (v) => setState(() => _selectedStartMonth = v ?? allowedMonthsForSelectedYear.first),
+                            ),
                           AwSpacing.s,
                           DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedStartYear,
-                            items:
-                                List.generate(3, (i) => DateTime.now().year + i)
-                                    .map((y) => DropdownMenuItem(
-                                        value: y, child: Text('$y')))
-                                    .toList(),
-                            onChanged: (v) => setState(() =>
-                                _selectedStartYear = v ?? DateTime.now().year),
+                            items: allowedYears.map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
+                            onChanged: (v) => setState(() {
+                              final newYear = v ?? allowedYears.first;
+                              _selectedStartYear = newYear;
+                              final months = monthsForYear(newYear);
+                              _selectedStartMonth = months.isNotEmpty ? months.first : _selectedStartMonth;
+                            }),
                           ),
                         ])),
                         AwSpacing.s12,
