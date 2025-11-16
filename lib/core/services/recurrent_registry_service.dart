@@ -21,6 +21,10 @@ class RecurrentRegistryService {
           String recurrenceId, int fromMonthIndex) =>
             _local.deleteRecurrenceFromMonth(recurrenceId, fromMonthIndex);
 
+    Future<void> deleteRecurrenceSingleMonth(
+                    String recurrenceId, int monthIndex) =>
+            _local.deleteRecurrenceSingleMonth(recurrenceId, monthIndex);
+
     Future<void> deleteRecurrenceFromMonthLogged(
             String recurrenceId, int fromMonthIndex) async {
         developer.log('service.deleteRecurrenceFromMonth called',
@@ -36,4 +40,20 @@ class RecurrentRegistryService {
             rethrow;
         }
     }
+
+        Future<void> deleteRecurrenceSingleMonthLogged(
+                String recurrenceId, int monthIndex) async {
+            developer.log('service.deleteRecurrenceSingleMonth called',
+                    name: 'recurrent_registry_service',
+                    error: {'recurrenceId': recurrenceId, 'monthIndex': monthIndex});
+            try {
+                await _local.deleteRecurrenceSingleMonth(recurrenceId, monthIndex);
+                developer.log('service.deleteRecurrenceSingleMonth completed',
+                        name: 'recurrent_registry_service');
+            } catch (e, st) {
+                developer.log('service.deleteRecurrenceSingleMonth threw',
+                        name: 'recurrent_registry_service', error: '$e\n$st');
+                rethrow;
+            }
+        }
 }

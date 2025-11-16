@@ -6,6 +6,8 @@ class IncomePreviewTile extends StatelessWidget {
   final String imprevistoText;
   final String totalText;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const IncomePreviewTile({
     Key? key,
@@ -14,6 +16,8 @@ class IncomePreviewTile extends StatelessWidget {
     required this.imprevistoText,
     required this.totalText,
     this.onTap,
+    this.onEdit,
+    this.onDelete,
   }) : super(key: key);
 
   @override
@@ -43,13 +47,13 @@ class IncomePreviewTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AwText.normal(
-                        'Fijo: $fijoText',
+                        'Fijo:$fijoText',
                         size: AwSize.s12,
                         color: AwColors.black54,
                       ),
                       const SizedBox(height: 4),
                       AwText.normal(
-                        'Imprevisto: $imprevistoText',
+                        'Imprevisto:$imprevistoText',
                         size: AwSize.s12,
                         color: AwColors.modalGrey,
                       ),
@@ -61,9 +65,26 @@ class IncomePreviewTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     AwText.bold(
-                      totalText,
+                      'Total:$totalText',
                       size: AwSize.s14,
                     ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (onEdit != null)
+                          IconButton(
+                            icon: const Icon(Icons.edit, size: 18),
+                            onPressed: onEdit,
+                            tooltip: 'Editar',
+                          ),
+                        if (onDelete != null)
+                          IconButton(
+                            icon: const Icon(Icons.delete, size: 18, color: Colors.redAccent),
+                            onPressed: onDelete,
+                            tooltip: 'Eliminar',
+                          ),
+                      ],
+                    )
                   ],
                 )
               ],

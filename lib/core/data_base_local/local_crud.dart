@@ -41,6 +41,7 @@ class LocalCrud {
   Future<void> updateRecurringItemAmount(String recurrenceId, int monthIndex, double newAmount) => updateRecurringItemAmountImpl(recurrenceId, monthIndex, newAmount);
   Future<void> deleteRecurrenceFromMonth(String recurrenceId, int fromMonthIndex) => deleteRecurrenceFromMonthImpl(recurrenceId, fromMonthIndex);
   Future<void> deleteRecurrence(String recurrenceId) => deleteRecurrenceImpl(recurrenceId);
+  Future<void> deleteRecurrenceSingleMonth(String recurrenceId, int monthIndex) => deleteRecurrenceSingleMonthImpl(recurrenceId, monthIndex);
   
   // Incomes
   Future<void> createIncomeLocal(DateTime date, int ingresoFijo, int? ingresoImprevisto, {String? id, int syncStatus = 0}) =>
@@ -593,7 +594,13 @@ Future<void> updateIncomeSyncStatusImpl(String incomeId, SyncStatus status) asyn
   final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
-  await db.update('ingresos', {'sync_status': status.index}, where: 'id = ? AND uid_correo = ?', whereArgs: [incomeId, uid]);
+  // Try update scoped to uid first. If no rows updated (possible uid mismatch
+  // due to fallback UIDs or email resolution differences), fall back to update
+  // by id only so tombstones are applied and the UI can hide the row.
+  final updated = await db.update('ingresos', {'sync_status': status.index}, where: 'id = ? AND uid_correo = ?', whereArgs: [incomeId, uid]);
+  if (updated == 0) {
+    await db.update('ingresos', {'sync_status': status.index}, where: 'id = ?', whereArgs: [incomeId]);
+  }
 }
 
 Future<void> replaceAllIncomesImpl(List<Map<String, dynamic>> incomes) async {
@@ -899,7 +906,12 @@ Future<void> deleteIncomeLocal(String incomeId) async {
   final uid = await getUserUid();
   if (uid == null) return;
   final db = await _db();
-  await db.delete('ingresos', where: 'id = ? AND uid_correo = ?', whereArgs: [incomeId, uid]);
+  // Prefer scoped delete by uid to avoid affecting other users, but if that
+  // doesn't remove any row (uid resolution mismatch) fall back to delete by id.
+  final deleted = await db.delete('ingresos', where: 'id = ? AND uid_correo = ?', whereArgs: [incomeId, uid]);
+  if (deleted == 0) {
+    await db.delete('ingresos', where: 'id = ?', whereArgs: [incomeId]);
+  }
 }
 
 /// Recurring implementation helpers
@@ -1049,6 +1061,49 @@ Future<void> deleteRecurrenceFromMonthImpl(String recurrenceId, int fromMonthInd
       await txn.delete('gastos_recurrentes_items', where: 'uid_item = ?', whereArgs: [r['uid_item']]);
     }
     // Recompute remaining items and reindex month_index; delete metadata if none left
+    final remaining = (await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId])).toList();
+    if (remaining.isEmpty) {
+      await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [recurrenceId]);
+    } else {
+      // Reindex month_index sequentially by fecha
+      remaining.sort((a, b) => (a['fecha'] as int).compareTo(b['fecha'] as int));
+      for (var i = 0; i < remaining.length; i++) {
+        final uidItemRem = remaining[i]['uid_item'];
+        if (uidItemRem != null) {
+          await txn.update('gastos_recurrentes_items', {'month_index': i}, where: 'uid_item = ?', whereArgs: [uidItemRem]);
+        }
+      }
+      await txn.update('gastos_recurrentes', {'meses': remaining.length}, where: 'id = ?', whereArgs: [recurrenceId]);
+    }
+  });
+}
+
+Future<void> deleteRecurrenceSingleMonthImpl(String recurrenceId, int monthIndex) async {
+  final db = await _db();
+  // Find the mapping row for the specific month_index
+  final selectedRows = await db.query('gastos_recurrentes_items', where: 'recurrence_id = ? AND month_index = ?', whereArgs: [recurrenceId, monthIndex], limit: 1);
+  if (selectedRows.isEmpty) return;
+  final selected = selectedRows.first;
+  final cutoffUidItem = selected['uid_item'];
+  final expenseId = selected['expense_id'] as String?;
+
+  await db.transaction((txn) async {
+    // Mark the associated expense as pendingDelete so SyncService will remove remote doc
+    if (expenseId != null) {
+      try {
+        await txn.update('gastos', {'sync_status': SyncStatus.pendingDelete.index}, where: 'id = ?', whereArgs: [expenseId]);
+      } catch (_) {
+        // fallback: delete local row
+        await txn.delete('gastos', where: 'id = ?', whereArgs: [expenseId]);
+      }
+    }
+
+    // Remove the mapping row
+    if (cutoffUidItem != null) {
+      await txn.delete('gastos_recurrentes_items', where: 'uid_item = ?', whereArgs: [cutoffUidItem]);
+    }
+
+    // Recompute remaining items and update metadata
     final remaining = (await txn.query('gastos_recurrentes_items', where: 'recurrence_id = ?', whereArgs: [recurrenceId])).toList();
     if (remaining.isEmpty) {
       await txn.delete('gastos_recurrentes', where: 'id = ?', whereArgs: [recurrenceId]);

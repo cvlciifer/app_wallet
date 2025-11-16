@@ -34,7 +34,8 @@ class _IngresosImprevistosPageState
       final now = DateTime.now();
       final diff = (widget.initialMonth!.year - now.year) * 12 +
           (widget.initialMonth!.month - now.month);
-      _selectedMonthOffset = diff.clamp(0, 11);
+      // Allow offsets from -12 (12 months back) to +12 (12 months forward)
+      _selectedMonthOffset = diff.clamp(-12, 12);
     }
     if (widget.initialImprevisto != null && widget.initialImprevisto! > 0) {
       final fmt =
@@ -145,16 +146,17 @@ class _IngresosImprevistosPageState
                 AwSpacing.s6,
                 MonthSelector(
                   month: monthLabel,
-                  canPrev: _selectedMonthOffset > 0,
-                  canNext: _selectedMonthOffset < 11,
+                  // Bound navigation to [-12, +12]
+                  canPrev: _selectedMonthOffset > -12,
+                  canNext: _selectedMonthOffset < 12,
                   onPrev: () {
                     setState(() {
-                      if (_selectedMonthOffset > 0) _selectedMonthOffset--;
+                      if (_selectedMonthOffset > -12) _selectedMonthOffset--;
                     });
                   },
                   onNext: () {
                     setState(() {
-                      if (_selectedMonthOffset < 11) _selectedMonthOffset++;
+                      if (_selectedMonthOffset < 12) _selectedMonthOffset++;
                     });
                   },
                 ),
@@ -202,7 +204,7 @@ class _IngresosImprevistosPageState
                   child: ElevatedButton(
                     onPressed: _isAmountValid && !_isSaving ? _save : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AwColors.appBarColor,
+                      backgroundColor: AwColors.modalPurple,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AwSize.s16),
                       ),
