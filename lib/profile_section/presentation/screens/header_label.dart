@@ -1,8 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 
-class HeaderLabel extends StatelessWidget {
+/// HeaderLabel ahora soporta un giro horizontal al tocar (flip) mostrando una
+/// `backChild` opcional. Mantiene las opciones de estilo previas.
+class HeaderLabel extends StatefulWidget {
   final Widget child;
+  final Widget? backChild;
+  final double? fixedHeight;
   final List<Widget> overlays;
   final bool cardStyle;
   final Color color;
@@ -10,10 +16,13 @@ class HeaderLabel extends StatelessWidget {
   final double borderRadius;
   final double shadowOpacity;
   final EdgeInsetsGeometry padding;
+  final Duration flipDuration;
+  final bool enableFlipOnTap;
 
   const HeaderLabel({
     Key? key,
     required this.child,
+    this.backChild,
     this.overlays = const [],
     this.cardStyle = false,
     this.color = Colors.white,
@@ -21,11 +30,65 @@ class HeaderLabel extends StatelessWidget {
     this.borderRadius = 12.0,
     this.shadowOpacity = 0.22,
     this.padding = const EdgeInsets.all(12.0),
+    this.flipDuration = const Duration(milliseconds: 600),
+    this.enableFlipOnTap = true,
+    this.fixedHeight,
   }) : super(key: key);
 
   @override
+  State<HeaderLabel> createState() => _HeaderLabelState();
+}
+
+class _HeaderLabelState extends State<HeaderLabel> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+  bool _showBack = false;
+  final GlobalKey _frontKey = GlobalKey();
+  double? _cardHeight;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: widget.flipDuration);
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _toggleFlip() {
+    if (!widget.enableFlipOnTap) return;
+    if (_showBack) {
+      _ctrl.reverse();
+    } else {
+      _ctrl.forward();
+    }
+    setState(() {
+      _showBack = !_showBack;
+    });
+  }
+
+  void _measureFront() {
+    try {
+      final ctx = _frontKey.currentContext;
+      if (ctx == null) return;
+      final rb = ctx.findRenderObject() as RenderBox?;
+      if (rb == null) return;
+      final h = rb.size.height;
+      if (h > 0 && _cardHeight != h) {
+        setState(() {
+          _cardHeight = h;
+        });
+      }
+    } catch (_) {}
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final effectiveOpacity = shadowOpacity > 0 ? shadowOpacity : 0.22;
+    final effectiveOpacity = widget.shadowOpacity > 0 ? widget.shadowOpacity : 0.22;
     final boxShadow = [
       BoxShadow(
         color: Colors.black.withOpacity(effectiveOpacity),
@@ -47,26 +110,26 @@ class HeaderLabel extends StatelessWidget {
       ),
     ];
 
-    final decoration = cardStyle
+    final decoration = widget.cardStyle
         ? BoxDecoration(
             gradient: const LinearGradient(
               colors: [Color.fromARGB(255, 108, 136, 198), Color.fromARGB(255, 85, 111, 143)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(borderRadius),
+            borderRadius: BorderRadius.circular(widget.borderRadius),
             boxShadow: [
               BoxShadow(color: Colors.black.withOpacity(0.22), blurRadius: 18, offset: const Offset(0, 8)),
             ],
           )
         : BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(borderRadius),
+            color: widget.color,
+            borderRadius: BorderRadius.circular(widget.borderRadius),
             boxShadow: boxShadow,
           );
 
-    final List<Widget> mergedOverlays = []..addAll(overlays);
-    if (cardStyle) {
+    final List<Widget> mergedOverlays = []..addAll(widget.overlays);
+    if (widget.cardStyle) {
       mergedOverlays.addAll([
         Positioned(
           top: 12,
@@ -95,19 +158,92 @@ class HeaderLabel extends StatelessWidget {
       ]);
     }
 
-    return Container(
+    Widget front = Padding(
+      padding: widget.cardStyle ? const EdgeInsets.symmetric(horizontal: 20.0, vertical: 38.0) : widget.padding,
+      child: widget.child,
+    );
+
+    // backContent variable is used below (backContent) - remove unused 'back'
+
+    // Build front decorated container (includes overlays)
+    final Widget decoratedFront = Container(
+      key: _frontKey,
       decoration: decoration,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: BorderRadius.circular(widget.borderRadius),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Padding(
-              padding: cardStyle ? const EdgeInsets.symmetric(horizontal: 20.0, vertical: 38.0) : padding,
-              child: child,
-            ),
+            SizedBox(width: double.infinity, child: front),
             ...mergedOverlays,
           ],
+        ),
+      ),
+    );
+
+    // Back content should occupy full width. We'll render it inside the same
+    // decoration so the back side keeps the HeaderLabel style.
+    final Widget backContent = Padding(
+      padding: widget.cardStyle ? const EdgeInsets.symmetric(horizontal: 20.0, vertical: 38.0) : widget.padding,
+      child: SizedBox(width: double.infinity, child: widget.backChild ?? const SizedBox.shrink()),
+    );
+
+    final Widget decoratedBack = Container(
+      decoration: decoration,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            SizedBox(width: double.infinity, child: backContent),
+          ],
+        ),
+      ),
+    );
+
+    // measure front after layout to enforce equal heights for front/back
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measureFront());
+
+    final double? enforcedHeight = widget.fixedHeight ?? _cardHeight;
+
+    final Widget frontWidget =
+        enforcedHeight != null ? SizedBox(height: enforcedHeight, child: decoratedFront) : decoratedFront;
+
+    final Widget backWidget =
+        enforcedHeight != null ? SizedBox(height: enforcedHeight, child: decoratedBack) : decoratedBack;
+
+    return SizedBox(
+      width: double.infinity,
+      child: GestureDetector(
+        onTap: _toggleFlip,
+        child: AnimatedBuilder(
+          animation: _anim,
+          builder: (context, child) {
+            final value = _anim.value;
+            final angle = value * math.pi;
+            final Matrix4 transform = Matrix4.identity()
+              ..setEntry(3, 2, 0.001)
+              ..rotateY(angle);
+            if (angle <= (math.pi / 2)) {
+              // show front with decoration
+              return Transform(
+                alignment: Alignment.center,
+                transform: transform,
+                child: frontWidget,
+              );
+            } else {
+              // show decorated back, rotate so it's readable
+              return Transform(
+                alignment: Alignment.center,
+                transform: transform,
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()..rotateY(math.pi),
+                  child: backWidget,
+                ),
+              );
+            }
+          },
         ),
       ),
     );

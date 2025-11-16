@@ -47,14 +47,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             setState(() {
                               alias = result;
                             });
-                            if (mounted) {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(content: Text('Alias actualizado: $result')));
-                            }
                           }
                         } catch (e) {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(content: Text('No se pudo abrir cambiar alias')));
+                          WalletPopup.showNotificationWarningOrange(
+                            context: context,
+                            message: 'No se pudo abrir cambiar alias',
+                            visibleTime: 2,
+                            isDismissible: true,
+                          );
                         }
                       }();
                     },
@@ -67,6 +67,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     title: 'Restablecer mi PIN',
                     icon: Icons.lock_reset,
                     onTap: () async {
+                      final connectivity = await Connectivity().checkConnectivity();
+                      if (connectivity == ConnectivityResult.none) {
+                        if (!mounted) return;
+                        WalletPopup.showNotificationWarningOrange(
+                          // ignore: use_build_context_synchronously
+                          context: context,
+                          message: 'No es posible restablecer el PIN sin conexión',
+                          visibleTime: 2,
+                          isDismissible: true,
+                        );
+                        return;
+                      }
                       final loader = ref.read(globalLoaderProvider.notifier);
                       loader.state = true;
                       try {
@@ -101,15 +113,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           } catch (e, st) {
                             if (kDebugMode) log('Restablecer PIN error', error: e, stackTrace: st);
                             if (mounted) {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(content: Text('No se pudo abrir restablecer PIN')));
+                              WalletPopup.showNotificationWarningOrange(
+                                context: context,
+                                message: 'No se pudo abrir restablecer PIN',
+                                visibleTime: 2,
+                                isDismissible: true,
+                              );
                             }
                           }
                         }
                       } catch (e, st) {
                         if (kDebugMode) log('Error checking PIN state', error: e, stackTrace: st);
                         try {
-                          ref.read(globalLoaderProvider.notifier).state = false;
+                          loader.state = false;
                         } catch (_) {}
                       }
                     },

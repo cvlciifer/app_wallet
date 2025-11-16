@@ -50,17 +50,17 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   }
 
   List<int> getAvailableYears() {
-    final years = widget.expenses.map((e) => e.date.year).toSet().toList();
+    final controller = Provider.of<WalletExpensesController>(context, listen: false);
+    final source = widget.expenses.isNotEmpty ? widget.expenses : controller.allExpenses;
+    final years = source.map((e) => e.date.year).toSet().toList();
     years.sort((a, b) => b.compareTo(a));
     return years;
   }
 
   List<int> getAvailableMonthsForYear(int year) {
-    final months = widget.expenses
-        .where((e) => e.date.year == year)
-        .map((e) => e.date.month)
-        .toSet()
-        .toList();
+    final controller = Provider.of<WalletExpensesController>(context, listen: false);
+    final source = widget.expenses.isNotEmpty ? widget.expenses : controller.allExpenses;
+    final months = source.where((e) => e.date.year == year).map((e) => e.date.month).toSet().toList();
     months.sort();
     return months;
   }
@@ -72,9 +72,10 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen to controller so reports refresh when local data changes (offline-friendly)
     if (!_initializedFromController) {
       try {
-        final controller = context.read<WalletExpensesController>();
+        final controller = Provider.of<WalletExpensesController>(context, listen: false);
         final mf = controller.monthFilter;
         if (mf != null) {
           selectedMonth = mf.month;
@@ -83,9 +84,11 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
       } catch (_) {}
       _initializedFromController = true;
     }
-    final filteredExpenses = widget.expenses.where((expense) {
-      return expense.date.month == selectedMonth &&
-          expense.date.year == selectedYear;
+
+    final controller = Provider.of<WalletExpensesController>(context);
+    final sourceExpenses = widget.expenses.isNotEmpty ? widget.expenses : controller.allExpenses;
+    final filteredExpenses = sourceExpenses.where((expense) {
+      return expense.date.month == selectedMonth && expense.date.year == selectedYear;
     }).toList();
 
     final double totalExpenses =
@@ -142,7 +145,15 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                 selectedMonth: selectedMonth,
                 selectedYear: selectedYear,
                 onMonthChanged: (m) => setState(() => selectedMonth = m),
-                onYearChanged: (y) => setState(() => selectedYear = y),
+                onYearChanged: (y) => setState(() {
+                  selectedYear = y;
+                  final availableMonths = getAvailableMonthsForYear(y);
+                  if (availableMonths.isNotEmpty) {
+                    selectedMonth = availableMonths.first;
+                  } else {
+                    selectedMonth = 1;
+                  }
+                }),
                 availableMonths: availableMonths,
                 availableYears: availableYears,
                 totalAmount: totalExpenses,

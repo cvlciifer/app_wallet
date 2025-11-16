@@ -86,6 +86,7 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                               builder: (_) =>
                                   RecurrentDetailPage(recurring: r)),
                         );
+                        if (!mounted) return;
                         if (res == true) {
                           try {
                             ref.read(globalLoaderProvider.notifier).state =
@@ -97,12 +98,16 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                                 .loadRecurrents();
                           } catch (_) {}
                           try {
-                            final controller =
-                                prov.Provider.of<WalletExpensesController>(
-                                    context,
-                                    listen: false);
-                            await controller.loadExpensesSmart();
+                            if (_controller != null) {
+                              await _controller!.loadExpensesSmart();
+                            } else {
+                              final controller = prov.Provider.of<WalletExpensesController>(
+                                  context,
+                                  listen: false);
+                              await controller.loadExpensesSmart();
+                            }
                           } catch (_) {}
+                          if (!mounted) return;
                           try {
                             ref.read(globalLoaderProvider.notifier).state =
                                 false;
@@ -268,11 +273,16 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
             .deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
         if (success) {
           try {
-            final controller = prov.Provider.of<WalletExpensesController>(
-                context,
-                listen: false);
-            await controller.loadExpensesSmart();
+            if (_controller != null) {
+              await _controller!.loadExpensesSmart();
+            } else {
+              final controller = prov.Provider.of<WalletExpensesController>(
+                  context,
+                  listen: false);
+              await controller.loadExpensesSmart();
+            }
           } catch (_) {}
+          if (!mounted) return;
           Navigator.of(context).pop(true);
           return;
         } else {
@@ -287,11 +297,14 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
             .deleteRecurrenceFromMonth(widget.recurring.id, monthIndex);
         if (success) {
           try {
-            // ignore: use_build_context_synchronously
-            final controller = prov.Provider.of<WalletExpensesController>(
-                context,
-                listen: false);
-            await controller.loadExpensesSmart();
+            if (_controller != null) {
+              await _controller!.loadExpensesSmart();
+            } else {
+              final controller = prov.Provider.of<WalletExpensesController>(
+                  context,
+                  listen: false);
+              await controller.loadExpensesSmart();
+            }
           } catch (_) {}
         }
         await _loadItems();

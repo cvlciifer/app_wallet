@@ -32,15 +32,23 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
     _secondPin = _pinKey.currentState?.currentPin ?? _secondPin;
 
     if (_secondPin == null || _secondPin != widget.firstPin) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Los PIN no coinciden')));
+      WalletPopup.showNotificationWarningOrange(
+        context: context,
+        message: 'Los PIN no coinciden',
+        visibleTime: 2,
+        isDismissible: true,
+      );
       return;
     }
     final uid = AuthService().getCurrentUser()?.uid;
 
     if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuario no identificado')));
+      WalletPopup.showNotificationWarningOrange(
+        context: context,
+        message: 'Usuario no identificado',
+        visibleTime: 2,
+        isDismissible: true,
+      );
       return;
     }
     final pinService = PinService();
@@ -55,7 +63,12 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           alias: widget.alias);
     } catch (e) {
       final msg = e.toString();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      WalletPopup.showNotificationWarningOrange(
+        context: context,
+        message: msg,
+        visibleTime: 3,
+        isDismissible: true,
+      );
       _hideOverlay();
       setState(() {});
       return;
@@ -75,14 +88,22 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
       log('ConfirmPinPage: syncAliasForCurrentUser error=$e',
           name: 'ConfirmPinPage', error: e, stackTrace: st);
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PIN configurado correctamente')));
+    WalletPopup.showNotificationSuccess(
+      context: context,
+      title: 'PIN configurado correctamente',
+      visibleTime: 2,
+      isDismissible: true,
+    );
 
     final persisted = await pinService.hasPin(accountId: uid);
     if (!persisted) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Error guardando el PIN. Intenta de nuevo.')));
+      WalletPopup.showNotificationWarningOrange(
+        context: context,
+        message: 'Error guardando el PIN. Intenta de nuevo.',
+        visibleTime: 3,
+        isDismissible: true,
+      );
       setState(() {});
       return;
     }

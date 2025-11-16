@@ -38,11 +38,17 @@ class _AliasInputPageState extends State<AliasInputPage> {
     final confirm = _confirmController.text.trim();
     if (alias.isEmpty || confirm.isEmpty || !_aliasesMatch()) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Los alias deben coincidir')));
+      WalletPopup.showNotificationWarningOrange(
+        context: context,
+        message: 'Los alias deben coincidir',
+        visibleTime: 2,
+        isDismissible: true,
+      );
       return;
     }
     final normalized = alias.isEmpty ? null : alias;
+
+    // Save alias locally and mark pending for background sync.
 
     if (widget.initialSetup) {
       final uidCheck = AuthService().getCurrentUser()?.uid;
@@ -61,28 +67,75 @@ class _AliasInputPageState extends State<AliasInputPage> {
     final uid = AuthService().getCurrentUser()?.uid;
     if (uid == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuario no identificado')));
+      WalletPopup.showNotificationWarningOrange(
+        context: context,
+        message: 'Usuario no identificado',
+        visibleTime: 2,
+        isDismissible: true,
+      );
       return;
     }
-    final pinService = PinService();
-    await pinService.setAlias(accountId: uid, alias: normalized ?? '');
-
+    // Use AliasService to save alias and mark pending sync flag
+    final aliasService = AliasService();
     try {
-      final ok = await AliasService().syncAliasForCurrentUser();
-      if (!ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                'Alias guardado localmente, pero no se pudo sincronizar')));
-      }
+      await aliasService.setAliasForCurrentUser(normalized ?? '');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error sincronizando alias: $e')));
+        WalletPopup.showNotificationWarningOrange(
+          context: context,
+          message: 'Error guardando alias localmente: $e',
+          visibleTime: 3,
+          isDismissible: true,
+        );
       }
+      return;
     }
-    if (!mounted) return;
 
+    if (mounted) {
+      try {
+        final connectivity = await Connectivity().checkConnectivity();
+        final offline = connectivity == ConnectivityResult.none;
+        final overlayCtx = Navigator.of(context).overlay?.context;
+
+        if (overlayCtx != null) {
+          Future.microtask(() async {
+            await Future.delayed(const Duration(milliseconds: 120));
+            try {
+                  if (offline) {
+                    WalletPopup.showNotificationSuccess(
+                      // ignore: use_build_context_synchronously
+                      context: overlayCtx,
+                      title: 'Alias actualizado',
+                      message: const AwText.normal(
+                        'Será sincronizado cuando exista internet',
+                        color: AwColors.white,
+                        size: AwSize.s14,
+                      ),
+                      visibleTime: 2,
+                      isDismissible: true,
+                    );
+              } else {
+                WalletPopup.showNotificationSuccess(
+                  // ignore: use_build_context_synchronously
+                  context: overlayCtx,
+                  title: 'Alias actualizado',
+                  visibleTime: 2,
+                  isDismissible: true,
+                );
+              }
+            } catch (_) {}
+          });
+        }
+      } catch (_) {}
+    }
+
+    Future.microtask(() async {
+      try {
+        await aliasService.syncAliasForCurrentUser();
+      } catch (_) {}
+    });
+
+    if (!mounted) return;
     Navigator.of(context).pop(normalized);
   }
 
