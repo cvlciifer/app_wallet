@@ -19,7 +19,6 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
   final User? user = FirebaseAuth.instance.currentUser;
   late String? userEmail;
   late String? userName;
-  String? alias;
 
   @override
   void initState() {
@@ -27,27 +26,12 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
 
     userEmail = user?.email;
     userName = user?.displayName;
-    _loadAlias();
     _checkConnection();
   }
 
   Future<void> _checkConnection() async {
     try {
       await Connectivity().checkConnectivity();
-    } catch (_) {}
-  }
-
-  Future<void> _loadAlias() async {
-    final uid = user?.uid;
-    if (uid == null) return;
-    try {
-      final pinService = PinService();
-      final a = await pinService.getAlias(accountId: uid);
-      if (a != null && a.isNotEmpty) {
-        setState(() {
-          alias = a;
-        });
-      }
     } catch (_) {}
   }
 
@@ -58,6 +42,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final aliasFromProvider = prov.Provider.of<AliasProvider>(context).alias;
     return Scaffold(
       backgroundColor: AwColors.greyLight,
       appBar: const WalletAppBar(
@@ -73,7 +58,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
               cardStyle: true,
               // muestra resumen de ingresos al voltear la tarjeta
               backChild: HomeIncomeSummary(
-                controller: prov.Provider.of<WalletExpensesController>(context, listen: false),
+                controller: prov.Provider.of<WalletExpensesController>(context,
+                    listen: false),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -90,7 +76,10 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         AwText.bold(
-                          alias != null && alias!.isNotEmpty ? 'Hola, $alias 👋' : 'Hola...👋',
+                          aliasFromProvider != null &&
+                                  aliasFromProvider.isNotEmpty
+                              ? 'Hola, $aliasFromProvider 👋'
+                              : 'Hola...👋',
                           color: AwColors.white,
                           size: AwSize.s24,
                           textOverflow: TextOverflow.ellipsis,
@@ -139,7 +128,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: AwText.bold('Menú', color: AwColors.blue, size: AwSize.s18),
+              child:
+                  AwText.bold('Menú', color: AwColors.blue, size: AwSize.s18),
             ),
           ),
           AwSpacing.s12,
@@ -147,7 +137,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             child: SafeArea(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                   child: Column(
                     children: [
                       SizedBox(
@@ -157,7 +148,9 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.settings,
                           onTap: () async {
                             try {
-                              await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) => const SettingsPage()));
                             } catch (_) {}
                           },
                         ),
@@ -171,7 +164,9 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           onTap: () async {
                             try {
                               final result = await Navigator.of(context)
-                                  .push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
+                                  .push<bool>(MaterialPageRoute(
+                                      builder: (_) =>
+                                          const RecurrentCreatePage()));
                               if (!mounted) return;
                               if (result == true) {
                                 WalletPopup.showNotificationSuccess(
@@ -193,8 +188,10 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.list_alt,
                           onTap: () async {
                             try {
-                              await Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (_) => const RecurrentRegistryPage()));
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const RecurrentRegistryPage()));
                             } catch (_) {}
                           },
                         ),
@@ -206,28 +203,33 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           title: 'Ver correos (Gmail)',
                           icon: Icons.email,
                           onTap: () async {
-                            final connectivity = await Connectivity().checkConnectivity();
+                            final connectivity =
+                                await Connectivity().checkConnectivity();
                             if (connectivity == ConnectivityResult.none) {
                               if (!mounted) return;
                               WalletPopup.showNotificationWarningOrange(
                                 // ignore: use_build_context_synchronously
                                 context: context,
-                                message: 'No es posible abrir correos sin conexión',
+                                message:
+                                    'No es posible abrir correos sin conexión',
                                 visibleTime: 2,
                                 isDismissible: true,
                               );
                               return;
                             }
                             try {
-                              await Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (_) => const GmailInboxPage()));
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) => const GmailInboxPage()));
                             } catch (e) {
-                              if (kDebugMode) log('Error abriendo GmailInboxPage: $e');
+                              if (kDebugMode)
+                                log('Error abriendo GmailInboxPage: $e');
                               if (mounted) {
                                 WalletPopup.showNotificationWarningOrange(
                                   // ignore: use_build_context_synchronously
                                   context: context,
-                                  message: 'No es posible abrir la bandeja de correos',
+                                  message:
+                                      'No es posible abrir la bandeja de correos',
                                   visibleTime: 2,
                                   isDismissible: true,
                                 );
@@ -238,7 +240,6 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                         ),
                       ),
                       AwSpacing.s6,
-                      AwSpacing.s6,
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
@@ -246,8 +247,10 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.attach_money,
                           onTap: () async {
                             try {
-                              final result = await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(builder: (_) => const IngresosPage()),
+                              final result =
+                                  await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(
+                                    builder: (_) => const IngresosPage()),
                               );
                               if (result == true) {
                                 if (mounted) {
@@ -271,8 +274,11 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.savings,
                           onTap: () async {
                             try {
-                              final result = await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(builder: (_) => const IngresosImprevistosPage()),
+                              final result =
+                                  await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const IngresosImprevistosPage()),
                               );
                               if (!mounted) return;
                               if (result == true) {

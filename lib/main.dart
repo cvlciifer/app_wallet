@@ -363,6 +363,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => WalletExpensesController()),
         ChangeNotifierProvider(create: (_) => BottomNavProvider()),
         ChangeNotifierProvider(create: (_) => RegisterProvider()),
+        ChangeNotifierProvider(create: (_) => AliasProvider()),
         ChangeNotifierProvider(create: (_) => LoginProvider()),
         ChangeNotifierProvider(create: (_) => local_auth.AuthProvider()),
       ],
