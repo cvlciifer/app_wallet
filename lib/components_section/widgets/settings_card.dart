@@ -25,14 +25,20 @@ class SettingsCard extends StatelessWidget {
     return Container(
       margin: EdgeInsets.zero,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.96),
+        color: AwColors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AwColors.grey.withOpacity(0.08)),
+        border: Border.all(color: AwColors.borderGrey),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: Offset(2, 4),
+          ),
+        ],
       ),
       child: ListTile(
         minLeadingWidth: 40,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         leading: Icon(icon, color: AwColors.grey, size: iconSize),
         title: AwText.normal(
           title,
@@ -40,12 +46,9 @@ class SettingsCard extends StatelessWidget {
           size: AwSize.s16,
           fontWeight: titleWeight,
         ),
-    subtitle: subtitle != null
-      ? AwText.small(subtitle!, color: AwColors.grey)
-      : null,
-    trailing: trailing ??
-      Icon(Icons.chevron_right, color: AwColors.blue, size: 28),
-    onTap: onTap,
+        subtitle: subtitle != null ? AwText.small(subtitle!, color: AwColors.grey) : null,
+        trailing: trailing ?? Icon(Icons.chevron_right, color: AwColors.blue, size: 28),
+        onTap: onTap,
       ),
     );
   }

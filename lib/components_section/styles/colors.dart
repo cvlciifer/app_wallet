@@ -28,6 +28,7 @@ class AwColors {
   static const Color modalBlue = Color(0xFF007AFF);
   static const Color modalGrey = Color(0xFF444444);
   static const Color modalPurple = Color(0xFF6750A4);
+  static const Color borderGrey = Color.fromARGB(232, 255, 234, 232);
 
   static final Map<String, Color> colorMap = {
     'blue': AwColors.blue,

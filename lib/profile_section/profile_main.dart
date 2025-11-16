@@ -1,11 +1,10 @@
 import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/profile_section/presentation/screens/ingresos_imprevistos_page.dart';
+import 'package:app_wallet/profile_section/presentation/screens/header_label.dart';
+import 'package:app_wallet/profile_section/presentation/screens/settings_page.dart';
+import 'package:app_wallet/components_section/widgets/home_income_summary.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
-import 'package:app_wallet/profile_section/presentation/screens/recurrent_create_page.dart';
-import 'package:app_wallet/profile_section/presentation/screens/recurrent_registry_page.dart';
-import 'package:app_wallet/profile_section/presentation/screens/gmail_inbox_page.dart';
+import 'package:provider/provider.dart' as prov;
 
 class WalletProfilePage extends ConsumerStatefulWidget {
   final String? userEmail;
@@ -62,7 +61,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
     return Scaffold(
       backgroundColor: AwColors.greyLight,
       appBar: const WalletAppBar(
-        title: AwText.normal('Mi Wallet', color: AwColors.white),
+        title: AwText.bold('Mi Wallet', color: AwColors.white),
         actions: [],
       ),
       body: Column(
@@ -70,49 +69,69 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
           AwSpacing.m,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  radius: 36,
-                  backgroundColor: AwColors.blue,
-                  child: Icon(Icons.person, size: 40, color: AwColors.white),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AwText.bold(
-                        alias != null && alias!.isNotEmpty
-                            ? 'Hola, $alias 👋'
-                            : 'Hola...👋',
-                        color: AwColors.modalPurple,
-                        size: AwSize.s16,
-                        textOverflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                      AwSpacing.s6,
-                      AwText.bold(
-                        userEmail ?? 'correo@ejemplo.com',
-                        color: AwColors.boldBlack,
-                        size: AwSize.s16,
-                        textOverflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                      AwSpacing.s6,
-                      UnderlinedButton(
-                        text: 'Cerrar sesión',
-                        icon: Icons.logout,
-                        color: AwColors.red,
-                        alignment: Alignment.centerLeft,
-                        onTap: () {
-                          LogOutDialog.showLogOutDialog(context);
-                        },
-                      ),
-                    ],
+            child: HeaderLabel(
+              cardStyle: true,
+              // muestra resumen de ingresos al voltear la tarjeta
+              backChild: HomeIncomeSummary(
+                controller: prov.Provider.of<WalletExpensesController>(context, listen: false),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 36,
+                    backgroundColor: AwColors.blue,
+                    child: Icon(Icons.person, size: 40, color: AwColors.white),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AwText.bold(
+                          alias != null && alias!.isNotEmpty ? 'Hola, $alias 👋' : 'Hola...👋',
+                          color: AwColors.white,
+                          size: AwSize.s24,
+                          textOverflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                        AwSpacing.s6,
+                        AwText.bold(
+                          userEmail ?? '',
+                          color: AwColors.white.withOpacity(0.95),
+                          size: AwSize.s14,
+                          textOverflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                        AwSpacing.s6,
+                        // Row que contiene la fecha a la izquierda y el botón 'Cerrar sesión' a la derecha
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            AwText.normal(
+                              // Fecha de hoy en formato DD/MM/YYYY
+                              "${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}",
+                              color: AwColors.white.withOpacity(0.95),
+                              size: AwSize.s14,
+                              textOverflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                            UnderlinedButton(
+                              text: 'Cerrar sesión',
+                              icon: Icons.logout,
+                              color: AwColors.white,
+                              onTap: () {
+                                LogOutDialog.showLogOutDialog(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           AwSpacing.s20,
@@ -120,8 +139,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: AwText.bold('Configuraciones',
-                  color: AwColors.blue, size: AwSize.s18),
+              child: AwText.bold('Menú', color: AwColors.blue, size: AwSize.s18),
             ),
           ),
           AwSpacing.s12,
@@ -129,10 +147,22 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             child: SafeArea(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                   child: Column(
                     children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: SettingsCard(
+                          title: 'Configuración',
+                          icon: Icons.settings,
+                          onTap: () async {
+                            try {
+                              await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
+                            } catch (_) {}
+                          },
+                        ),
+                      ),
+                      AwSpacing.s6,
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
@@ -141,9 +171,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           onTap: () async {
                             try {
                               final result = await Navigator.of(context)
-                                  .push<bool>(MaterialPageRoute(
-                                      builder: (_) =>
-                                          const RecurrentCreatePage()));
+                                  .push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
                               if (!mounted) return;
                               if (result == true) {
                                 WalletPopup.showNotificationSuccess(
@@ -165,41 +193,9 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.list_alt,
                           onTap: () async {
                             try {
-                              await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          const RecurrentRegistryPage()));
+                              await Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (_) => const RecurrentRegistryPage()));
                             } catch (_) {}
-                          },
-                        ),
-                      ),
-                      AwSpacing.s6,
-                      SizedBox(
-                        width: double.infinity,
-                        child: SettingsCard(
-                          title: 'Actualizar alias',
-                          icon: Icons.person_outline,
-                          onTap: () {
-                            () async {
-                              try {
-                                final result = await Navigator.of(context)
-                                    .push<String>(MaterialPageRoute(
-                                        builder: (_) => const AliasInputPage(
-                                            initialSetup: false)));
-                                if (result != null && result.isNotEmpty) {
-                                  setState(() {
-                                    alias = result;
-                                  });
-                                }
-                              } catch (e) {
-                                WalletPopup.showNotificationWarningOrange(
-                                  context: context,
-                                  message: 'No se pudo abrir cambiar alias',
-                                  visibleTime: 2,
-                                  isDismissible: true,
-                                );
-                              }
-                            }();
                           },
                         ),
                       ),
@@ -210,33 +206,28 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           title: 'Ver correos (Gmail)',
                           icon: Icons.email,
                           onTap: () async {
-                            final connectivity =
-                                await Connectivity().checkConnectivity();
+                            final connectivity = await Connectivity().checkConnectivity();
                             if (connectivity == ConnectivityResult.none) {
                               if (!mounted) return;
                               WalletPopup.showNotificationWarningOrange(
                                 // ignore: use_build_context_synchronously
                                 context: context,
-                                message:
-                                    'No es posible abrir correos sin conexión',
+                                message: 'No es posible abrir correos sin conexión',
                                 visibleTime: 2,
                                 isDismissible: true,
                               );
                               return;
                             }
                             try {
-                              await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) => const GmailInboxPage()));
+                              await Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (_) => const GmailInboxPage()));
                             } catch (e) {
-                              if (kDebugMode)
-                                log('Error abriendo GmailInboxPage: $e');
+                              if (kDebugMode) log('Error abriendo GmailInboxPage: $e');
                               if (mounted) {
                                 WalletPopup.showNotificationWarningOrange(
                                   // ignore: use_build_context_synchronously
                                   context: context,
-                                  message:
-                                      'No es posible abrir la bandeja de correos',
+                                  message: 'No es posible abrir la bandeja de correos',
                                   visibleTime: 2,
                                   isDismissible: true,
                                 );
@@ -247,96 +238,6 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                         ),
                       ),
                       AwSpacing.s6,
-                      SizedBox(
-                        width: double.infinity,
-                        child: SettingsCard(
-                          title: 'Restablecer mi PIN',
-                          icon: Icons.lock_reset,
-                          onTap: () async {
-                            final connectivity =
-                                await Connectivity().checkConnectivity();
-                            if (connectivity == ConnectivityResult.none) {
-                              if (!mounted) return;
-                              WalletPopup.showNotificationWarningOrange(
-                                // ignore: use_build_context_synchronously
-                                context: context,
-                                message:
-                                    'No es posible restablecer el PIN sin conexión',
-                                visibleTime: 2,
-                                isDismissible: true,
-                              );
-                              return;
-                            }
-                            final loader =
-                                ref.read(globalLoaderProvider.notifier);
-                            loader.state = true;
-                            try {
-                              final uid = user?.uid;
-                              final pinService = PinService();
-                              final remaining =
-                                  await pinService.pinChangeRemainingCount(
-                                      accountId: uid ?? '');
-                              final blockedUntil =
-                                  await pinService.pinChangeBlockedUntilNextDay(
-                                      accountId: uid ?? '');
-
-                              final isBlocked = (remaining <= 0) ||
-                                  (blockedUntil != null &&
-                                      blockedUntil > Duration.zero);
-
-                              try {
-                                loader.state = false;
-                              } catch (_) {}
-
-                              if (isBlocked) {
-                                final remainingDuration =
-                                    blockedUntil ?? const Duration(days: 1);
-                                if (!mounted) return;
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (_) => PinLockedPage(
-                                          remaining: remainingDuration,
-                                          accountId: uid,
-                                          allowBack: true,
-                                        )));
-                              } else {
-                                try {
-                                  final success = await Navigator.of(context)
-                                      .push<bool>(MaterialPageRoute(
-                                          builder: (_) =>
-                                              const ForgotPinPage()));
-                                  if (success == true) {
-                                    if (!mounted) return;
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const SetPinPage()));
-                                  }
-                                } catch (e, st) {
-                                  if (kDebugMode)
-                                    log('Restablecer PIN error',
-                                        error: e, stackTrace: st);
-                                  if (mounted) {
-                                    WalletPopup.showNotificationWarningOrange(
-                                      context: context,
-                                      message:
-                                          'No se pudo abrir restablecer PIN',
-                                      visibleTime: 2,
-                                      isDismissible: true,
-                                    );
-                                  }
-                                }
-                              }
-                            } catch (e, st) {
-                              if (kDebugMode)
-                                log('Error checking PIN state',
-                                    error: e, stackTrace: st);
-                              try {
-                                loader.state = false;
-                              } catch (_) {}
-                            }
-                          },
-                        ),
-                      ),
                       AwSpacing.s6,
                       SizedBox(
                         width: double.infinity,
@@ -345,10 +246,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.attach_money,
                           onTap: () async {
                             try {
-                              final result =
-                                  await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(
-                                    builder: (_) => const IngresosPage()),
+                              final result = await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(builder: (_) => const IngresosPage()),
                               );
                               if (result == true) {
                                 if (mounted) {
@@ -372,11 +271,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.savings,
                           onTap: () async {
                             try {
-                              final result =
-                                  await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(
-                                    builder: (_) =>
-                                        const IngresosImprevistosPage()),
+                              final result = await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(builder: (_) => const IngresosImprevistosPage()),
                               );
                               if (!mounted) return;
                               if (result == true) {

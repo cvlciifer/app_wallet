@@ -26,30 +26,30 @@ class TicketCardHome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Build a three-layer shadow using a single opacity parameter. If
-    // `shadowOpacity` is <= 0 treat as no shadow.
-    final boxShadow = (shadowOpacity > 0)
-        ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(shadowOpacity),
-              blurRadius: 10.0,
-              spreadRadius: 0,
-              offset: const Offset(0, 3),
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(shadowOpacity * 0.6),
-              blurRadius: 28.0,
-              spreadRadius: 0,
-              offset: const Offset(0, 12),
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(shadowOpacity * 0.35),
-              blurRadius: 48.0,
-              spreadRadius: 0,
-              offset: const Offset(0, 24),
-            ),
-          ]
-        : null;
+    // Build a three-layer shadow using a single opacity parameter.
+    // Always provide a shadow: if `shadowOpacity` is <= 0, fall back to
+    // a default so the shadow remains visible.
+    final effectiveOpacity = shadowOpacity > 0 ? shadowOpacity : 0.22;
+    final boxShadow = [
+      BoxShadow(
+        color: Colors.black.withOpacity(effectiveOpacity),
+        blurRadius: 10.0,
+        spreadRadius: 0,
+        offset: const Offset(0, 3),
+      ),
+      BoxShadow(
+        color: Colors.black.withOpacity(effectiveOpacity * 0.6),
+        blurRadius: 28.0,
+        spreadRadius: 0,
+        offset: const Offset(0, 12),
+      ),
+      BoxShadow(
+        color: Colors.black.withOpacity(effectiveOpacity * 0.35),
+        blurRadius: 48.0,
+        spreadRadius: 0,
+        offset: const Offset(0, 24),
+      ),
+    ];
 
     return Container(
       decoration: BoxDecoration(
