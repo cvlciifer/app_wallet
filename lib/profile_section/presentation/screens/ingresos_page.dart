@@ -184,9 +184,10 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                                   await ctrl.updateIncomeForDate(
                                       monthDate, fijo, null);
                                 }
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text('Ingreso guardado')));
+                                WalletPopup.showNotificationSuccess(
+                                  context: context,
+                                  title: 'Ingreso guardado',
+                                );
                                 await ctrl.loadLocalIncomes();
                               }
                             : null,
@@ -376,15 +377,16 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                             final ok =
                                 await ctrl.deleteIncomeForDate(monthDate);
                             if (ok) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Ingreso eliminado')));
+                              WalletPopup.showNotificationSuccess(
+                                context: context,
+                                title: 'Ingreso eliminado',
+                              );
                               await ctrl.loadLocalIncomes();
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Error eliminando ingreso')));
+                              WalletPopup.showNotificationWarningOrange(
+                                context: context,
+                                message: 'Error eliminando ingreso',
+                              );
                             }
                           }
                         },

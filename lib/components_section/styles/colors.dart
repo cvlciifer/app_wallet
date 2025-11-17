@@ -19,6 +19,7 @@ class AwColors {
   static const Color red = Color(0xFFF40034);
   static const Color orange = Color(0xFFFFA500);
   static const Color yellow = Color(0xFFF7D700);
+  static const Color orangeDark = Color(0xFFF57C00);
   static const Color lightOrange = Color(0xFFFFB514);
   static const Color notificationGrey = Color(0xF4F4F4F4);
   static const Color boldBlack = Color(0xFF000000);
@@ -50,6 +51,7 @@ class AwColors {
     'red': AwColors.red,
     'orange': AwColors.orange,
     'notificationGrey': AwColors.notificationGrey,
+    'orangeDark': AwColors.orangeDark,
     'modalRed': AwColors.modalRed,
     'modalBlue': AwColors.modalBlue,
     'modalGrey': AwColors.modalGrey,
