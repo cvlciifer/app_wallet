@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:provider/provider.dart' as prov;
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -41,9 +42,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     onTap: () {
                       () async {
                         try {
-                          final result = await Navigator.of(context).push<String>(
-                              MaterialPageRoute(builder: (_) => const AliasInputPage(initialSetup: false)));
+                          final result = await Navigator.of(context)
+                              .push<String>(MaterialPageRoute(
+                                  builder: (_) => const AliasInputPage(
+                                      initialSetup: false)));
                           if (result != null && result.isNotEmpty) {
+                            try {
+                              final aliasProvider =
+                                  prov.Provider.of<AliasProvider>(context,
+                                      listen: false);
+                              aliasProvider.setAlias(result);
+                            } catch (_) {}
                             setState(() {
                               alias = result;
                             });
@@ -67,13 +76,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     title: 'Restablecer mi PIN',
                     icon: Icons.lock_reset,
                     onTap: () async {
-                      final connectivity = await Connectivity().checkConnectivity();
+                      final connectivity =
+                          await Connectivity().checkConnectivity();
                       if (connectivity == ConnectivityResult.none) {
                         if (!mounted) return;
                         WalletPopup.showNotificationWarningOrange(
                           // ignore: use_build_context_synchronously
                           context: context,
-                          message: 'No es posible restablecer el PIN sin conexión',
+                          message:
+                              'No es posible restablecer el PIN sin conexión',
                           visibleTime: 2,
                           isDismissible: true,
                         );
@@ -84,17 +95,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       try {
                         final uid = user?.uid;
                         final pinService = PinService();
-                        final remaining = await pinService.pinChangeRemainingCount(accountId: uid ?? '');
-                        final blockedUntil = await pinService.pinChangeBlockedUntilNextDay(accountId: uid ?? '');
+                        final remaining = await pinService
+                            .pinChangeRemainingCount(accountId: uid ?? '');
+                        final blockedUntil = await pinService
+                            .pinChangeBlockedUntilNextDay(accountId: uid ?? '');
 
-                        final isBlocked = (remaining <= 0) || (blockedUntil != null && blockedUntil > Duration.zero);
+                        final isBlocked = (remaining <= 0) ||
+                            (blockedUntil != null &&
+                                blockedUntil > Duration.zero);
 
                         try {
                           loader.state = false;
                         } catch (_) {}
 
                         if (isBlocked) {
-                          final remainingDuration = blockedUntil ?? const Duration(days: 1);
+                          final remainingDuration =
+                              blockedUntil ?? const Duration(days: 1);
                           if (!mounted) return;
                           Navigator.of(context).push(MaterialPageRoute(
                               builder: (_) => PinLockedPage(
@@ -105,13 +121,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         } else {
                           try {
                             final success = await Navigator.of(context)
-                                .push<bool>(MaterialPageRoute(builder: (_) => const ForgotPinPage()));
+                                .push<bool>(MaterialPageRoute(
+                                    builder: (_) => const ForgotPinPage()));
                             if (success == true) {
                               if (!mounted) return;
-                              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SetPinPage()));
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (_) => const SetPinPage()));
                             }
                           } catch (e, st) {
-                            if (kDebugMode) log('Restablecer PIN error', error: e, stackTrace: st);
+                            if (kDebugMode)
+                              log('Restablecer PIN error',
+                                  error: e, stackTrace: st);
                             if (mounted) {
                               WalletPopup.showNotificationWarningOrange(
                                 context: context,
@@ -123,7 +143,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           }
                         }
                       } catch (e, st) {
-                        if (kDebugMode) log('Error checking PIN state', error: e, stackTrace: st);
+                        if (kDebugMode)
+                          log('Error checking PIN state',
+                              error: e, stackTrace: st);
                         try {
                           loader.state = false;
                         } catch (_) {}
