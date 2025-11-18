@@ -37,8 +37,7 @@ class _IngresosImprevistosPageState
           (widget.initialMonth!.month - now.month);
       // Allow offsets from -12 (12 months back) to +12 (12 months forward)
       _selectedMonthOffset = diff.clamp(-12, 12);
-    }
-    else {
+    } else {
       // If no explicit initial month provided, sync initial offset from ingresosProvider
       try {
         final providerOffset = ref.read(ingresosProvider).startOffset;
@@ -101,8 +100,8 @@ class _IngresosImprevistosPageState
     } catch (e) {
       log('ingresos_imprevistos._save error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error guardando imprevisto')));
+        WalletPopup.showNotificationError(
+            context: context, title: 'Error guardando imprevisto');
       }
     } finally {
       try {
@@ -163,7 +162,9 @@ class _IngresosImprevistosPageState
                     });
                     // propagate selection to ingresos provider so both screens share the same start month
                     try {
-                      ref.read(ingresosProvider.notifier).setStartOffset(_selectedMonthOffset);
+                      ref
+                          .read(ingresosProvider.notifier)
+                          .setStartOffset(_selectedMonthOffset);
                     } catch (_) {}
                   },
                   onNext: () {
@@ -171,7 +172,9 @@ class _IngresosImprevistosPageState
                       if (_selectedMonthOffset < 12) _selectedMonthOffset++;
                     });
                     try {
-                      ref.read(ingresosProvider.notifier).setStartOffset(_selectedMonthOffset);
+                      ref
+                          .read(ingresosProvider.notifier)
+                          .setStartOffset(_selectedMonthOffset);
                     } catch (_) {}
                   },
                 ),

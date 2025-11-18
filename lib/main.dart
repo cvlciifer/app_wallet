@@ -279,12 +279,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                     }
                   } catch (_) {}
                 } catch (e) {
-                  final contextForSnack =
-                      (_navigatorKey.currentState?.overlay?.context ?? context)
-                          as BuildContext;
-                  ScaffoldMessenger.of(contextForSnack).showSnackBar(const SnackBar(
-                      content: Text(
-                          'No se pudo autenticar con el token proporcionado')));
+                  // Authentication with custom token failed — user alert removed per UX decision.
 
                   try {
                     final ctx = _navigatorKey.currentState?.overlay?.context;
@@ -312,26 +307,10 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                 _navigatorKey.currentState?.push(
                     MaterialPageRoute(builder: (_) => const SetPinPage()));
               }
-            } else {
-              final contextForSnack =
-                  (_navigatorKey.currentState?.overlay?.context ?? context)
-                      as BuildContext;
-              ScaffoldMessenger.of(contextForSnack).showSnackBar(const SnackBar(
-                  content: Text('Token inválido o ya consumido')));
             }
-          } else {
-            final contextForSnack =
-                (_navigatorKey.currentState?.overlay?.context ?? context)
-                    as BuildContext;
-            ScaffoldMessenger.of(contextForSnack).showSnackBar(SnackBar(
-                content: Text('Error al consumir token: ${resp.statusCode}')));
-          }
+          } else {}
         } catch (e) {
-          final contextForSnack =
-              (_navigatorKey.currentState?.overlay?.context ?? context)
-                  as BuildContext;
-          ScaffoldMessenger.of(contextForSnack).showSnackBar(const SnackBar(
-              content: Text('No se pudo verificar/consumir el token')));
+          // exception while consuming token; will show a consolidated popup below
         } finally {
           if (!success) {
             try {
@@ -341,6 +320,12 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                     .read(resetFlowProvider.notifier)
                     .clear();
               }
+            } catch (_) {}
+            try {
+              final popupCtx = (_navigatorKey.currentState?.overlay?.context ??
+                  context) as BuildContext;
+              WalletPopup.showNotificationError(
+                  context: popupCtx, title: 'Token inválido o ya consumido');
             } catch (_) {}
           }
 

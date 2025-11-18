@@ -38,8 +38,10 @@ class _SetPinPageState extends State<SetPinPage> {
 
   void _confirm() {
     if (_firstPin == null || _firstPin!.length != _digits) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Ingresa un PIN válido')));
+      WalletPopup.showNotificationWarningOrange(
+        context: context,
+        message: 'Ingresa un PIN válido',
+      );
       return;
     }
     Navigator.of(context).push(MaterialPageRoute(

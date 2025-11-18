@@ -137,8 +137,10 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
                 .read(forgotPinProvider(uid).notifier)
                 .sendRecoveryEmail(email);
             if (!mounted) return;
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(msg)));
+            WalletPopup.showNotificationSuccess(
+              context: context,
+              title: msg,
+            );
           },
           backgroundColor:
               isDisabled ? AwColors.blueGrey : AwColors.appBarColor,
