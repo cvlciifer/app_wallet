@@ -239,8 +239,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
     final available = controller.getAvailableMonths(excludeCurrent: true);
     if (available.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('No hay meses disponibles para filtrar')));
+        WalletPopup.showNotificationWarningOrange(
+            context: context, message: 'No hay meses disponibles para filtrar');
       }
       return;
     }
