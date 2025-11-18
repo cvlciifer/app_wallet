@@ -1,4 +1,6 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:app_wallet/profile_section/presentation/screens/recurrent_create_page.dart';
+import 'package:app_wallet/home_section/presentation/screens/two_options.dart';
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
@@ -23,8 +25,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
       try {
         final provController = context.read<WalletExpensesController>();
         try {
-          final container =
-              riverpod.ProviderScope.containerOf(context, listen: false);
+          final container = riverpod.ProviderScope.containerOf(context, listen: false);
 
           _authSub = FirebaseAuth.instance.authStateChanges().listen((_) {
             try {
@@ -40,42 +41,32 @@ class _WalletHomePageState extends State<WalletHomePage> {
               if (!_localLoaderActive) {
                 setState(() => _localLoaderActive = true);
                 try {
-                  riverpod.ProviderScope.containerOf(context, listen: false)
-                      .read(globalLoaderProvider.notifier)
-                      .state = false;
+                  riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state =
+                      false;
                 } catch (_) {}
               }
             } else {
               if (_localLoaderActive) {
                 setState(() => _localLoaderActive = false);
               }
-              // For other loading flags, let global loader be controlled by
-              // other owners (don't forcibly enable it here).
             }
           } catch (_) {}
         });
 
-        // After registering the listener, ensure the page loader matches the
-        // controller current state. If the controller is currently loading or
-        // if it has no data yet, activate the local loader and disable the
-        // global loader so the page-level loader is the only visible one.
         try {
-          final shouldShowLocal = provController.isLoadingExpenses ||
-              provController.filteredExpenses.isEmpty;
+          final shouldShowLocal = provController.isLoadingExpenses || provController.filteredExpenses.isEmpty;
           if (shouldShowLocal) {
             setState(() => _localLoaderActive = true);
             try {
-              riverpod.ProviderScope.containerOf(context, listen: false)
-                  .read(globalLoaderProvider.notifier)
-                  .state = false;
+              riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state =
+                  false;
             } catch (_) {}
           }
         } catch (_) {}
 
         provController.loadExpensesSmart().then((_) {
           try {
-            final container =
-                riverpod.ProviderScope.containerOf(context, listen: false);
+            final container = riverpod.ProviderScope.containerOf(context, listen: false);
             container.read(ingresosProvider.notifier).init();
           } catch (_) {}
         });
@@ -93,19 +84,29 @@ class _WalletHomePageState extends State<WalletHomePage> {
 
   void _onBottomNavTap(int index) {
     final controller = context.read<WalletExpensesController>();
-    WalletNavigationService.handleBottomNavigation(
-        context, index, controller.allExpenses);
+    WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
   }
 
   void _openAddExpenseOverlay() async {
-    final expense =
-        await WalletNavigationService.openAddExpenseOverlay(context);
+    final expense = await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
       final conn = await Connectivity().checkConnectivity();
       final hasConnection = conn != ConnectivityResult.none;
       final controller = context.read<WalletExpensesController>();
       await controller.addExpense(expense, hasConnection: hasConnection);
     }
+  }
+
+  void _showTwoOptionsDialog() {
+    showTwoOptionsDialog(
+      context,
+      onAddExpense: () {
+        _openAddExpenseOverlay();
+      },
+      onAddRecurrent: () {
+        Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
+      },
+    );
   }
 
   // _openFilters removed - not referenced
@@ -139,7 +140,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AwColors.appBarColor,
-        onPressed: _openAddExpenseOverlay,
+        onPressed: _showTwoOptionsDialog,
         tooltip: 'Agregar gasto',
         child: const Icon(Icons.add, color: AwColors.white),
       ),
@@ -167,8 +168,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
             onRemoveExpense: (expense) async {
               final connectivity = await Connectivity().checkConnectivity();
               final hasConnection = connectivity != ConnectivityResult.none;
-              await controller.removeExpense(expense,
-                  hasConnection: hasConnection);
+              await controller.removeExpense(expense, hasConnection: hasConnection);
             },
           )
         : const EmptyState();
@@ -201,8 +201,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     );
   }
 
-  Widget _buildMonthButtons(
-      BuildContext context, WalletExpensesController controller) {
+  Widget _buildMonthButtons(BuildContext context, WalletExpensesController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 4),
       child: Center(
@@ -239,8 +238,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
     final available = controller.getAvailableMonths(excludeCurrent: true);
     if (available.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('No hay meses disponibles para filtrar')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('No hay meses disponibles para filtrar')));
       }
       return;
     }
