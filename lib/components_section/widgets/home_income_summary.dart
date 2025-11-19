@@ -47,6 +47,37 @@ class HomeIncomeSummary extends StatelessWidget {
           final Widget gapMediumWidget =
               isTight ? const SizedBox(height: 8) : AwSpacing.s12;
 
+          if (total == 0 && spent == 0) {
+            return SizedBox(
+              height: constraints.maxHeight,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.account_balance_wallet,
+                      size: 40, color: AwColors.white),
+                  AwSpacing.s6,
+                  AwText.bold(
+                    'Admin Wallet',
+                    size: mainSize,
+                    color: AwColors.white,
+                  ),
+                  AwSpacing.s6,
+                  Flexible(
+                    child: Center(
+                      child: AwText.normal(
+                        'Tu app de gestión financiera',
+                        size: subSize,
+                        color: AwColors.white,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return Stack(
             children: [
               // Main column content centered vertically
@@ -60,11 +91,8 @@ class HomeIncomeSummary extends StatelessWidget {
                       child: AwText.normal(
                         formatNumber(available),
                         size: mainSize,
-                        color: available < 0
-                            ? AwColors.red
-                            : (available == 0.0
-                                ? AwColors.appBarColor
-                                : AwColors.white),
+                        color:
+                            available < 0 ? AwColors.red : AwColors.boldBlack,
                       ),
                     ),
                   ),

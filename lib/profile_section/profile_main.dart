@@ -92,18 +92,19 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           maxLines: 1,
                         ),
                         AwSpacing.s6,
-                        // Row que contiene la fecha a la izquierda y el botón 'Cerrar sesión' a la derecha
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            AwText.normal(
-                              // Fecha de hoy en formato DD/MM/YYYY
-                              "${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}",
-                              color: AwColors.white.withOpacity(0.95),
-                              size: AwSize.s14,
-                              textOverflow: TextOverflow.ellipsis,
-                              maxLines: 1,
+                            Expanded(
+                              child: AwText.normal(
+                                "${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}",
+                                color: AwColors.white.withOpacity(0.95),
+                                size: AwSize.s14,
+                                textOverflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             UnderlinedButton(
                               text: 'Cerrar sesión',
                               icon: Icons.logout,
