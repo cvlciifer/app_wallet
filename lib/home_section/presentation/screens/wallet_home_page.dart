@@ -34,8 +34,6 @@ class _WalletHomePageState extends State<WalletHomePage> {
           });
         } catch (_) {}
         provController.addListener(() {
-          // If expenses-specific loader is active, keep that loader visible
-          // and ensure the global loader is disabled.
           try {
             if (provController.isLoadingExpenses) {
               if (!_localLoaderActive) {
@@ -108,8 +106,6 @@ class _WalletHomePageState extends State<WalletHomePage> {
       },
     );
   }
-
-  // _openFilters removed - not referenced
 
   @override
   Widget build(BuildContext context) {

@@ -1,9 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
 
-/// Muestra un diálogo centrado con dos tarjetas animadas (rebote).
-///
-/// Llama a [onAddExpense] cuando se selecciona la tarjeta "Agregar gasto" y
-/// a [onAddRecurrent] cuando se selecciona "Agregar gasto Recurrente".
 Future<void> showTwoOptionsDialog(
   BuildContext context, {
   required VoidCallback onAddExpense,
@@ -15,10 +11,8 @@ Future<void> showTwoOptionsDialog(
     barrierLabel: 'Opciones',
     pageBuilder: (ctx, a1, a2) => const SizedBox.shrink(),
     transitionBuilder: (ctx, animation, secondaryAnimation, child) {
-      // top: aparece desde arriba con rebote
       final topOffset = Tween<Offset>(begin: const Offset(0, -1.2), end: Offset.zero)
           .animate(CurvedAnimation(parent: animation, curve: const Interval(0.0, 0.8, curve: Curves.elasticOut)));
-      // bottom: aparece desde abajo con rebote (ligeramente escalonado)
       final bottomOffset = Tween<Offset>(begin: const Offset(0, 1.2), end: Offset.zero)
           .animate(CurvedAnimation(parent: animation, curve: const Interval(0.1, 1.0, curve: Curves.elasticOut)));
 
@@ -45,13 +39,13 @@ Future<void> showTwoOptionsDialog(
                           onAddExpense();
                         } catch (_) {}
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
                         child: SizedBox(
-                          height: 80,
+                          height: 85,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(Icons.add, color: AwColors.appBarColor),
                               AwSpacing.m,
                               AwText.bold('Agregar gasto', color: AwColors.boldBlack),
@@ -60,25 +54,6 @@ Future<void> showTwoOptionsDialog(
                         ),
                       ),
                     ),
-                  ),
-                ),
-                AwSpacing.s12,
-                // Separator with white lines and centered 'O'
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
-                      Expanded(child: Container(height: 1, color: AwColors.white)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        child: Container(
-                          color: Colors.black45,
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: const AwText.bold('O', color: AwColors.white),
-                        ),
-                      ),
-                      Expanded(child: Container(height: 1, color: AwColors.white)),
-                    ],
                   ),
                 ),
                 AwSpacing.s12,
@@ -97,13 +72,13 @@ Future<void> showTwoOptionsDialog(
                           onAddRecurrent();
                         } catch (_) {}
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
                         child: SizedBox(
-                          height: 80,
+                          height: 85,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(Icons.repeat, color: AwColors.appBarColor),
                               AwSpacing.m,
                               AwText.bold('Agregar gasto Recurrente', color: AwColors.boldBlack),
@@ -111,6 +86,22 @@ Future<void> showTwoOptionsDialog(
                           ),
                         ),
                       ),
+                    ),
+                  ),
+                ),
+                AwSpacing.s30,
+                SlideTransition(
+                  position: bottomOffset,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () async {
+                      Navigator.of(context).pop();
+                      await Future.delayed(const Duration(milliseconds: 50));
+                    },
+                    child: const CircleAvatar(
+                      backgroundColor: AwColors.greyLight,
+                      radius: 20,
+                      child: Icon(Icons.close, size: 20, color: AwColors.appBarColor),
                     ),
                   ),
                 ),

@@ -10,17 +10,13 @@ class IngresosImprevistosPage extends ConsumerStatefulWidget {
   final DateTime? initialMonth;
   final int? initialImprevisto;
 
-  const IngresosImprevistosPage(
-      {Key? key, this.initialMonth, this.initialImprevisto})
-      : super(key: key);
+  const IngresosImprevistosPage({Key? key, this.initialMonth, this.initialImprevisto}) : super(key: key);
 
   @override
-  ConsumerState<IngresosImprevistosPage> createState() =>
-      _IngresosImprevistosPageState();
+  ConsumerState<IngresosImprevistosPage> createState() => _IngresosImprevistosPageState();
 }
 
-class _IngresosImprevistosPageState
-    extends ConsumerState<IngresosImprevistosPage> {
+class _IngresosImprevistosPageState extends ConsumerState<IngresosImprevistosPage> {
   final TextEditingController _amountCtrl = TextEditingController();
   int _selectedMonthOffset = 0;
   Timer? _maxErrorTimer;
@@ -33,26 +29,20 @@ class _IngresosImprevistosPageState
     super.initState();
     if (widget.initialMonth != null) {
       final now = DateTime.now();
-      final diff = (widget.initialMonth!.year - now.year) * 12 +
-          (widget.initialMonth!.month - now.month);
-      // Allow offsets from -12 (12 months back) to +12 (12 months forward)
+      final diff = (widget.initialMonth!.year - now.year) * 12 + (widget.initialMonth!.month - now.month);
       _selectedMonthOffset = diff.clamp(-12, 12);
     } else {
-      // If no explicit initial month provided, sync initial offset from ingresosProvider
       try {
         final providerOffset = ref.read(ingresosProvider).startOffset;
         _selectedMonthOffset = providerOffset.clamp(-12, 12);
       } catch (_) {}
     }
     if (widget.initialImprevisto != null && widget.initialImprevisto! > 0) {
-      final fmt =
-          NumberFormat.currency(locale: 'es_CL', symbol: '', decimalDigits: 0);
+      final fmt = NumberFormat.currency(locale: 'es_CL', symbol: '', decimalDigits: 0);
       _amountCtrl.text = fmt.format(widget.initialImprevisto);
-      // initialize validity based on provided initial value
       final digits = _amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
       final current = int.tryParse(digits) ?? 0;
-      _isAmountValid = digits.isNotEmpty &&
-          current <= MaxAmountFormatter.kEightDigitsMaxAmount;
+      _isAmountValid = digits.isNotEmpty && current <= MaxAmountFormatter.kEightDigitsMaxAmount;
     }
     _amountCtrl.addListener(_onAmountChanged);
   }
@@ -68,8 +58,7 @@ class _IngresosImprevistosPageState
   void _onAmountChanged() {
     final digits = _amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
     final current = int.tryParse(digits) ?? 0;
-    final valid = digits.isNotEmpty &&
-        current <= MaxAmountFormatter.kEightDigitsMaxAmount;
+    final valid = digits.isNotEmpty && current <= MaxAmountFormatter.kEightDigitsMaxAmount;
     if (valid != _isAmountValid) {
       if (!mounted) return;
       setState(() {
@@ -87,21 +76,17 @@ class _IngresosImprevistosPageState
       _isSaving = true;
     });
 
-    final value =
-        int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    final value = int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
     final now = DateTime.now();
     final target = DateTime(now.year, now.month + _selectedMonthOffset, 1);
 
     bool saved = false;
     try {
-      saved = await ref
-          .read(imprevistosProvider.notifier)
-          .saveImprevisto(target, 0, value);
+      saved = await ref.read(imprevistosProvider.notifier).saveImprevisto(target, 0, value);
     } catch (e) {
       log('ingresos_imprevistos._save error: $e');
       if (mounted) {
-        WalletPopup.showNotificationError(
-            context: context, title: 'Error guardando imprevisto');
+        WalletPopup.showNotificationError(context: context, title: 'Error guardando imprevisto');
       }
     } finally {
       try {
@@ -121,13 +106,13 @@ class _IngresosImprevistosPageState
     final now = DateTime.now();
     final monthLabel = DateTime(now.year, now.month + _selectedMonthOffset, 1);
     return Scaffold(
-      appBar: WalletAppBar(
+      appBar: const WalletAppBar(
         title: AwText.bold(
           'Ingresos imprevistos',
           color: AwColors.white,
         ),
         automaticallyImplyLeading: true,
-        actions: const [],
+        actions: [],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -135,109 +120,108 @@ class _IngresosImprevistosPageState
           notchDepth: 12,
           elevation: 6,
           color: AwColors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // const AwText.bold('Ingresos imprevistos', size: AwSize.s18, color: AwColors.appBarColor),
-                AwSpacing.s6,
-                AwText.normal(
-                  'Ingresa un monto imprevisto. Este valor se verá reflejado en ${DateFormat('MMMM yyyy', 'es').format(monthLabel)}.',
-                  size: AwSize.s14,
-                  color: AwColors.modalGrey,
-                ),
-                AwSpacing.s18,
-                const AwText.normal('Mes seleccionado',
-                    size: AwSize.s14, color: AwColors.grey),
-                AwSpacing.s6,
-                MonthSelector(
-                  month: monthLabel,
-                  // Bound navigation to [-12, +12]
-                  canPrev: _selectedMonthOffset > -12,
-                  canNext: _selectedMonthOffset < 12,
-                  onPrev: () {
-                    setState(() {
-                      if (_selectedMonthOffset > -12) _selectedMonthOffset--;
-                    });
-                    // propagate selection to ingresos provider so both screens share the same start month
-                    try {
-                      ref
-                          .read(ingresosProvider.notifier)
-                          .setStartOffset(_selectedMonthOffset);
-                    } catch (_) {}
-                  },
-                  onNext: () {
-                    setState(() {
-                      if (_selectedMonthOffset < 12) _selectedMonthOffset++;
-                    });
-                    try {
-                      ref
-                          .read(ingresosProvider.notifier)
-                          .setStartOffset(_selectedMonthOffset);
-                    } catch (_) {}
-                  },
-                ),
-                AwSpacing.s12,
-                const AwText.normal('Valor imprevisto (CLP)',
-                    size: AwSize.s14, color: AwColors.grey),
-                AwSpacing.s6,
-                CustomTextField(
-                  controller: _amountCtrl,
-                  label: '',
-                  hintText: 'p. ej. 50.000',
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    MaxAmountFormatter(
-                      maxDigits: MaxAmountFormatter.kEightDigits,
-                      maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount,
-                      onAttemptOverLimit: () {
-                        if (!mounted) return;
-                        setState(() {
-                          _showMaxError = true;
-                        });
-                        _maxErrorTimer?.cancel();
-                        _maxErrorTimer = Timer(const Duration(seconds: 2), () {
-                          if (mounted) {
-                            setState(() {
-                              _showMaxError = false;
-                            });
-                          }
-                        });
-                      },
-                    ),
-                    CLPTextInputFormatter(),
-                  ],
-                  textSize: 16,
-                ),
-                if (_showMaxError)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8.0),
-                    child: AwText.normal('Tope máximo: 8 dígitos (99.999.999)',
-                        color: AwColors.red, size: AwSize.s14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const AwText.bold(
+                'Ingresa un monto imprevisto.',
+                size: AwSize.s18,
+                color: AwColors.appBarColor,
+              ),
+              AwSpacing.s6,
+              const AwText.normal(
+                'Un ingreso imprevisto es un dinero extra que no recibes todos los meses, como horas extras o feriados, y que se suma a tu ingreso total.',
+                size: AwSize.s14,
+                color: AwColors.modalGrey,
+              ),
+              AwSpacing.s6,
+              AwText.normal(
+                'Este valor se verá reflejado en ${DateFormat('MMMM yyyy', 'es').format(monthLabel)}.',
+                size: AwSize.s14,
+                color: AwColors.modalGrey,
+              ),
+              AwSpacing.s18,
+              const AwText.normal('Mes seleccionado', size: AwSize.s14, color: AwColors.grey),
+              AwSpacing.s6,
+              MonthSelector(
+                month: monthLabel,
+                canPrev: _selectedMonthOffset > -12,
+                canNext: _selectedMonthOffset < 12,
+                onPrev: () {
+                  setState(() {
+                    if (_selectedMonthOffset > -12) _selectedMonthOffset--;
+                  });
+                  try {
+                    ref.read(ingresosProvider.notifier).setStartOffset(_selectedMonthOffset);
+                  } catch (_) {}
+                },
+                onNext: () {
+                  setState(() {
+                    if (_selectedMonthOffset < 12) _selectedMonthOffset++;
+                  });
+                  try {
+                    ref.read(ingresosProvider.notifier).setStartOffset(_selectedMonthOffset);
+                  } catch (_) {}
+                },
+              ),
+              AwSpacing.s12,
+              const AwText.normal('Valor imprevisto (CLP)', size: AwSize.s14, color: AwColors.grey),
+              AwSpacing.s6,
+              CustomTextField(
+                controller: _amountCtrl,
+                label: '',
+                hintText: 'p. ej. 50.000',
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  MaxAmountFormatter(
+                    maxDigits: MaxAmountFormatter.kEightDigits,
+                    maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount,
+                    onAttemptOverLimit: () {
+                      if (!mounted) return;
+                      setState(() {
+                        _showMaxError = true;
+                      });
+                      _maxErrorTimer?.cancel();
+                      _maxErrorTimer = Timer(const Duration(seconds: 2), () {
+                        if (mounted) {
+                          setState(() {
+                            _showMaxError = false;
+                          });
+                        }
+                      });
+                    },
                   ),
-                AwSpacing.s18,
-                SizedBox(
-                  height: AwSize.s48,
-                  child: ElevatedButton(
-                    onPressed: _isAmountValid && !_isSaving ? _save : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AwColors.modalPurple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AwSize.s16),
-                      ),
+                  CLPTextInputFormatter(),
+                ],
+                textSize: 16,
+              ),
+              if (_showMaxError)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: AwText.normal('Tope máximo: 8 dígitos (99.999.999)', color: AwColors.red, size: AwSize.s14),
+                ),
+              AwSpacing.s18,
+              SizedBox(
+                height: AwSize.s48,
+                child: ElevatedButton(
+                  onPressed: _isAmountValid && !_isSaving ? _save : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AwColors.modalPurple,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AwSize.s16),
                     ),
-                    child: const Center(
-                      child: AwText.bold(
-                        'Agregar',
-                        color: AwColors.white,
-                        size: AwSize.s14,
-                      ),
+                  ),
+                  child: const Center(
+                    child: AwText.bold(
+                      'Agregar',
+                      color: AwColors.white,
+                      size: AwSize.s14,
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              AwSpacing.s20,
+            ],
           ),
         ),
       ),

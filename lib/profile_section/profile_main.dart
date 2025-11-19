@@ -140,48 +140,24 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
-                          title: 'Configuración',
-                          icon: Icons.settings,
+                          title: 'Ingresos imprevistos',
+                          icon: Icons.savings,
                           onTap: () async {
                             try {
-                              await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
-                            } catch (_) {}
-                          },
-                        ),
-                      ),
-                      AwSpacing.s6,
-                      SizedBox(
-                        width: double.infinity,
-                        child: SettingsCard(
-                          title: 'Gastos recurrentes',
-                          icon: Icons.repeat,
-                          onTap: () async {
-                            try {
-                              final result = await Navigator.of(context)
-                                  .push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
+                              final result = await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(
+                                  builder: (_) => const IngresosImprevistosPage(),
+                                ),
+                              );
                               if (!mounted) return;
                               if (result == true) {
                                 WalletPopup.showNotificationSuccess(
                                   context: context,
-                                  title: 'Gasto recurrente creado',
+                                  title: 'Ingreso imprevisto guardado',
                                   visibleTime: 2,
                                   isDismissible: true,
                                 );
                               }
-                            } catch (_) {}
-                          },
-                        ),
-                      ),
-                      AwSpacing.s6,
-                      SizedBox(
-                        width: double.infinity,
-                        child: SettingsCard(
-                          title: 'Registro de gastos recurrentes',
-                          icon: Icons.list_alt,
-                          onTap: () async {
-                            try {
-                              await Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (_) => const RecurrentRegistryPage()));
                             } catch (_) {}
                           },
                         ),
@@ -228,23 +204,12 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
-                          title: 'Ingresos mensuales',
-                          icon: Icons.attach_money,
+                          title: 'Registro de gastos recurrentes',
+                          icon: Icons.list_alt,
                           onTap: () async {
                             try {
-                              final result = await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(builder: (_) => const IngresosPage()),
-                              );
-                              if (result == true) {
-                                if (mounted) {
-                                  WalletPopup.showNotificationSuccess(
-                                    context: context,
-                                    title: 'Ingresos guardados',
-                                    visibleTime: 2,
-                                    isDismissible: true,
-                                  );
-                                }
-                              }
+                              await Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (_) => const RecurrentRegistryPage()));
                             } catch (_) {}
                           },
                         ),
@@ -253,22 +218,11 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
-                          title: 'Ingresos imprevistos',
-                          icon: Icons.savings,
+                          title: 'Configuración',
+                          icon: Icons.settings,
                           onTap: () async {
                             try {
-                              final result = await Navigator.of(context).push<bool>(
-                                MaterialPageRoute(builder: (_) => const IngresosImprevistosPage()),
-                              );
-                              if (!mounted) return;
-                              if (result == true) {
-                                WalletPopup.showNotificationSuccess(
-                                  context: context,
-                                  title: 'Ingreso imprevisto guardado',
-                                  visibleTime: 2,
-                                  isDismissible: true,
-                                );
-                              }
+                              await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
                             } catch (_) {}
                           },
                         ),
