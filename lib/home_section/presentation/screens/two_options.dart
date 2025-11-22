@@ -5,6 +5,7 @@ Future<void> showTwoOptionsDialog(
   required VoidCallback onAddExpense,
   required VoidCallback onAddRecurrent,
 }) {
+  bool _didPop = false;
   return showGeneralDialog(
     context: context,
     barrierDismissible: true,
@@ -33,6 +34,8 @@ Future<void> showTwoOptionsDialog(
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
                       onTap: () async {
+                        if (_didPop) return;
+                        _didPop = true;
                         Navigator.of(context).pop();
                         await Future.delayed(const Duration(milliseconds: 50));
                         try {
@@ -66,6 +69,8 @@ Future<void> showTwoOptionsDialog(
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
                       onTap: () async {
+                        if (_didPop) return;
+                        _didPop = true;
                         Navigator.of(context).pop();
                         await Future.delayed(const Duration(milliseconds: 50));
                         try {
@@ -95,6 +100,8 @@ Future<void> showTwoOptionsDialog(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(20),
                     onTap: () async {
+                      if (_didPop) return;
+                      _didPop = true;
                       Navigator.of(context).pop();
                       await Future.delayed(const Duration(milliseconds: 50));
                     },
