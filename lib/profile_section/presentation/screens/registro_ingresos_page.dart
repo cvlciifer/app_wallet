@@ -28,6 +28,7 @@ class RegistroIngresosPage extends ConsumerWidget {
     });
 
     return Scaffold(
+      backgroundColor: AwColors.greyLight,
       appBar: WalletAppBar(
         title: AwText.bold('Registro de ingresos', color: AwColors.white),
         automaticallyImplyLeading: true,
@@ -50,7 +51,9 @@ class RegistroIngresosPage extends ConsumerWidget {
                   final fechaMs = (row['fecha'] as int?) ?? DateTime.now().millisecondsSinceEpoch;
                   final dt = DateTime.fromMillisecondsSinceEpoch(fechaMs);
                   final monthLabelRaw = DateFormat('MMMM yyyy', 'es').format(dt);
-                  final monthLabel = monthLabelRaw.isNotEmpty ? '${monthLabelRaw[0].toUpperCase()}${monthLabelRaw.substring(1)}' : monthLabelRaw;
+                  final monthLabel = monthLabelRaw.isNotEmpty
+                      ? '${monthLabelRaw[0].toUpperCase()}${monthLabelRaw.substring(1)}'
+                      : monthLabelRaw;
                   final fijo = (row['ingreso_fijo'] as int?) ?? 0;
                   final imprevisto = (row['ingreso_imprevisto'] as int?) ?? 0;
 
@@ -75,19 +78,38 @@ class RegistroIngresosPage extends ConsumerWidget {
                                 children: [
                                   const AwText.bold('Editar ingreso', size: AwSize.s16),
                                   const SizedBox(height: 8),
-                                  CustomTextField(controller: fijoCtrl, label: 'Ingreso mensual', keyboardType: TextInputType.number, inputFormatters: [MaxAmountFormatter(maxDigits: MaxAmountFormatter.kEightDigits, maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount), CLPTextInputFormatter()]),
+                                  CustomTextField(
+                                      controller: fijoCtrl,
+                                      label: 'Ingreso mensual',
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        MaxAmountFormatter(
+                                            maxDigits: MaxAmountFormatter.kEightDigits,
+                                            maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount),
+                                        CLPTextInputFormatter()
+                                      ]),
                                   AwSpacing.s6,
-                                  CustomTextField(controller: impCtrl, label: 'Imprevisto (opcional)', keyboardType: TextInputType.number, inputFormatters: [MaxAmountFormatter(maxDigits: MaxAmountFormatter.kEightDigits, maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount), CLPTextInputFormatter()]),
+                                  CustomTextField(
+                                      controller: impCtrl,
+                                      label: 'Imprevisto (opcional)',
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        MaxAmountFormatter(
+                                            maxDigits: MaxAmountFormatter.kEightDigits,
+                                            maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount),
+                                        CLPTextInputFormatter()
+                                      ]),
                                   AwSpacing.s12,
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-                                        ElevatedButton(
-                                          onPressed: () => Navigator.of(ctx).pop(true),
-                                          style: ElevatedButton.styleFrom(backgroundColor: AwColors.lightBlue),
-                                          child: const Text('Guardar'),
-                                        ),
+                                      TextButton(
+                                          onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.of(ctx).pop(true),
+                                        style: ElevatedButton.styleFrom(backgroundColor: AwColors.lightBlue),
+                                        child: const Text('Guardar'),
+                                      ),
                                     ],
                                   )
                                 ],
@@ -104,14 +126,21 @@ class RegistroIngresosPage extends ConsumerWidget {
                         }
                       },
                       onDelete: () async {
-                        final confirm = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-                          title: const AwText.bold('Eliminar ingreso'),
-                          content: AwText.normal('¿Eliminar ingreso de ${DateFormat('MMMM yyyy', 'es').format(dt)}?', size: AwSize.s14, color: AwColors.modalGrey),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-                            TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Eliminar')),
-                          ],
-                        ));
+                        final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                                  title: const AwText.bold('Eliminar ingreso'),
+                                  content: AwText.normal(
+                                      '¿Eliminar ingreso de ${DateFormat('MMMM yyyy', 'es').format(dt)}?',
+                                      size: AwSize.s14,
+                                      color: AwColors.modalGrey),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+                                    TextButton(
+                                        onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Eliminar')),
+                                  ],
+                                ));
                         if (confirm == true) {
                           final date = DateTime(dt.year, dt.month, 1);
                           final ok = await ctrl.deleteIncomeForDate(date);

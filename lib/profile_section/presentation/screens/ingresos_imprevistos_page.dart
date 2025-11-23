@@ -106,6 +106,7 @@ class _IngresosImprevistosPageState extends ConsumerState<IngresosImprevistosPag
     final now = DateTime.now();
     final monthLabel = DateTime(now.year, now.month + _selectedMonthOffset, 1);
     return Scaffold(
+      backgroundColor: AwColors.greyLight,
       appBar: const WalletAppBar(
         title: AwText.bold(
           'Ingresos imprevistos',

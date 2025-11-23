@@ -44,7 +44,7 @@ class ExpensesList extends StatelessWidget {
   }
 
   void _onExpenseTap(BuildContext context, Expense expense) {
-    DetailExpenseDialog.show(context, expense);
+    DetailExpenseDialog.show(context, expense, onRemoveExpense: onRemoveExpense);
   }
 
   @override

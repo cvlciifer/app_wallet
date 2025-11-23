@@ -12,7 +12,6 @@ class Chart extends StatefulWidget {
 class _ChartState extends State<Chart> {
   late List<WalletExpenseBucket> _buckets;
   late double _maxTotalExpense;
-  late double _totalExpenses;
 
   @override
   void initState() {
@@ -32,9 +31,7 @@ class _ChartState extends State<Chart> {
   }
 
   void _recomputeBuckets() {
-    _buckets = Category.values
-        .map((c) => WalletExpenseBucket.forCategory(widget.expenses, c))
-        .toList();
+    _buckets = Category.values.map((c) => WalletExpenseBucket.forCategory(widget.expenses, c)).toList();
 
     _maxTotalExpense = 0;
     for (final bucket in _buckets) {
@@ -43,7 +40,7 @@ class _ChartState extends State<Chart> {
       }
     }
 
-    _totalExpenses = _buckets.fold(0, (sum, b) => sum + b.totalExpenses);
+    // total expenses value removed from UI; keep only max per-bucket
   }
 
   Color getColorForCategory(Category category) => category.color;
@@ -51,8 +48,9 @@ class _ChartState extends State<Chart> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(15),
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+      // Reduce horizontal margins to give the card more horizontal space
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 6),
       width: double.maxFinite,
       height: AwSize.s300,
       decoration: BoxDecoration(
@@ -78,18 +76,21 @@ class _ChartState extends State<Chart> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ...List.generate(7, (index) {
-                      double value = _maxTotalExpense - (index * (_maxTotalExpense / 6));
-                      return AwText.bold(
-                        formatNumber(value),
-                        size: AwSize.s10,
-                      );
-                    }),
-                    AwSpacing.s10,
-                  ],
+                SizedBox(
+                  width: 40,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ...List.generate(7, (index) {
+                        double value = _maxTotalExpense - (index * (_maxTotalExpense / 6));
+                        return AwText.bold(
+                          formatNumber(value),
+                          size: AwSize.s10,
+                        );
+                      }),
+                      AwSpacing.s10,
+                    ],
+                  ),
                 ),
                 AwSpacing.s,
                 Expanded(
@@ -117,8 +118,7 @@ class _ChartState extends State<Chart> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: _buckets.map((bucket) {
                           return Expanded(
-                            child: SizedBox(
-                              width: 40,
+                            child: Center(
                               child: Icon(
                                 categoryIcons[bucket.category],
                                 color: bucket.category.color,
@@ -134,21 +134,6 @@ class _ChartState extends State<Chart> {
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const AwText.bold(
-                'Gasto Total Acumulado:',
-                size: AwSize.s18,
-                color: AwColors.darkBlue,
-              ),
-              AwText.bold(
-                formatNumber(_totalExpenses),
-                size: AwSize.s18,
-                color: AwColors.darkBlue,
-              ),
-            ],
-          )
         ],
       ),
     );

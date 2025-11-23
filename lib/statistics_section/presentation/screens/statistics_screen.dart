@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 
 class EstadisticasScreen extends StatefulWidget {
@@ -16,20 +18,20 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   bool groupBySubcategory = false;
   bool _initializedFromController = false;
 
-  List<int> getAvailableYears() {
-    final years = widget.expenses.map((e) => e.date.year).toSet().toList();
-    years.sort((a, b) => b.compareTo(a));
-    return years;
+  // PageView controller and current page index for the charts carousel
+  late PageController _pageController;
+  int _currentChartPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentChartPage);
   }
 
-  List<int> getAvailableMonthsForYear(int year) {
-    final months = widget.expenses
-        .where((e) => e.date.year == year)
-        .map((e) => e.date.month)
-        .toSet()
-        .toList();
-    months.sort();
-    return months;
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   String formatNumber(double value) {
@@ -37,8 +39,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
     return '\$${formatter.format(value)}';
   }
 
-  List<Map<String, dynamic>> _getFilteredData() {
-    final filteredExpenses = widget.expenses.where((expense) {
+  List<Map<String, dynamic>> _getFilteredData(List<Expense> expenses) {
+    final filteredExpenses = expenses.where((expense) {
       final expenseDate = expense.date;
       return expenseDate.month == selectedMonth &&
           expenseDate.year == selectedYear;
@@ -108,6 +110,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Initialize from controller once (preserve original behavior)
     if (!_initializedFromController) {
       try {
         final controller = context.read<WalletExpensesController>();
@@ -119,14 +122,18 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
       } catch (_) {}
       _initializedFromController = true;
     }
-    // Aseguramos que las listas de años y meses disponibles reflejen los gastos
+
+    // Ensure expenses reflect either provided list or controller data
     final expenses = widget.expenses.isNotEmpty
         ? widget.expenses
         : (context.read<WalletExpensesController>().allExpenses);
+
+    // Available years/months
     final availableYears = expenses.map((e) => e.date.year).toSet().toList();
     if (!availableYears.contains(selectedYear) && availableYears.isNotEmpty) {
       selectedYear = availableYears.first;
     }
+
     final availableMonths = expenses
         .where((e) => e.date.year == selectedYear)
         .map((e) => e.date.month)
@@ -138,7 +145,11 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
       selectedMonth = availableMonths.first;
     }
 
-    final data = _getFilteredData();
+    final data = _getFilteredData(expenses);
+    final filteredExpensesList = expenses
+        .where(
+            (e) => e.date.month == selectedMonth && e.date.year == selectedYear)
+        .toList();
     final totalAmount =
         data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
@@ -155,9 +166,10 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
       body: LayoutBuilder(
         builder: (ctx, constraints) {
           final mq = MediaQuery.of(ctx);
-          final needsScroll = mq.textScaleFactor > 1.15 || constraints.maxHeight < 620;
+          final needsScroll =
+              mq.textScaleFactor > 1.15 || constraints.maxHeight < 620;
 
-          Widget headerRow = Row(
+          final headerRow = Row(
             children: [
               Expanded(
                 child: Column(
@@ -165,7 +177,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   children: [
                     TextButton(
                       onPressed: () {
-                        if (groupBySubcategory) setState(() => groupBySubcategory = false);
+                        if (groupBySubcategory)
+                          setState(() => groupBySubcategory = false);
                       },
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.zero,
@@ -175,12 +188,18 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                       child: Text(
                         'Categoria',
                         style: TextStyle(
-                          color: groupBySubcategory ? AwColors.black : AwColors.appBarColor,
+                          color: groupBySubcategory
+                              ? AwColors.black
+                              : AwColors.appBarColor,
                           fontSize: AwSize.s16,
                         ),
                       ),
                     ),
-                    Container(height: 2, color: groupBySubcategory ? Colors.transparent : AwColors.appBarColor),
+                    Container(
+                        height: 2,
+                        color: groupBySubcategory
+                            ? Colors.transparent
+                            : AwColors.appBarColor),
                   ],
                 ),
               ),
@@ -191,7 +210,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   children: [
                     TextButton(
                       onPressed: () {
-                        if (!groupBySubcategory) setState(() => groupBySubcategory = true);
+                        if (!groupBySubcategory)
+                          setState(() => groupBySubcategory = true);
                       },
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.zero,
@@ -201,19 +221,96 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                       child: Text(
                         'Subcategoria',
                         style: TextStyle(
-                          color: groupBySubcategory ? AwColors.appBarColor : AwColors.black,
+                          color: groupBySubcategory
+                              ? AwColors.appBarColor
+                              : AwColors.black,
                           fontSize: AwSize.s16,
                         ),
                       ),
                     ),
-                    Container(height: 2, color: groupBySubcategory ? AwColors.appBarColor : Colors.transparent),
+                    Container(
+                        height: 2,
+                        color: groupBySubcategory
+                            ? AwColors.appBarColor
+                            : Colors.transparent),
                   ],
                 ),
               ),
             ],
           );
 
+          Widget chartsSection() {
+            if (data.isEmpty) {
+              return const Center(
+                child: AwText.bold(
+                  'No existen gastos registrados durante este mes.',
+                  size: AwSize.s18,
+                  color: AwColors.black,
+                ),
+              );
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const AwText.bold(
+                  'Gráficos',
+                  size: AwSize.s18,
+                  color: AwColors.boldBlack,
+                ),
+                AwSpacing.s,
+                SizedBox(
+                  height: AwSize.s300,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: PageView(
+                          controller: _pageController,
+                          onPageChanged: (idx) =>
+                              setState(() => _currentChartPage = idx),
+                          children: [
+                            WalletPieChart(data: data),
+                            Chart(expenses: filteredExpensesList),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(2, (i) {
+                          final bool active = _currentChartPage == i;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            width: active ? 14 : 10,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color:
+                                  active ? AwColors.appBarColor : AwColors.grey,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+
+          Widget categoryListSection() {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AwSpacing.s,
+                WalletCategoryList(data: data, formatNumber: formatNumber),
+              ],
+            );
+          }
+
           if (!needsScroll) {
+            // Non-scrolling layout — use Expanded for charts and list
             return Container(
               color: Colors.white,
               padding: const EdgeInsets.all(16.0),
@@ -225,8 +322,10 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   WalletMonthYearSelector(
                     selectedMonth: selectedMonth,
                     selectedYear: selectedYear,
-                    onMonthChanged: (month) => setState(() => selectedMonth = month),
-                    onYearChanged: (year) => setState(() => selectedYear = year),
+                    onMonthChanged: (month) =>
+                        setState(() => selectedMonth = month),
+                    onYearChanged: (year) =>
+                        setState(() => selectedYear = year),
                     availableMonths: availableMonths,
                     availableYears: availableYears,
                     totalAmount: totalAmount,
@@ -235,34 +334,18 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   AwSpacing.s,
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 16.0),
                       child: data.isEmpty
-                          ? const Center(
-                              child: AwText.bold(
-                                'No existen gastos registrados durante este mes.',
-                                size: AwSize.s18,
-                                color: AwColors.black,
-                              ),
-                            )
+                          ? chartsSection()
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const AwText.bold(
-                                  'Gráfico Porcentual:',
-                                  size: AwSize.s18,
-                                  color: AwColors.boldBlack,
-                                ),
-                                WalletPieChart(data: data),
+                                chartsSection(),
                                 AwSpacing.s,
                                 Expanded(
                                   child: SingleChildScrollView(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        AwSpacing.m,
-                                        WalletCategoryList(data: data, formatNumber: formatNumber),
-                                      ],
-                                    ),
+                                    child: categoryListSection(),
                                   ),
                                 ),
                               ],
@@ -274,6 +357,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
             );
           }
 
+          // Scrolling fallback layout — avoid Expanded inside scrollable parents
           return SingleChildScrollView(
             child: Container(
               color: Colors.white,
@@ -287,8 +371,10 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   WalletMonthYearSelector(
                     selectedMonth: selectedMonth,
                     selectedYear: selectedYear,
-                    onMonthChanged: (month) => setState(() => selectedMonth = month),
-                    onYearChanged: (year) => setState(() => selectedYear = year),
+                    onMonthChanged: (month) =>
+                        setState(() => selectedMonth = month),
+                    onYearChanged: (year) =>
+                        setState(() => selectedYear = year),
                     availableMonths: availableMonths,
                     availableYears: availableYears,
                     totalAmount: totalAmount,
@@ -298,25 +384,13 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: data.isEmpty
-                        ? const Center(
-                            child: AwText.bold(
-                              'No existen gastos registrados durante este mes.',
-                              size: AwSize.s18,
-                              color: AwColors.black,
-                            ),
-                          )
+                        ? chartsSection()
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const AwText.bold(
-                                'Gráfico Porcentual:',
-                                size: AwSize.s18,
-                                color: AwColors.boldBlack,
-                              ),
-                              WalletPieChart(data: data),
+                              chartsSection(),
                               AwSpacing.s,
-                              AwSpacing.m,
-                              WalletCategoryList(data: data, formatNumber: formatNumber),
+                              categoryListSection(),
                             ],
                           ),
                   ),
