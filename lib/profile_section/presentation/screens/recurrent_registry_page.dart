@@ -9,8 +9,7 @@ class RecurrentRegistryPage extends ConsumerStatefulWidget {
   const RecurrentRegistryPage({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<RecurrentRegistryPage> createState() =>
-      _RecurrentRegistryPageState();
+  ConsumerState<RecurrentRegistryPage> createState() => _RecurrentRegistryPageState();
 }
 
 class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
@@ -21,8 +20,7 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller =
-          prov.Provider.of<WalletExpensesController>(context, listen: false);
+      _controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
       _controller?.addListener(_onControllerChanged);
       ref.read(recurrentRegistryProvider.notifier).loadRecurrents();
     });
@@ -40,6 +38,7 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(recurrentRegistryProvider);
     return Scaffold(
+      backgroundColor: AwColors.greyLight,
       appBar: const WalletAppBar(
         title: AwText.bold(
           'Registros',
@@ -82,35 +81,27 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                       items: state.items,
                       onTapItem: (r) async {
                         final res = await Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  RecurrentDetailPage(recurring: r)),
+                          MaterialPageRoute(builder: (_) => RecurrentDetailPage(recurring: r)),
                         );
                         if (!mounted) return;
                         if (res == true) {
                           try {
-                            ref.read(globalLoaderProvider.notifier).state =
-                                true;
+                            ref.read(globalLoaderProvider.notifier).state = true;
                           } catch (_) {}
                           try {
-                            await ref
-                                .read(recurrentRegistryProvider.notifier)
-                                .loadRecurrents();
+                            await ref.read(recurrentRegistryProvider.notifier).loadRecurrents();
                           } catch (_) {}
                           try {
                             if (_controller != null) {
                               await _controller!.loadExpensesSmart();
                             } else {
-                              final controller = prov.Provider.of<WalletExpensesController>(
-                                  context,
-                                  listen: false);
+                              final controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
                               await controller.loadExpensesSmart();
                             }
                           } catch (_) {}
                           if (!mounted) return;
                           try {
-                            ref.read(globalLoaderProvider.notifier).state =
-                                false;
+                            ref.read(globalLoaderProvider.notifier).state = false;
                           } catch (_) {}
                         }
                       },
@@ -134,12 +125,10 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
 // Detail page
 class RecurrentDetailPage extends ConsumerStatefulWidget {
   final RecurringExpense recurring;
-  const RecurrentDetailPage({Key? key, required this.recurring})
-      : super(key: key);
+  const RecurrentDetailPage({Key? key, required this.recurring}) : super(key: key);
 
   @override
-  ConsumerState<RecurrentDetailPage> createState() =>
-      _RecurrentDetailPageState();
+  ConsumerState<RecurrentDetailPage> createState() => _RecurrentDetailPageState();
 }
 
 class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
@@ -152,8 +141,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller =
-          prov.Provider.of<WalletExpensesController>(context, listen: false);
+      _controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
       _controller?.addListener(_onControllerChanged);
       _loadItems();
     });
@@ -172,9 +160,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
     if (!mounted) return;
     setState(() => _loading = true);
     try {
-      final rows = await ref
-          .read(recurrentRegistryProvider.notifier)
-          .getRecurringItems(widget.recurring.id);
+      final rows = await ref.read(recurrentRegistryProvider.notifier).getRecurringItems(widget.recurring.id);
       if (!mounted) return;
       setState(() => _items = rows);
     } catch (_) {}
@@ -200,8 +186,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AwText.bold('Editar monto',
-                  color: AwColors.blue, size: AwSize.s16),
+              const AwText.bold('Editar monto', color: AwColors.blue, size: AwSize.s16),
               const SizedBox(height: 8),
               CustomTextField(
                 controller: tc,
@@ -230,8 +215,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
       final newAmt = double.tryParse(tc.text) ?? current.toDouble();
       await ref
           .read(recurrentRegistryProvider.notifier)
-          .updateRecurringItemAmount(
-              widget.recurring.id, row['month_index'] as int, newAmt);
+          .updateRecurringItemAmount(widget.recurring.id, row['month_index'] as int, newAmt);
       // refresh global state
       try {
         final controller =
@@ -253,12 +237,8 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
                 text:
                     'Se eliminarán los gastos de este mes y siguientes de la recurrencia. Esta acción no afecta meses anteriores.'),
             actions: [
-              TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('Cancelar')),
-              TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: const Text('Eliminar')),
+              TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+              TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Eliminar')),
             ],
           );
         });
@@ -276,9 +256,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
             if (_controller != null) {
               await _controller!.loadExpensesSmart();
             } else {
-              final controller = prov.Provider.of<WalletExpensesController>(
-                  context,
-                  listen: false);
+              final controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
               await controller.loadExpensesSmart();
             }
           } catch (_) {}
@@ -300,9 +278,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
             if (_controller != null) {
               await _controller!.loadExpensesSmart();
             } else {
-              final controller = prov.Provider.of<WalletExpensesController>(
-                  context,
-                  listen: false);
+              final controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
               await controller.loadExpensesSmart();
             }
           } catch (_) {}
@@ -315,9 +291,9 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AwColors.greyLight,
       appBar: const WalletAppBar(
-        title:
-            AwText.bold('Registros', color: AwColors.white, size: AwSize.s18),
+        title: AwText.bold('Registros', color: AwColors.white, size: AwSize.s18),
         showBackArrow: true,
         barColor: AwColors.appBarColor,
         automaticallyImplyLeading: true,
@@ -335,13 +311,10 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AwSpacing.s12,
-                    AwText.bold(widget.recurring.title,
-                        size: AwSize.s18, color: AwColors.appBarColor),
+                    AwText.bold(widget.recurring.title, size: AwSize.s18, color: AwColors.appBarColor),
                     AwSpacing.s6,
-                    AwText.normal(
-                        'Día del mes: ${widget.recurring.dayOfMonth} • ${widget.recurring.months} meses',
-                        size: AwSize.s14,
-                        color: AwColors.modalGrey),
+                    AwText.normal('Día del mes: ${widget.recurring.dayOfMonth} • ${widget.recurring.months} meses',
+                        size: AwSize.s14, color: AwColors.modalGrey),
                     AwSpacing.s12,
                     const AwDivider(),
                     RecurrentDetailItems(
@@ -374,17 +347,14 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
       await _deleteFromThisMonth(idx);
       // _deleteFromThisMonth already refreshes global state
     } else if (choice == 'delete_single') {
-      final ok = await ref
-          .read(recurrentRegistryProvider.notifier)
-          .deleteRecurrenceSingleMonth(widget.recurring.id, idx);
+      final ok =
+          await ref.read(recurrentRegistryProvider.notifier).deleteRecurrenceSingleMonth(widget.recurring.id, idx);
       if (ok) {
         try {
           if (_controller != null) {
             await _controller!.loadExpensesSmart();
           } else {
-            final controller = prov.Provider.of<WalletExpensesController>(
-                context,
-                listen: false);
+            final controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
             await controller.loadExpensesSmart();
           }
         } catch (_) {}

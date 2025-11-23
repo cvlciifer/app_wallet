@@ -66,6 +66,7 @@ class WalletButton {
     required Function()? onPressed,
     MainAxisAlignment? alignment,
     Color colorText = AwColors.blue,
+    double fontSize = AwSize.s16,
   }) {
     return Row(
       mainAxisAlignment: alignment ?? MainAxisAlignment.end,
@@ -83,7 +84,7 @@ class WalletButton {
           child: Text.rich(
             TextSpan(
               style: TextStyle(
-                fontSize: AwSize.s16,
+                fontSize: fontSize,
                 fontWeight: FontWeight.bold,
                 color: colorText,
                 decorationColor: colorText,

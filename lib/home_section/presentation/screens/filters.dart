@@ -64,6 +64,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AwColors.greyLight,
       appBar: WalletAppBar(
         title: const AwText.bold(
           'Filtros',
