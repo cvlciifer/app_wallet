@@ -42,6 +42,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
+      backgroundColor: AwColors.greyLight,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

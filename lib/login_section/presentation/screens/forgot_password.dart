@@ -10,6 +10,7 @@ class ForgotPasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AwColors.greyLight,
       body: Stack(
         children: [
           Container(color: AwColors.greyLight),
@@ -73,21 +74,17 @@ class ForgotPasswordScreen extends StatelessWidget {
                           return;
                         }
 
-                        Provider.of<AuthProvider>(context, listen: false)
-                            .resetPassword(
+                        Provider.of<AuthProvider>(context, listen: false).resetPassword(
                           email,
                           () {
-                            final overlayCtx =
-                                Navigator.of(context).overlay?.context;
+                            final overlayCtx = Navigator.of(context).overlay?.context;
                             Navigator.of(context).pop();
                             if (overlayCtx != null) {
                               // small delay to allow navigation transition to complete
-                              Future.delayed(const Duration(milliseconds: 120),
-                                  () {
+                              Future.delayed(const Duration(milliseconds: 120), () {
                                 WalletPopup.showNotificationSuccess(
                                   context: overlayCtx,
-                                  title:
-                                      'Se ha enviado un enlace de restablecimiento a $email.',
+                                  title: 'Se ha enviado un enlace de restablecimiento a $email.',
                                 );
                               });
                             }

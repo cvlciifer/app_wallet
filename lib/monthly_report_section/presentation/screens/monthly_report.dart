@@ -118,12 +118,13 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
             // Floating card at the top
             Material(
               elevation: 12,
+              color: AwColors.white,
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
+                  color: AwColors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(

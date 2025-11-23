@@ -48,9 +48,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
             final alias = await pinService.getAlias(accountId: uid);
             if (alias == null || alias.isEmpty) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                    builder: (context) =>
-                        const AliasInputPage(initialSetup: false)),
+                MaterialPageRoute(builder: (context) => const AliasInputPage(initialSetup: false)),
               );
             } else {
               Navigator.of(context).pushReplacement(
@@ -60,9 +58,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
           } else {
             // Si no hay PIN configurado, primero pedir alias y luego crear el PIN
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                  builder: (context) =>
-                      const AliasInputPage(initialSetup: true)),
+              MaterialPageRoute(builder: (context) => const AliasInputPage(initialSetup: true)),
             );
           }
         } else {
@@ -77,9 +73,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
               final hasPin = await pinService.hasPin(accountId: candidateUid);
               if (hasPin) {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          EnterPinPage(accountId: candidateUid)),
+                  MaterialPageRoute(builder: (context) => EnterPinPage(accountId: candidateUid)),
                 );
                 return;
               }
@@ -107,6 +101,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AwColors.white,
       body: Stack(
         children: [
           Center(
