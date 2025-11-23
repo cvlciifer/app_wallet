@@ -3,8 +3,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 class EstadisticasScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  const EstadisticasScreen({Key? key, required this.expenses})
-      : super(key: key);
+  const EstadisticasScreen({Key? key, required this.expenses}) : super(key: key);
 
   @override
   _EstadisticasScreenState createState() => _EstadisticasScreenState();
@@ -15,6 +14,9 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   int selectedYear = DateTime.now().year;
   bool groupBySubcategory = false;
   bool _initializedFromController = false;
+  // PageView controller and current page index for the charts carousel
+  late PageController _pageController;
+  int _currentChartPage = 0;
 
   List<int> getAvailableYears() {
     final years = widget.expenses.map((e) => e.date.year).toSet().toList();
@@ -23,11 +25,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   }
 
   List<int> getAvailableMonthsForYear(int year) {
-    final months = widget.expenses
-        .where((e) => e.date.year == year)
-        .map((e) => e.date.month)
-        .toSet()
-        .toList();
+    final months = widget.expenses.where((e) => e.date.year == year).map((e) => e.date.month).toSet().toList();
     months.sort();
     return months;
   }
@@ -40,8 +38,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   List<Map<String, dynamic>> _getFilteredData() {
     final filteredExpenses = widget.expenses.where((expense) {
       final expenseDate = expense.date;
-      return expenseDate.month == selectedMonth &&
-          expenseDate.year == selectedYear;
+      return expenseDate.month == selectedMonth && expenseDate.year == selectedYear;
     }).toList();
 
     if (!groupBySubcategory) {
@@ -49,9 +46,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         return WalletExpenseBucket.forCategory(filteredExpenses, category);
       }).toList();
 
-      return walletExpenseBuckets
-          .where((bucket) => bucket.totalExpenses > 0)
-          .map((bucket) {
+      return walletExpenseBuckets.where((bucket) => bucket.totalExpenses > 0).map((bucket) {
         return {
           'label': bucket.category.displayName,
           'amount': bucket.totalExpenses,
@@ -100,8 +95,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
           'color': Colors.grey,
         });
       }
-      result.sort(
-          (a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
+      result.sort((a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
       return result;
     }
   }
@@ -120,27 +114,27 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
       _initializedFromController = true;
     }
     // Aseguramos que las listas de años y meses disponibles reflejen los gastos
-    final expenses = widget.expenses.isNotEmpty
-        ? widget.expenses
-        : (context.read<WalletExpensesController>().allExpenses);
+    final expenses =
+        widget.expenses.isNotEmpty ? widget.expenses : (context.read<WalletExpensesController>().allExpenses);
     final availableYears = expenses.map((e) => e.date.year).toSet().toList();
     if (!availableYears.contains(selectedYear) && availableYears.isNotEmpty) {
       selectedYear = availableYears.first;
     }
-    final availableMonths = expenses
-        .where((e) => e.date.year == selectedYear)
-        .map((e) => e.date.month)
-        .toSet()
-        .toList();
+    final availableMonths =
+        expenses.where((e) => e.date.year == selectedYear).map((e) => e.date.month).toSet().toList();
     availableMonths.sort();
-    if (!availableMonths.contains(selectedMonth) &&
-        availableMonths.isNotEmpty) {
+    if (!availableMonths.contains(selectedMonth) && availableMonths.isNotEmpty) {
       selectedMonth = availableMonths.first;
     }
 
     final data = _getFilteredData();
-    final totalAmount =
-        data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
+    // Lista de gastos filtrados por mes/año para pasar al Chart
+    final filteredExpensesList =
+        expenses.where((e) => e.date.month == selectedMonth && e.date.year == selectedYear).toList();
+
+    // inicializar page controller si no está ya
+    _pageController = PageController(initialPage: _currentChartPage);
+    final totalAmount = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
     return Scaffold(
       backgroundColor: AwColors.white,
@@ -167,8 +161,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                     children: [
                       TextButton(
                         onPressed: () {
-                          if (groupBySubcategory)
-                            setState(() => groupBySubcategory = false);
+                          if (groupBySubcategory) setState(() => groupBySubcategory = false);
                         },
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
@@ -178,18 +171,12 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                         child: Text(
                           'Categoria',
                           style: TextStyle(
-                            color: groupBySubcategory
-                                ? AwColors.black
-                                : AwColors.appBarColor,
+                            color: groupBySubcategory ? AwColors.black : AwColors.appBarColor,
                             fontSize: AwSize.s16,
                           ),
                         ),
                       ),
-                      Container(
-                          height: 2,
-                          color: groupBySubcategory
-                              ? Colors.transparent
-                              : AwColors.appBarColor),
+                      Container(height: 2, color: groupBySubcategory ? Colors.transparent : AwColors.appBarColor),
                     ],
                   ),
                 ),
@@ -200,8 +187,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                     children: [
                       TextButton(
                         onPressed: () {
-                          if (!groupBySubcategory)
-                            setState(() => groupBySubcategory = true);
+                          if (!groupBySubcategory) setState(() => groupBySubcategory = true);
                         },
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
@@ -211,18 +197,12 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                         child: Text(
                           'Subcategoria',
                           style: TextStyle(
-                            color: groupBySubcategory
-                                ? AwColors.appBarColor
-                                : AwColors.black,
+                            color: groupBySubcategory ? AwColors.appBarColor : AwColors.black,
                             fontSize: AwSize.s16,
                           ),
                         ),
                       ),
-                      Container(
-                          height: 2,
-                          color: groupBySubcategory
-                              ? AwColors.appBarColor
-                              : Colors.transparent),
+                      Container(height: 2, color: groupBySubcategory ? AwColors.appBarColor : Colors.transparent),
                     ],
                   ),
                 ),
@@ -241,7 +221,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
             AwSpacing.s,
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                // Reducimos el padding horizontal para dar más espacio a los gráficos
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
                 child: data.isEmpty
                     ? const Center(
                         child: AwText.bold(
@@ -254,11 +235,48 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const AwText.bold(
-                            'Gráfico Porcentual:',
+                            'Gráficos',
                             size: AwSize.s18,
                             color: AwColors.boldBlack,
                           ),
-                          WalletPieChart(data: data),
+                          AwSpacing.s,
+                          SizedBox(
+                            height: AwSize.s300,
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: PageView(
+                                    controller: _pageController,
+                                    onPageChanged: (idx) => setState(() => _currentChartPage = idx),
+                                    children: [
+                                      // Página 1: gráfico de torta
+                                      WalletPieChart(data: data),
+                                      // Página 2: gráfico de barras (Chart) usando los gastos filtrados
+                                      Chart(expenses: filteredExpensesList),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                // Indicador de página (dots)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(2, (i) {
+                                    final bool active = _currentChartPage == i;
+                                    return AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      margin: const EdgeInsets.symmetric(horizontal: 6),
+                                      width: active ? 14 : 10,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: active ? AwColors.appBarColor : AwColors.grey,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                    );
+                                  }),
+                                ),
+                              ],
+                            ),
+                          ),
                           AwSpacing.s,
                           Expanded(
                             child: SingleChildScrollView(
@@ -266,8 +284,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   AwSpacing.m,
-                                  WalletCategoryList(
-                                      data: data, formatNumber: formatNumber),
+                                  WalletCategoryList(data: data, formatNumber: formatNumber),
                                 ],
                               ),
                             ),
