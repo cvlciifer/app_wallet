@@ -3,6 +3,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 class SettingsCard extends StatelessWidget {
   final String title;
   final IconData icon;
+  final Color? iconColor;
   final VoidCallback? onTap;
   final Widget? trailing;
   final String? subtitle;
@@ -13,6 +14,7 @@ class SettingsCard extends StatelessWidget {
     Key? key,
     required this.title,
     required this.icon,
+    this.iconColor,
     this.onTap,
     this.trailing,
     this.subtitle,
@@ -39,7 +41,7 @@ class SettingsCard extends StatelessWidget {
       child: ListTile(
         minLeadingWidth: 40,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        leading: Icon(icon, color: AwColors.grey, size: iconSize),
+        leading: Icon(icon, color: iconColor ?? AwColors.grey, size: iconSize),
         title: AwText.normal(
           title,
           color: AwColors.black,
