@@ -119,154 +119,166 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
       }
     });
 
-    return PinPageScaffold(
-      child: Stack(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  AwSpacing.s12,
-                  GreetingHeader(alias: state.alias),
-                  AwSpacing.s12,
-                  const AwText.bold('Ingresa tu PIN',
-                      size: AwSize.s16, color: AwColors.appBarColor),
-                  AwSpacing.s12,
-                  PinEntryArea(
-                    key: _pinKey,
-                    onCompleted: _onCompleted,
-                    autoComplete: false,
-                    onChanged: (len) {
-                      if (!mounted) return;
-                      setState(() => _currentLength = len);
-                    },
-                    actions: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Builder(builder: (context) {
-                              final enabled = _currentLength == 4;
-                              return ElevatedButton(
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      // ignore: deprecated_member_use
-                                      MaterialStateProperty.resolveWith(
-                                          (states) => states.contains(
-                                                  // ignore: deprecated_member_use
-                                                  MaterialState.disabled)
-                                              ? AwColors.blueGrey
-                                              : AwColors.appBarColor),
-                                  foregroundColor:
-                                      // ignore: deprecated_member_use
-                                      MaterialStateProperty.resolveWith(
-                                          (states) => Colors.white),
-                                ),
-                                onPressed: enabled
-                                    ? () {
-                                        final pin =
-                                            _pinKey.currentState?.currentPin ??
-                                                '';
-                                        _onCompleted(pin);
-                                      }
-                                    : null,
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 14.0),
-                                  child: AwText.bold('Continuar',
-                                      color: Colors.white),
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        PinActions(
-                          hasConnection: state.hasConnection,
-                          onNotYou: () async {
-                            try {
-                              await FirebaseAuth.instance.signOut();
-                            } catch (_) {}
-                            await AuthService().clearLoginState();
-                            if (!mounted) return;
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                  builder: (_) => const LoginScreen()),
+    final inner = Stack(
+      children: [
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                AwSpacing.s12,
+                GreetingHeader(alias: state.alias),
+                AwSpacing.s12,
+                const AwText.bold('Ingresa tu PIN',
+                    size: AwSize.s16, color: AwColors.appBarColor),
+                AwSpacing.s12,
+                PinEntryArea(
+                  key: _pinKey,
+                  onCompleted: _onCompleted,
+                  autoComplete: false,
+                  onChanged: (len) {
+                    if (!mounted) return;
+                    setState(() => _currentLength = len);
+                  },
+                  actions: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Builder(builder: (context) {
+                            final enabled = _currentLength == 4;
+                            return ElevatedButton(
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    // ignore: deprecated_member_use
+                                    MaterialStateProperty.resolveWith(
+                                        (states) => states.contains(
+                                                // ignore: deprecated_member_use
+                                                MaterialState.disabled)
+                                            ? AwColors.blueGrey
+                                            : AwColors.appBarColor),
+                                foregroundColor:
+                                    // ignore: deprecated_member_use
+                                    MaterialStateProperty.resolveWith(
+                                        (states) => Colors.white),
+                              ),
+                              onPressed: enabled
+                                  ? () {
+                                      final pin =
+                                          _pinKey.currentState?.currentPin ??
+                                              '';
+                                      _onCompleted(pin);
+                                    }
+                                  : null,
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 14.0),
+                                child: AwText.bold('Continuar',
+                                    color: Colors.white),
+                              ),
                             );
-                          },
-                          onForgotPin: () async {
-                            final email = AuthService().getCurrentUser()?.email;
-                            final loader =
-                                ref.read(globalLoaderProvider.notifier);
-                            loader.state = true;
-                            try {
-                              final pinService = PinService();
-                              final remaining =
-                                  await pinService.pinChangeRemainingCount(
-                                      accountId: widget.accountId);
-                              final blockedUntil =
-                                  await pinService.pinChangeBlockedUntilNextDay(
-                                      accountId: widget.accountId);
-
-                              final isBlocked = (remaining <= 0) ||
-                                  (blockedUntil != null &&
-                                      blockedUntil > Duration.zero);
-
-                              // hide loader before navigating
-                              try {
-                                loader.state = false;
-                              } catch (_) {}
-
-                              if (isBlocked) {
-                                final remainingDuration =
-                                    blockedUntil ?? const Duration(days: 1);
-                                if (!mounted) return;
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (_) => PinLockedPage(
-                                          remaining: remainingDuration,
-                                          accountId: widget.accountId,
-                                          allowBack: true,
-                                          returnToEnterPin: true,
-                                        )));
-                              } else {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (_) => ForgotPinPage(
-                                    initialEmail: email,
-                                    allowBack: false,
-                                  ),
-                                ));
-                              }
-                            } catch (e, st) {
-                              if (kDebugMode)
-                                log('Forgot PIN error',
-                                    error: e, stackTrace: st);
-                              try {
-                                loader.state = false;
-                              } catch (_) {}
-                            }
-                          },
+                          }),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 12),
+                      PinActions(
+                        hasConnection: state.hasConnection,
+                        onNotYou: () async {
+                          try {
+                            await FirebaseAuth.instance.signOut();
+                          } catch (_) {}
+                          await AuthService().clearLoginState();
+                          if (!mounted) return;
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                                builder: (_) => const LoginScreen()),
+                          );
+                        },
+                        onForgotPin: () async {
+                          final email = AuthService().getCurrentUser()?.email;
+                          final loader =
+                              ref.read(globalLoaderProvider.notifier);
+                          loader.state = true;
+                          try {
+                            final pinService = PinService();
+                            final remaining =
+                                await pinService.pinChangeRemainingCount(
+                                    accountId: widget.accountId);
+                            final blockedUntil =
+                                await pinService.pinChangeBlockedUntilNextDay(
+                                    accountId: widget.accountId);
+
+                            final isBlocked = (remaining <= 0) ||
+                                (blockedUntil != null &&
+                                    blockedUntil > Duration.zero);
+
+                            try {
+                              loader.state = false;
+                            } catch (_) {}
+
+                            if (isBlocked) {
+                              final remainingDuration =
+                                  blockedUntil ?? const Duration(days: 1);
+                              if (!mounted) return;
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (_) => PinLockedPage(
+                                        remaining: remainingDuration,
+                                        accountId: widget.accountId,
+                                        allowBack: true,
+                                        returnToEnterPin: true,
+                                      )));
+                            } else {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => ForgotPinPage(
+                                  initialEmail: email,
+                                  allowBack: false,
+                                ),
+                              ));
+                            }
+                          } catch (e, st) {
+                            if (kDebugMode)
+                              log('Forgot PIN error', error: e, stackTrace: st);
+                            try {
+                              loader.state = false;
+                            } catch (_) {}
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          if (_showFailurePopup) ...[
-            EnterPinFailed(
-                remainingAttempts: (PinService.maxAttempts - state.attempts)
-                    .clamp(0, PinService.maxAttempts)),
-          ],
-          if (_showSuccessPopup) ...[
-            const EnterPinSuccessful(),
-          ],
+        ),
+        if (_showFailurePopup) ...[
+          EnterPinFailed(
+              remainingAttempts: (PinService.maxAttempts - state.attempts)
+                  .clamp(0, PinService.maxAttempts)),
         ],
-      ),
+        if (_showSuccessPopup) ...[
+          const EnterPinSuccessful(),
+        ],
+      ],
     );
+
+    return ZoomAware(builder: (ctx, isZoomed, _) {
+      if (isZoomed) {
+        return PinPageScaffold(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints:
+                  BoxConstraints(minHeight: MediaQuery.of(ctx).size.height),
+              child: inner,
+            ),
+          ),
+        );
+      }
+
+      return PinPageScaffold(child: inner);
+    });
   }
 }

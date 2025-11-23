@@ -52,9 +52,19 @@ class _SetPinPageState extends State<SetPinPage> {
   @override
   Widget build(BuildContext context) {
     return PinPageScaffold(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+      child: LayoutBuilder(builder: (ctx, constraints) {
+        final mq = MediaQuery.of(ctx);
+        final textScale = mq.textScaleFactor;
+        final availH = constraints.maxHeight;
+        final needsScroll = textScale > 1.05 || availH < 700 || mq.viewInsets.bottom > 0 || mq.viewPadding.bottom > 0;
+
+        final content = Padding(
+          padding: EdgeInsets.only(
+            left: 16.0,
+            right: 16.0,
+            top: 16.0,
+            bottom: mq.viewPadding.bottom + (needsScroll ? 24.0 : 16.0),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -79,9 +89,7 @@ class _SetPinPageState extends State<SetPinPage> {
                 onCompleted: _onCompleted,
                 onChanged: (len) {
                   if (!mounted) return;
-                  setState(() {
-                    // update UI when length changes; _firstPin stays set by onCompleted
-                  });
+                  setState(() {});
                 },
                 actions: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -130,8 +138,19 @@ class _SetPinPageState extends State<SetPinPage> {
               ),
             ],
           ),
-        ),
-      ),
+        );
+
+        if (needsScroll) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: availH),
+              child: Center(child: content),
+            ),
+          );
+        }
+
+        return Center(child: content);
+      }),
     );
   }
 }

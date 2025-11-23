@@ -50,10 +50,12 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  // Initialize date formatting symbols for Spanish locale so DateFormat
-  // with locale 'es' renders month names in Spanish.
   try {
     await initializeDateFormatting('es');
+  } catch (_) {}
+
+  try {
+    await ZoomService().init();
   } catch (_) {}
 
   runApp(riverpod.ProviderScope(child: AppRoot()));
@@ -78,7 +80,38 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _initUniLinks();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _maybeNavigateToPinOnStartup();
+      (() async {
+        try {
+          await ZoomService().init();
+        } catch (_) {}
+
+        final bool? zoomState = ZoomService().isZoomed.value;
+        log('ZoomService.isZoomed after init: $zoomState');
+
+        final BuildContext ctx =
+            _navigatorKey.currentState?.overlay?.context ?? this.context;
+
+        if (zoomState == true) {
+          try {
+            await Future.delayed(const Duration(milliseconds: 700));
+            await WalletPopup.showNotificationWarningOrange(
+              context: ctx,
+              message:
+                  'Detectamos que el zoom del sistema está activo. Algunas pantallas serán scrollables.',
+              visibleTime: 0,
+              isDismissible: true,
+            );
+          } catch (_) {}
+          return;
+        }
+
+        try {
+          await _maybeNavigateToPinOnStartup();
+        } catch (_) {}
+        try {
+          await _maybeShowZoomDialog();
+        } catch (_) {}
+      })();
     });
   }
 
@@ -108,6 +141,12 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
 
     if (state == AppLifecycleState.resumed) {
       log('Resumed; background timestamp was: $_backgroundedAt');
+      Future(() async {
+        try {
+          await ZoomService().init();
+          await _maybeShowZoomDialog();
+        } catch (_) {}
+      });
       if (_backgroundedAt == null) {
         log('No background timestamp — skipping PIN check');
         return;
@@ -218,6 +257,70 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
     } finally {
       _navigatingToPin = false;
     }
+  }
+
+  Future<void> _maybeShowZoomDialog() async {
+    try {
+      final notifier = ZoomService().isZoomed;
+      bool? val = notifier.value;
+
+      if (val == null) {
+        final completer = Completer<bool?>();
+        void listener() {
+          final v = notifier.value;
+          if (v != null) {
+            notifier.removeListener(listener);
+            completer.complete(v);
+          }
+        }
+
+        notifier.addListener(listener);
+        try {
+          val = await completer.future.timeout(const Duration(seconds: 2));
+        } catch (_) {
+          try {
+            notifier.removeListener(listener);
+          } catch (_) {}
+        }
+      }
+
+      final BuildContext ctx =
+          _navigatorKey.currentState?.overlay?.context ?? this.context;
+
+      bool zoomDetected = val == true;
+      if (!zoomDetected) {
+        try {
+          final t = MediaQuery.of(ctx).textScaleFactor;
+          if (t >= 1.15) zoomDetected = true;
+        } catch (_) {}
+      }
+
+      if (!zoomDetected) {
+        try {
+          await ZoomDialogService().markSeenFor(false);
+        } catch (_) {}
+        return;
+      }
+
+      try {
+        final seen = await ZoomDialogService().hasSeenDialogFor(true);
+        if (seen) return;
+      } catch (_) {}
+
+      await Future.delayed(const Duration(milliseconds: 700));
+
+      await WalletPopup.showNotificationWarningOrange(
+        context: ctx,
+        message:
+            'Detectamos que el zoom del sistema está activo. Algunas pantallas serán scrollables.',
+        visibleTime: 0,
+        isDismissible: true,
+      );
+
+      try {
+        await ZoomDialogService().markSeenFor(true);
+      } catch (_) {}
+    } catch (_) {}
   }
 
   Future<void> _handleIncomingLink(String link) async {

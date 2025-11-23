@@ -164,9 +164,19 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
     return PinPageScaffold(
       child: Stack(
         children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+          LayoutBuilder(builder: (ctx, constraints) {
+            final mq = MediaQuery.of(ctx);
+            final textScale = mq.textScaleFactor;
+            final availH = constraints.maxHeight;
+            final needsScroll = textScale > 1.05 || availH < 700 || mq.viewInsets.bottom > 0 || mq.viewPadding.bottom > 0;
+
+            final content = Padding(
+              padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 16.0,
+                bottom: mq.viewPadding.bottom + (needsScroll ? 24.0 : 16.0),
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -201,33 +211,23 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                           child: SizedBox(
                             width: double.infinity,
                             child: Builder(builder: (context) {
-                              final len =
-                                  _pinKey.currentState?.currentLength ?? 0;
+                              final len = _pinKey.currentState?.currentLength ?? 0;
                               final ready = len == widget.digits;
                               return ElevatedButton(
                                 style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.resolveWith(
-                                          (states) => states.contains(
-                                                  MaterialState.disabled)
-                                              ? AwColors.blueGrey
-                                              : AwColors.appBarColor),
-                                  foregroundColor:
-                                      MaterialStateProperty.resolveWith(
-                                          (_) => Colors.white),
+                                  backgroundColor: MaterialStateProperty.resolveWith(
+                                      (states) => states.contains(MaterialState.disabled) ? AwColors.blueGrey : AwColors.appBarColor),
+                                  foregroundColor: MaterialStateProperty.resolveWith((_) => Colors.white),
                                 ),
                                 onPressed: ready
                                     ? () {
-                                        _secondPin =
-                                            _pinKey.currentState?.currentPin ??
-                                                '';
+                                        _secondPin = _pinKey.currentState?.currentPin ?? '';
                                         _save();
                                       }
                                     : null,
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 14.0),
-                                  child: AwText.bold('Guardar PIN',
-                                      color: Colors.white),
+                                  child: AwText.bold('Guardar PIN', color: Colors.white),
                                 ),
                               );
                             }),
@@ -238,8 +238,19 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                   ),
                 ],
               ),
-            ),
-          ),
+            );
+
+            if (needsScroll) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: availH),
+                  child: Center(child: content),
+                ),
+              );
+            }
+
+            return Center(child: content);
+          }),
         ],
       ),
     );

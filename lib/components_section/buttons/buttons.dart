@@ -112,7 +112,8 @@ class WalletButton {
     double iconSize = 24.0,
     double fontSize = AwSize.s14,
     FontWeight fontWeight = FontWeight.bold,
-    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    EdgeInsetsGeometry padding =
+        const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
   }) {
     return SizedBox(
       height: height,
@@ -180,13 +181,20 @@ class WalletButton {
                     ),
                   )
                 : null,
-            child: Text(
-              buttonText,
-              style: TextStyle(
-                fontSize: AwSize.s14,
-                fontWeight: FontWeight.bold,
-                color: colorText,
-                letterSpacing: 1.2,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 220),
+              child: AutoSizeText(
+                buttonText,
+                style: TextStyle(
+                  fontSize: AwSize.s14,
+                  fontWeight: FontWeight.bold,
+                  color: colorText,
+                  letterSpacing: 1.2,
+                ),
+                maxLines: 1,
+                minFontSize: 10,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ),
           ),

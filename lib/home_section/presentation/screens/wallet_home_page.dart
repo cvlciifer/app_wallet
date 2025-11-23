@@ -1,7 +1,6 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/profile_section/presentation/screens/recurrent_create_page.dart';
+import 'dart:math' as math;
 import 'package:app_wallet/home_section/presentation/screens/two_options.dart';
-import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
 import 'package:app_wallet/components_section/widgets/home_income_card.dart';
@@ -25,7 +24,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
       try {
         final provController = context.read<WalletExpensesController>();
         try {
-          final container = riverpod.ProviderScope.containerOf(context, listen: false);
+          final container =
+              riverpod.ProviderScope.containerOf(context, listen: false);
 
           _authSub = FirebaseAuth.instance.authStateChanges().listen((_) {
             try {
@@ -39,8 +39,9 @@ class _WalletHomePageState extends State<WalletHomePage> {
               if (!_localLoaderActive) {
                 setState(() => _localLoaderActive = true);
                 try {
-                  riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state =
-                      false;
+                  riverpod.ProviderScope.containerOf(context, listen: false)
+                      .read(globalLoaderProvider.notifier)
+                      .state = false;
                 } catch (_) {}
               }
             } else {
@@ -52,19 +53,22 @@ class _WalletHomePageState extends State<WalletHomePage> {
         });
 
         try {
-          final shouldShowLocal = provController.isLoadingExpenses || provController.filteredExpenses.isEmpty;
+          final shouldShowLocal = provController.isLoadingExpenses ||
+              provController.filteredExpenses.isEmpty;
           if (shouldShowLocal) {
             setState(() => _localLoaderActive = true);
             try {
-              riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state =
-                  false;
+              riverpod.ProviderScope.containerOf(context, listen: false)
+                  .read(globalLoaderProvider.notifier)
+                  .state = false;
             } catch (_) {}
           }
         } catch (_) {}
 
         provController.loadExpensesSmart().then((_) {
           try {
-            final container = riverpod.ProviderScope.containerOf(context, listen: false);
+            final container =
+                riverpod.ProviderScope.containerOf(context, listen: false);
             container.read(ingresosProvider.notifier).init();
           } catch (_) {}
         });
@@ -82,11 +86,13 @@ class _WalletHomePageState extends State<WalletHomePage> {
 
   void _onBottomNavTap(int index) {
     final controller = context.read<WalletExpensesController>();
-    WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
+    WalletNavigationService.handleBottomNavigation(
+        context, index, controller.allExpenses);
   }
 
   void _openAddExpenseOverlay() async {
-    final expense = await WalletNavigationService.openAddExpenseOverlay(context);
+    final expense =
+        await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
       final conn = await Connectivity().checkConnectivity();
       final hasConnection = conn != ConnectivityResult.none;
@@ -102,7 +108,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
         _openAddExpenseOverlay();
       },
       onAddRecurrent: () {
-        Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
+        Navigator.of(context).push<bool>(
+            MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
       },
     );
   }
@@ -164,7 +171,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
             onRemoveExpense: (expense) async {
               final connectivity = await Connectivity().checkConnectivity();
               final hasConnection = connectivity != ConnectivityResult.none;
-              await controller.removeExpense(expense, hasConnection: hasConnection);
+              await controller.removeExpense(expense,
+                  hasConnection: hasConnection);
             },
           )
         : const EmptyState();
@@ -197,9 +205,13 @@ class _WalletHomePageState extends State<WalletHomePage> {
     );
   }
 
-  Widget _buildMonthButtons(BuildContext context, WalletExpensesController controller) {
+  Widget _buildMonthButtons(
+      BuildContext context, WalletExpensesController controller) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = math.min(70.0, screenWidth * 0.08);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 4),
       child: Center(
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -214,7 +226,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
                   controller.monthFilter!.year == DateTime.now().year &&
                   controller.monthFilter!.month == DateTime.now().month,
             ),
-            const Spacer(),
+            AwSpacing.w12,
             WalletButton.filterButton(
               buttonText: 'Filtrar por mes',
               onPressed: () {
@@ -234,7 +246,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
     final available = controller.getAvailableMonths(excludeCurrent: true);
     if (available.isEmpty) {
       if (mounted) {
-        WalletPopup.showNotificationWarningOrange(context: context, message: 'No hay meses disponibles para filtrar');
+        WalletPopup.showNotificationWarningOrange(
+            context: context, message: 'No hay meses disponibles para filtrar');
       }
       return;
     }

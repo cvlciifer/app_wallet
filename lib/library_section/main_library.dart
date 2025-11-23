@@ -13,6 +13,7 @@ export 'package:uuid/uuid.dart';
 export 'dart:io';
 export 'package:another_flushbar/flushbar.dart';
 export 'package:connectivity_plus/connectivity_plus.dart';
+export 'package:auto_size_text/auto_size_text.dart';
 
 // Archivos locales del proyecto o rutas
 export 'package:app_wallet/home_section/presentation/new_expense/presentation/models/expense.dart';
@@ -128,3 +129,7 @@ export 'package:app_wallet/profile_section/presentation/screens/recurrent_create
 export 'package:app_wallet/profile_section/presentation/screens/recurrent_registry_page.dart';
 export 'package:app_wallet/profile_section/presentation/screens/gmail_inbox_page.dart';
 export 'package:app_wallet/profile_section/presentation/screens/ingresos_imprevistos_page.dart';
+
+export 'package:app_wallet/core/services/zoom_service.dart';
+export 'package:app_wallet/core/services/zoom_dialog_service.dart';
+export 'package:app_wallet/components_section/widgets/zoom_aware.dart';

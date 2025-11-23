@@ -62,6 +62,9 @@ dependencies:
   app_links: ^3.0.0 
   googleapis: ^11.0.0
   googleapis_auth: ^1.4.0
+
+  display_zoom_checker: ^0.0.1
+  auto_size_text: ^3.0.0
   
 dev_dependencies:
   flutter_test:

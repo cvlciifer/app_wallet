@@ -152,132 +152,179 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         ),
         automaticallyImplyLeading: true,
       ),
-      body: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AwSpacing.s,
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          if (groupBySubcategory)
-                            setState(() => groupBySubcategory = false);
-                        },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 36),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'Categoria',
-                          style: TextStyle(
-                            color: groupBySubcategory
-                                ? AwColors.black
-                                : AwColors.appBarColor,
-                            fontSize: AwSize.s16,
-                          ),
+      body: LayoutBuilder(
+        builder: (ctx, constraints) {
+          final mq = MediaQuery.of(ctx);
+          final needsScroll = mq.textScaleFactor > 1.15 || constraints.maxHeight < 620;
+
+          Widget headerRow = Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        if (groupBySubcategory) setState(() => groupBySubcategory = false);
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 36),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'Categoria',
+                        style: TextStyle(
+                          color: groupBySubcategory ? AwColors.black : AwColors.appBarColor,
+                          fontSize: AwSize.s16,
                         ),
                       ),
-                      Container(
-                          height: 2,
-                          color: groupBySubcategory
-                              ? Colors.transparent
-                              : AwColors.appBarColor),
-                    ],
-                  ),
+                    ),
+                    Container(height: 2, color: groupBySubcategory ? Colors.transparent : AwColors.appBarColor),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          if (!groupBySubcategory)
-                            setState(() => groupBySubcategory = true);
-                        },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 36),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'Subcategoria',
-                          style: TextStyle(
-                            color: groupBySubcategory
-                                ? AwColors.appBarColor
-                                : AwColors.black,
-                            fontSize: AwSize.s16,
-                          ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        if (!groupBySubcategory) setState(() => groupBySubcategory = true);
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 36),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'Subcategoria',
+                        style: TextStyle(
+                          color: groupBySubcategory ? AwColors.appBarColor : AwColors.black,
+                          fontSize: AwSize.s16,
                         ),
                       ),
-                      Container(
-                          height: 2,
-                          color: groupBySubcategory
-                              ? AwColors.appBarColor
-                              : Colors.transparent),
-                    ],
-                  ),
+                    ),
+                    Container(height: 2, color: groupBySubcategory ? AwColors.appBarColor : Colors.transparent),
+                  ],
                 ),
-              ],
-            ),
-            WalletMonthYearSelector(
-              selectedMonth: selectedMonth,
-              selectedYear: selectedYear,
-              onMonthChanged: (month) => setState(() => selectedMonth = month),
-              onYearChanged: (year) => setState(() => selectedYear = year),
-              availableMonths: availableMonths,
-              availableYears: availableYears,
-              totalAmount: totalAmount,
-              formatNumber: formatNumber,
-            ),
-            AwSpacing.s,
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: data.isEmpty
-                    ? const Center(
-                        child: AwText.bold(
-                          'No existen gastos registrados durante este mes.',
-                          size: AwSize.s18,
-                          color: AwColors.black,
-                        ),
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const AwText.bold(
-                            'Gráfico Porcentual:',
-                            size: AwSize.s18,
-                            color: AwColors.boldBlack,
-                          ),
-                          WalletPieChart(data: data),
-                          AwSpacing.s,
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AwSpacing.m,
-                                  WalletCategoryList(
-                                      data: data, formatNumber: formatNumber),
-                                ],
+              ),
+            ],
+          );
+
+          if (!needsScroll) {
+            return Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AwSpacing.s,
+                  headerRow,
+                  WalletMonthYearSelector(
+                    selectedMonth: selectedMonth,
+                    selectedYear: selectedYear,
+                    onMonthChanged: (month) => setState(() => selectedMonth = month),
+                    onYearChanged: (year) => setState(() => selectedYear = year),
+                    availableMonths: availableMonths,
+                    availableYears: availableYears,
+                    totalAmount: totalAmount,
+                    formatNumber: formatNumber,
+                  ),
+                  AwSpacing.s,
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: data.isEmpty
+                          ? const Center(
+                              child: AwText.bold(
+                                'No existen gastos registrados durante este mes.',
+                                size: AwSize.s18,
+                                color: AwColors.black,
                               ),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const AwText.bold(
+                                  'Gráfico Porcentual:',
+                                  size: AwSize.s18,
+                                  color: AwColors.boldBlack,
+                                ),
+                                WalletPieChart(data: data),
+                                AwSpacing.s,
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        AwSpacing.m,
+                                        WalletCategoryList(data: data, formatNumber: formatNumber),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AwSpacing.s,
+                  headerRow,
+                  WalletMonthYearSelector(
+                    selectedMonth: selectedMonth,
+                    selectedYear: selectedYear,
+                    onMonthChanged: (month) => setState(() => selectedMonth = month),
+                    onYearChanged: (year) => setState(() => selectedYear = year),
+                    availableMonths: availableMonths,
+                    availableYears: availableYears,
+                    totalAmount: totalAmount,
+                    formatNumber: formatNumber,
+                  ),
+                  AwSpacing.s,
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: data.isEmpty
+                        ? const Center(
+                            child: AwText.bold(
+                              'No existen gastos registrados durante este mes.',
+                              size: AwSize.s18,
+                              color: AwColors.black,
+                            ),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const AwText.bold(
+                                'Gráfico Porcentual:',
+                                size: AwSize.s18,
+                                color: AwColors.boldBlack,
+                              ),
+                              WalletPieChart(data: data),
+                              AwSpacing.s,
+                              AwSpacing.m,
+                              WalletCategoryList(data: data, formatNumber: formatNumber),
+                            ],
                           ),
-                        ],
-                      ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
