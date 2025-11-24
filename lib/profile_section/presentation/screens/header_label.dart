@@ -39,12 +39,15 @@ class HeaderLabel extends StatefulWidget {
   State<HeaderLabel> createState() => _HeaderLabelState();
 }
 
-class _HeaderLabelState extends State<HeaderLabel> with SingleTickerProviderStateMixin {
+class _HeaderLabelState extends State<HeaderLabel>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _anim;
   bool _showBack = false;
   final GlobalKey _frontKey = GlobalKey();
   double? _cardHeight;
+  static const double _kDefaultHeaderHeight = 140.0;
+  double? _lastTextScale;
 
   @override
   void initState() {
@@ -57,6 +60,25 @@ class _HeaderLabelState extends State<HeaderLabel> with SingleTickerProviderStat
   void dispose() {
     _ctrl.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final double ts = MediaQuery.textScaleFactorOf(context);
+    if (_lastTextScale == null) {
+      _lastTextScale = ts;
+      return;
+    }
+
+    if (_lastTextScale != ts) {
+      _lastTextScale = ts;
+      if (_cardHeight != null) {
+        setState(() {
+          _cardHeight = null;
+        });
+      }
+    }
   }
 
   void _toggleFlip() {
@@ -88,7 +110,8 @@ class _HeaderLabelState extends State<HeaderLabel> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final effectiveOpacity = widget.shadowOpacity > 0 ? widget.shadowOpacity : 0.22;
+    final effectiveOpacity =
+        widget.shadowOpacity > 0 ? widget.shadowOpacity : 0.22;
     final boxShadow = [
       BoxShadow(
         color: Colors.black.withOpacity(effectiveOpacity),
@@ -113,13 +136,19 @@ class _HeaderLabelState extends State<HeaderLabel> with SingleTickerProviderStat
     final decoration = widget.cardStyle
         ? BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color.fromARGB(255, 108, 136, 198), Color.fromARGB(255, 85, 111, 143)],
+              colors: [
+                Color.fromARGB(255, 108, 136, 198),
+                Color.fromARGB(255, 85, 111, 143)
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(widget.borderRadius),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.22), blurRadius: 18, offset: const Offset(0, 8)),
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.22),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8)),
             ],
           )
         : BoxDecoration(
@@ -159,7 +188,9 @@ class _HeaderLabelState extends State<HeaderLabel> with SingleTickerProviderStat
     }
 
     Widget front = Padding(
-      padding: widget.cardStyle ? const EdgeInsets.symmetric(horizontal: 20.0, vertical: 38.0) : widget.padding,
+      padding: widget.cardStyle
+          ? const EdgeInsets.symmetric(horizontal: 20.0, vertical: 38.0)
+          : widget.padding,
       child: widget.child,
     );
 
@@ -184,8 +215,12 @@ class _HeaderLabelState extends State<HeaderLabel> with SingleTickerProviderStat
     // Back content should occupy full width. We'll render it inside the same
     // decoration so the back side keeps the HeaderLabel style.
     final Widget backContent = Padding(
-      padding: widget.cardStyle ? const EdgeInsets.symmetric(horizontal: 20.0, vertical: 38.0) : widget.padding,
-      child: SizedBox(width: double.infinity, child: widget.backChild ?? const SizedBox.shrink()),
+      padding: widget.cardStyle
+          ? const EdgeInsets.symmetric(horizontal: 20.0, vertical: 38.0)
+          : widget.padding,
+      child: SizedBox(
+          width: double.infinity,
+          child: widget.backChild ?? const SizedBox.shrink()),
     );
 
     final Widget decoratedBack = Container(
@@ -204,13 +239,35 @@ class _HeaderLabelState extends State<HeaderLabel> with SingleTickerProviderStat
     // measure front after layout to enforce equal heights for front/back
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureFront());
 
-    final double? enforcedHeight = widget.fixedHeight ?? _cardHeight;
+    final bool enforceFallback =
+        widget.fixedHeight != null || _cardHeight == null;
+    final double fallbackHeight = widget.fixedHeight ?? _kDefaultHeaderHeight;
 
-    final Widget frontWidget =
-        enforcedHeight != null ? SizedBox(height: enforcedHeight, child: decoratedFront) : decoratedFront;
+    final Widget innerFront = AnimatedSize(
+      alignment: Alignment.topCenter,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
+      child: decoratedFront,
+    );
 
-    final Widget backWidget =
-        enforcedHeight != null ? SizedBox(height: enforcedHeight, child: decoratedBack) : decoratedBack;
+    final Widget innerBack = AnimatedSize(
+      alignment: Alignment.topCenter,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
+      child: decoratedBack,
+    );
+
+    final Widget frontWidget = enforceFallback
+        ? ConstrainedBox(
+            constraints: BoxConstraints(minHeight: fallbackHeight),
+            child: innerFront)
+        : innerFront;
+
+    final Widget backWidget = enforceFallback
+        ? ConstrainedBox(
+            constraints: BoxConstraints(minHeight: fallbackHeight),
+            child: innerBack)
+        : innerBack;
 
     return SizedBox(
       width: double.infinity,

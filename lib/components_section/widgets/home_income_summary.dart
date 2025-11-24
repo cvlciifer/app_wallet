@@ -55,23 +55,23 @@ class HomeIncomeSummary extends StatelessWidget {
               : AwSpacing.s12;
 
           if (total == 0 && spent == 0) {
-            return SizedBox(
-              height: constraints.maxHeight,
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.account_balance_wallet,
-                      size: 40, color: AwColors.white),
-                  AwSpacing.s6,
-                  AwText.bold(
-                    'Admin Wallet',
-                    size: mainSize,
-                    color: AwColors.white,
-                  ),
-                  AwSpacing.s6,
-                  Flexible(
-                    child: Center(
+            if (constraints.hasBoundedHeight) {
+              return SizedBox(
+                height: constraints.maxHeight,
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.account_balance_wallet,
+                        size: 40, color: AwColors.white),
+                    AwSpacing.s6,
+                    AwText.bold(
+                      'Admin Wallet',
+                      size: mainSize,
+                      color: AwColors.white,
+                    ),
+                    AwSpacing.s6,
+                    Center(
                       child: AwText.normal(
                         'Tu app de gestión financiera',
                         size: subSize,
@@ -79,9 +79,33 @@ class HomeIncomeSummary extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                     ),
+                  ],
+                ),
+              );
+            }
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.account_balance_wallet,
+                    size: 40, color: AwColors.white),
+                AwSpacing.s6,
+                AwText.bold(
+                  'Admin Wallet',
+                  size: mainSize,
+                  color: AwColors.white,
+                ),
+                AwSpacing.s6,
+                Center(
+                  child: AwText.normal(
+                    'Tu app de gestión financiera',
+                    size: subSize,
+                    color: AwColors.white,
+                    textAlign: TextAlign.center,
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           }
 
