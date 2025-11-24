@@ -18,7 +18,8 @@ class ExpensesList extends StatelessWidget {
           'Eliminar Gasto',
           color: AwColors.red,
         ),
-        content: const AwText(text: 'Estás a punto de borrar un gasto. ¿Estás seguro?'),
+        content: const AwText(
+            text: 'Estás a punto de borrar un gasto. ¿Estás seguro?'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
@@ -39,13 +40,13 @@ class ExpensesList extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AwSize.s16),
                         ),
                       ),
-                      child: FittedBox(
+                      child: const FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
                           'Cancelar',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: AwColors.white,
                           ),
@@ -69,13 +70,13 @@ class ExpensesList extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AwSize.s16),
                         ),
                       ),
-                      child: FittedBox(
+                      child: const FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
                           'Continuar',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: AwColors.white,
                           ),
@@ -93,7 +94,8 @@ class ExpensesList extends StatelessWidget {
   }
 
   void _onExpenseTap(BuildContext context, Expense expense) {
-    DetailExpenseDialog.show(context, expense, onRemoveExpense: onRemoveExpense);
+    DetailExpenseDialog.show(context, expense,
+        onRemoveExpense: onRemoveExpense);
   }
 
   @override

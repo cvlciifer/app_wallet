@@ -1,7 +1,8 @@
 import 'package:app_wallet/library_section/main_library.dart';
 
 class DetailExpenseDialog {
-  static void show(BuildContext context, Expense expense, {void Function(Expense expense)? onRemoveExpense}) {
+  static void show(BuildContext context, Expense expense,
+      {void Function(Expense expense)? onRemoveExpense}) {
     void _showDeleteConfirmation(BuildContext context, Expense expense) {
       showDialog(
         context: context,
@@ -10,7 +11,8 @@ class DetailExpenseDialog {
             'Eliminar Gasto',
             color: AwColors.red,
           ),
-          content: const AwText(text: 'Estás a punto de borrar un gasto. ¿Estás seguro?'),
+          content: const AwText(
+              text: 'Estás a punto de borrar un gasto. ¿Estás seguro?'),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
@@ -31,13 +33,13 @@ class DetailExpenseDialog {
                             borderRadius: BorderRadius.circular(AwSize.s16),
                           ),
                         ),
-                        child: FittedBox(
+                        child: const FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
                             'Cancelar',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AwColors.white,
                             ),
@@ -62,13 +64,13 @@ class DetailExpenseDialog {
                             borderRadius: BorderRadius.circular(AwSize.s16),
                           ),
                         ),
-                        child: FittedBox(
+                        child: const FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
                             'Continuar',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AwColors.white,
                             ),
