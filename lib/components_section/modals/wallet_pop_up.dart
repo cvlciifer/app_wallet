@@ -62,7 +62,18 @@ class WalletPopup {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              AwText.bold(title, color: AwColors.white),
+                              LayoutBuilder(builder: (ctx, constraints) {
+                                final ts = MediaQuery.of(ctx).textScaleFactor;
+                                final computedSize =
+                                    (AwSize.s14 / (ts <= 0 ? 1.0 : ts))
+                                        .clamp(AwSize.s8, AwSize.s14)
+                                        .toDouble();
+                                return AwText.bold(
+                                  title,
+                                  color: AwColors.white,
+                                  size: computedSize,
+                                );
+                              }),
                               if (message != null)
                                 Padding(
                                   padding:
@@ -144,10 +155,19 @@ class WalletPopup {
                         ),
                         const SizedBox(width: AwSize.s12),
                         Expanded(
-                          child: AwText.normal(
-                            message,
-                            color: AwColors.white,
-                            size: AwSize.s14,
+                          child: LayoutBuilder(
+                            builder: (ctx, constraints) {
+                              final ts = MediaQuery.of(ctx).textScaleFactor;
+                              final computedSize =
+                                  (AwSize.s14 / (ts <= 0 ? 1.0 : ts))
+                                      .clamp(AwSize.s8, AwSize.s14)
+                                      .toDouble();
+                              return AwText.normal(
+                                message,
+                                color: AwColors.white,
+                                size: computedSize,
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -222,11 +242,18 @@ class WalletPopup {
                         ),
                         const SizedBox(width: AwSize.s10),
                         Expanded(
-                          child: AwText.bold(
-                            title,
-                            color: AwColors.white,
-                            size: AwSize.s14,
-                          ),
+                          child: LayoutBuilder(builder: (ctx, constraints) {
+                            final ts = MediaQuery.of(ctx).textScaleFactor;
+                            final computedSize =
+                                (AwSize.s14 / (ts <= 0 ? 1.0 : ts))
+                                    .clamp(AwSize.s8, AwSize.s14)
+                                    .toDouble();
+                            return AwText.bold(
+                              title,
+                              color: AwColors.white,
+                              size: computedSize,
+                            );
+                          }),
                         ),
                       ],
                     ),
@@ -284,11 +311,18 @@ class WalletPopup {
                     child: Row(
                       children: [
                         Expanded(
-                          child: AwText.normal(
-                            message,
-                            color: AwColors.white,
-                            size: AwSize.s14,
-                          ),
+                          child: LayoutBuilder(builder: (ctx, constraints) {
+                            final ts = MediaQuery.of(ctx).textScaleFactor;
+                            final computedSize =
+                                (AwSize.s14 / (ts <= 0 ? 1.0 : ts))
+                                    .clamp(AwSize.s8, AwSize.s14)
+                                    .toDouble();
+                            return AwText.normal(
+                              message,
+                              color: AwColors.white,
+                              size: computedSize,
+                            );
+                          }),
                         ),
                       ],
                     ),
