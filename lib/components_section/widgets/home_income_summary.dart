@@ -37,15 +37,22 @@ class HomeIncomeSummary extends StatelessWidget {
       return SizedBox(
         width: double.infinity,
         child: LayoutBuilder(builder: (ctx, constraints) {
-          // When available height is small on the device, reduce sizes/spacing
           final isTight =
               constraints.maxHeight.isFinite && constraints.maxHeight < 150;
-          final mainSize = isTight ? 24.0 : 28.0;
-          final subSize = isTight ? AwSize.s12 : AwSize.s14;
+          final double textScale = MediaQuery.textScaleFactorOf(ctx);
+          // base sizes
+          double mainSize = isTight ? 24.0 : 28.0;
+          double subSize = isTight ? AwSize.s12 : AwSize.s14;
+          // If user has accessibility text scale, reduce sizes proportionally
+          if (textScale > 1.0) {
+            mainSize = (mainSize / textScale) * 0.95;
+            subSize = (subSize / textScale) * 0.95;
+          }
           final Widget gapSmallWidget =
               isTight ? const SizedBox(height: 4) : AwSpacing.s6;
-          final Widget gapMediumWidget =
-              isTight ? const SizedBox(height: 8) : AwSpacing.s12;
+          final Widget gapMediumWidget = isTight || textScale > 1.0
+              ? const SizedBox(height: 6)
+              : AwSpacing.s12;
 
           if (total == 0 && spent == 0) {
             return SizedBox(
@@ -110,10 +117,16 @@ class HomeIncomeSummary extends StatelessWidget {
                               color: AwColors.white,
                             ),
                             AwSpacing.xs,
-                            AwText.bold(
-                              formatNumber(total.toDouble()),
-                              size: subSize,
-                              color: AwColors.white,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: AwText.bold(
+                                formatNumber(total.toDouble()),
+                                size: subSize,
+                                color: AwColors.white,
+                                textOverflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
                           ],
                         ),
@@ -129,10 +142,16 @@ class HomeIncomeSummary extends StatelessWidget {
                               color: AwColors.white,
                             ),
                             AwSpacing.xs,
-                            AwText.bold(
-                              formatNumber(spent),
-                              size: subSize,
-                              color: AwColors.white,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: AwText.bold(
+                                formatNumber(spent),
+                                size: subSize,
+                                color: AwColors.white,
+                                textOverflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
                           ],
                         ),

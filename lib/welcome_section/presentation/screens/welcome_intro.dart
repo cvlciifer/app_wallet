@@ -163,7 +163,7 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
         showWalletIcon: false,
         automaticallyImplyLeading: false,
       ),
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

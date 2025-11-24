@@ -117,7 +117,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: const WalletHomeAppbar(),
       body: Consumer<WalletExpensesController>(
         builder: (context, controller, child) {

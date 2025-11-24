@@ -31,7 +31,8 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
                 'Gasto preparado',
                 color: AwColors.black,
               ),
-              content: const AwText(text: 'El gasto está listo para guardarse.'),
+              content:
+                  const AwText(text: 'El gasto está listo para guardarse.'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
@@ -45,7 +46,8 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       }
     } catch (error) {
       if (mounted) {
-        WalletPopup.showNotificationError(context: context, title: 'Error al agregar gasto: $error');
+        WalletPopup.showNotificationError(
+            context: context, title: 'Error al agregar gasto: $error');
       }
       log('Error al agregar gasto: $error');
     }
@@ -56,7 +58,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold(
           'Nuevo Gasto',

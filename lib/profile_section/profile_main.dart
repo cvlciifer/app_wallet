@@ -43,6 +43,21 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
   @override
   Widget build(BuildContext context) {
     final aliasFromProvider = prov.Provider.of<AliasProvider>(context).alias;
+    final double _headerTextScale = MediaQuery.textScaleFactorOf(context);
+    double aliasSize = AwSize.s24;
+    double emailSize = AwSize.s14;
+    if (_headerTextScale > 1.0) {
+      aliasSize = (AwSize.s24 / _headerTextScale) * 0.95;
+      aliasSize = aliasSize.clamp(14.0, AwSize.s24);
+      emailSize = (AwSize.s14 / _headerTextScale) * 0.95;
+      emailSize = emailSize.clamp(10.0, AwSize.s14);
+    }
+    // Button text size inside header (scaled down when zoomed)
+    double _buttonTextSize = AwSize.s14;
+    if (_headerTextScale > 1.0) {
+      _buttonTextSize = (AwSize.s14 / _headerTextScale) * 0.95;
+      _buttonTextSize = _buttonTextSize.clamp(10.0, AwSize.s14);
+    }
     return Scaffold(
       backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
@@ -56,7 +71,6 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: HeaderLabel(
               cardStyle: true,
-              // muestra resumen de ingresos al voltear la tarjeta
               backChild: HomeIncomeSummary(
                 controller: prov.Provider.of<WalletExpensesController>(context,
                     listen: false),
@@ -81,7 +95,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                               ? 'Hola, $aliasFromProvider 👋'
                               : 'Hola...👋',
                           color: AwColors.white,
-                          size: AwSize.s24,
+                          size: aliasSize,
                           textOverflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
@@ -89,33 +103,72 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                         AwText.bold(
                           userEmail ?? '',
                           color: AwColors.white.withOpacity(0.95),
-                          size: AwSize.s14,
+                          size: emailSize,
                           textOverflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
                         AwSpacing.s6,
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: AwText.normal(
-                                "${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}",
-                                color: AwColors.white.withOpacity(0.95),
-                                size: AwSize.s14,
-                                textOverflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            UnderlinedButton(
-                              text: 'Cerrar sesión',
-                              icon: Icons.logout,
-                              color: AwColors.white,
-                              onTap: () {
-                                LogOutDialog.showLogOutDialog(context);
-                              },
-                            ),
-                          ],
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final textScale =
+                                MediaQuery.textScaleFactorOf(context);
+                            double dateSize = AwSize.s14;
+                            if (textScale > 1.0) {
+                              dateSize = (AwSize.s14 / textScale) * 0.95;
+                              dateSize = dateSize.clamp(10.0, AwSize.s14);
+                            }
+
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: AwText.normal(
+                                    "${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}",
+                                    color: AwColors.white.withOpacity(0.95),
+                                    size: dateSize,
+                                    textOverflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                                AwSpacing.w6,
+                                GestureDetector(
+                                  onTap: () {
+                                    LogOutDialog.showLogOutDialog(context);
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0, vertical: 6.0),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.logout,
+                                            color: AwColors.white, size: 16),
+                                        const SizedBox(width: 6),
+                                        ConstrainedBox(
+                                          constraints:
+                                              BoxConstraints(maxWidth: 140),
+                                          child: Text(
+                                            'Cerrar sesión',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: _buttonTextSize,
+                                              fontWeight: FontWeight.bold,
+                                              color: AwColors.white,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor: AwColors.white,
+                                              decorationThickness: 1.3,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),

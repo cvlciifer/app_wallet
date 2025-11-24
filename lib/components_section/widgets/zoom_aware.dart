@@ -13,7 +13,12 @@ class ZoomAware extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool?>(
       valueListenable: ZoomService().isZoomed,
-      builder: (ctx, val, ch) => builder(ctx, val == true, ch),
+      builder: (ctx, val, ch) {
+        final mq = MediaQuery.maybeOf(ctx);
+        final bool textScaleZoom = (mq?.textScaleFactor ?? 1.0) > 1.15;
+        final bool isZoom = (val == true) || textScaleZoom;
+        return builder(ctx, isZoom, ch);
+      },
       child: child,
     );
   }

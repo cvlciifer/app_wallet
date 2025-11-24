@@ -11,7 +11,8 @@ class RegistroIngresosPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(ingresosProvider);
     final ctrl = ref.read(ingresosProvider.notifier);
-    final formatter = NumberFormat.currency(locale: 'es_CL', symbol: '\$', decimalDigits: 0);
+    final formatter =
+        NumberFormat.currency(locale: 'es_CL', symbol: '\$', decimalDigits: 0);
 
     // Build a sorted list of incomes from localIncomes map
     final entriesAll = state.localIncomes.values.toList();
@@ -28,8 +29,8 @@ class RegistroIngresosPage extends ConsumerWidget {
     });
 
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
-      appBar: WalletAppBar(
+      backgroundColor: AwColors.white,
+      appBar: const WalletAppBar(
         title: AwText.bold('Registro de ingresos', color: AwColors.white),
         automaticallyImplyLeading: true,
       ),
@@ -46,11 +47,14 @@ class RegistroIngresosPage extends ConsumerWidget {
               children: [
                 AwSpacing.s6,
                 if (entries.isEmpty)
-                  AwText.normal('No hay ingresos registrados aún.', size: AwSize.s14, color: AwColors.modalGrey),
+                  AwText.normal('No hay ingresos registrados aún.',
+                      size: AwSize.s14, color: AwColors.modalGrey),
                 ...entries.map((row) {
-                  final fechaMs = (row['fecha'] as int?) ?? DateTime.now().millisecondsSinceEpoch;
+                  final fechaMs = (row['fecha'] as int?) ??
+                      DateTime.now().millisecondsSinceEpoch;
                   final dt = DateTime.fromMillisecondsSinceEpoch(fechaMs);
-                  final monthLabelRaw = DateFormat('MMMM yyyy', 'es').format(dt);
+                  final monthLabelRaw =
+                      DateFormat('MMMM yyyy', 'es').format(dt);
                   final monthLabel = monthLabelRaw.isNotEmpty
                       ? '${monthLabelRaw[0].toUpperCase()}${monthLabelRaw.substring(1)}'
                       : monthLabelRaw;
@@ -65,9 +69,12 @@ class RegistroIngresosPage extends ConsumerWidget {
                       imprevistoText: formatter.format(imprevisto),
                       totalText: formatter.format(fijo + imprevisto),
                       onEdit: () async {
-                        final fmt = NumberFormat.currency(locale: 'es_CL', symbol: '', decimalDigits: 0);
-                        final fijoCtrl = TextEditingController(text: fmt.format(fijo));
-                        final impCtrl = TextEditingController(text: fmt.format(imprevisto));
+                        final fmt = NumberFormat.currency(
+                            locale: 'es_CL', symbol: '', decimalDigits: 0);
+                        final fijoCtrl =
+                            TextEditingController(text: fmt.format(fijo));
+                        final impCtrl =
+                            TextEditingController(text: fmt.format(imprevisto));
                         final ok = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => Dialog(
@@ -76,7 +83,8 @@ class RegistroIngresosPage extends ConsumerWidget {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const AwText.bold('Editar ingreso', size: AwSize.s16),
+                                  const AwText.bold('Editar ingreso',
+                                      size: AwSize.s16),
                                   const SizedBox(height: 8),
                                   CustomTextField(
                                       controller: fijoCtrl,
@@ -84,8 +92,10 @@ class RegistroIngresosPage extends ConsumerWidget {
                                       keyboardType: TextInputType.number,
                                       inputFormatters: [
                                         MaxAmountFormatter(
-                                            maxDigits: MaxAmountFormatter.kEightDigits,
-                                            maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount),
+                                            maxDigits:
+                                                MaxAmountFormatter.kEightDigits,
+                                            maxAmount: MaxAmountFormatter
+                                                .kEightDigitsMaxAmount),
                                         CLPTextInputFormatter()
                                       ]),
                                   AwSpacing.s6,
@@ -95,8 +105,10 @@ class RegistroIngresosPage extends ConsumerWidget {
                                       keyboardType: TextInputType.number,
                                       inputFormatters: [
                                         MaxAmountFormatter(
-                                            maxDigits: MaxAmountFormatter.kEightDigits,
-                                            maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount),
+                                            maxDigits:
+                                                MaxAmountFormatter.kEightDigits,
+                                            maxAmount: MaxAmountFormatter
+                                                .kEightDigitsMaxAmount),
                                         CLPTextInputFormatter()
                                       ]),
                                   AwSpacing.s12,
@@ -104,10 +116,15 @@ class RegistroIngresosPage extends ConsumerWidget {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       TextButton(
-                                          onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(false),
+                                          child: const Text('Cancelar')),
                                       ElevatedButton(
-                                        onPressed: () => Navigator.of(ctx).pop(true),
-                                        style: ElevatedButton.styleFrom(backgroundColor: AwColors.lightBlue),
+                                        onPressed: () =>
+                                            Navigator.of(ctx).pop(true),
+                                        style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                AwColors.lightBlue),
                                         child: const Text('Guardar'),
                                       ),
                                     ],
@@ -118,10 +135,15 @@ class RegistroIngresosPage extends ConsumerWidget {
                           ),
                         );
                         if (ok == true) {
-                          final newFijo = int.tryParse(fijoCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-                          final newImp = int.tryParse(impCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+                          final newFijo = int.tryParse(fijoCtrl.text
+                                  .replaceAll(RegExp(r'[^0-9]'), '')) ??
+                              0;
+                          final newImp = int.tryParse(impCtrl.text
+                                  .replaceAll(RegExp(r'[^0-9]'), '')) ??
+                              0;
                           final date = DateTime(dt.year, dt.month, 1);
-                          await ctrl.updateIncomeForDate(date, newFijo, newImp == 0 ? null : newImp);
+                          await ctrl.updateIncomeForDate(
+                              date, newFijo, newImp == 0 ? null : newImp);
                           await ctrl.loadLocalIncomes();
                         }
                       },
@@ -136,9 +158,13 @@ class RegistroIngresosPage extends ConsumerWidget {
                                       color: AwColors.modalGrey),
                                   actions: [
                                     TextButton(
-                                        onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+                                        onPressed: () =>
+                                            Navigator.of(ctx).pop(false),
+                                        child: const Text('Cancelar')),
                                     TextButton(
-                                        onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Eliminar')),
+                                        onPressed: () =>
+                                            Navigator.of(ctx).pop(true),
+                                        child: const Text('Eliminar')),
                                   ],
                                 ));
                         if (confirm == true) {

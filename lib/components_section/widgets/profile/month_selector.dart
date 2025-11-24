@@ -60,17 +60,18 @@ class MonthSelector extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AwText.bold(
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: AwText.bold(
                         toBeginningOfSentenceCase(
                                 DateFormat('MMMM yyyy', 'es').format(month)) ??
                             DateFormat('MMMM yyyy', 'es').format(month),
                         size: AwSize.s14,
                         color: AwColors.boldBlack,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),

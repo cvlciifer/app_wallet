@@ -54,6 +54,9 @@ class AwSpacing {
   /// Size: 256 px
   static const SizedBox xxxl = SizedBox(height: 256);
 
+  /// Width: 6 px (horizontal spacer)
+  static const SizedBox w6 = SizedBox(width: 6);
+
   /// Width: 8 px (horizontal spacer)
   static const SizedBox w = SizedBox(width: 8);
 
