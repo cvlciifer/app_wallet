@@ -5,8 +5,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 class EstadisticasScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  const EstadisticasScreen({Key? key, required this.expenses})
-      : super(key: key);
+  const EstadisticasScreen({Key? key, required this.expenses}) : super(key: key);
 
   @override
   _EstadisticasScreenState createState() => _EstadisticasScreenState();
@@ -17,6 +16,9 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   int selectedYear = DateTime.now().year;
   bool groupBySubcategory = false;
   bool _initializedFromController = false;
+  // PageView controller and current page index for the charts carousel
+  late PageController _pageController;
+  int _currentChartPage = 0;
 
   // PageView controller and current page index for the charts carousel
   late PageController _pageController;
@@ -42,8 +44,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   List<Map<String, dynamic>> _getFilteredData(List<Expense> expenses) {
     final filteredExpenses = expenses.where((expense) {
       final expenseDate = expense.date;
-      return expenseDate.month == selectedMonth &&
-          expenseDate.year == selectedYear;
+      return expenseDate.month == selectedMonth && expenseDate.year == selectedYear;
     }).toList();
 
     if (!groupBySubcategory) {
@@ -51,9 +52,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         return WalletExpenseBucket.forCategory(filteredExpenses, category);
       }).toList();
 
-      return walletExpenseBuckets
-          .where((bucket) => bucket.totalExpenses > 0)
-          .map((bucket) {
+      return walletExpenseBuckets.where((bucket) => bucket.totalExpenses > 0).map((bucket) {
         return {
           'label': bucket.category.displayName,
           'amount': bucket.totalExpenses,
@@ -102,8 +101,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
           'color': Colors.grey,
         });
       }
-      result.sort(
-          (a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
+      result.sort((a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
       return result;
     }
   }
@@ -140,8 +138,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         .toSet()
         .toList();
     availableMonths.sort();
-    if (!availableMonths.contains(selectedMonth) &&
-        availableMonths.isNotEmpty) {
+    if (!availableMonths.contains(selectedMonth) && availableMonths.isNotEmpty) {
       selectedMonth = availableMonths.first;
     }
 

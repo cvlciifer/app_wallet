@@ -32,9 +32,7 @@ class _ChartState extends State<Chart> {
   }
 
   void _recomputeBuckets() {
-    _buckets = Category.values
-        .map((c) => WalletExpenseBucket.forCategory(widget.expenses, c))
-        .toList();
+    _buckets = Category.values.map((c) => WalletExpenseBucket.forCategory(widget.expenses, c)).toList();
 
     _maxTotalExpense = 0;
     for (final bucket in _buckets) {

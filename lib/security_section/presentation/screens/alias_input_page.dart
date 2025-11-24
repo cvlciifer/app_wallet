@@ -53,8 +53,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
     if (widget.initialSetup) {
       final uidCheck = AuthService().getCurrentUser()?.uid;
       final pinServiceCheck = PinService();
-      final hasPinCheck =
-          uidCheck != null && await pinServiceCheck.hasPin(accountId: uidCheck);
+      final hasPinCheck = uidCheck != null && await pinServiceCheck.hasPin(accountId: uidCheck);
       if (hasPinCheck) {
       } else {
         Navigator.of(context).pushReplacement(MaterialPageRoute(
@@ -216,8 +215,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
                 onChanged: (_) {},
                 hideCounter: false,
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                      RegExp(r"[A-Za-zÀ-ÖØ-öø-ÿ\s]")),
+                  FilteringTextInputFormatter.allow(RegExp(r"[A-Za-zÀ-ÖØ-öø-ÿ\s]")),
                 ],
               ),
               AwSpacing.s12,
@@ -230,30 +228,20 @@ class _AliasInputPageState extends State<AliasInputPage> {
                 onChanged: (_) {},
                 hideCounter: false,
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                      RegExp(r"[A-Za-zÀ-ÖØ-öø-ÿ\s]")),
+                  FilteringTextInputFormatter.allow(RegExp(r"[A-Za-zÀ-ÖØ-öø-ÿ\s]")),
                 ],
               ),
-              if ((_controller.text.trim().isNotEmpty &&
-                      !_isAliasValid(_controller.text)) ||
-                  (_confirmController.text.trim().isNotEmpty &&
-                      !_isAliasValid(_confirmController.text)))
-                const AwText.normal(
-                    'Solo se permiten letras y espacios (máx 15 caracteres)',
-                    color: AwColors.red),
-              if (_controller.text.trim().isNotEmpty &&
-                  _confirmController.text.trim().isNotEmpty &&
-                  !_aliasesMatch())
-                const AwText.normal(
-                    'Los alias no coinciden (Verifica las mayúsculas)',
-                    color: AwColors.red),
+              if ((_controller.text.trim().isNotEmpty && !_isAliasValid(_controller.text)) ||
+                  (_confirmController.text.trim().isNotEmpty && !_isAliasValid(_confirmController.text)))
+                const AwText.normal('Solo se permiten letras y espacios (máx 15 caracteres)', color: AwColors.red),
+              if (_controller.text.trim().isNotEmpty && _confirmController.text.trim().isNotEmpty && !_aliasesMatch())
+                const AwText.normal('Los alias no coinciden (Verifica las mayúsculas)', color: AwColors.red),
               AwSpacing.s20,
               Center(
                 child: WalletButton.primaryButton(
                   buttonText: 'Confirmar',
                   onPressed: _canContinue ? _continue : null,
-                  backgroundColor:
-                      _canContinue ? AwColors.appBarColor : AwColors.blueGrey,
+                  backgroundColor: _canContinue ? AwColors.appBarColor : AwColors.blueGrey,
                   buttonTextColor: AwColors.white,
                 ),
               ),
@@ -262,8 +250,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
                 buttonText: 'Configurar más tarde',
                 onPressed: () {
                   if (widget.initialSetup) {
-                    Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const SetPinPage()));
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const SetPinPage()));
                   } else {
                     Navigator.of(context).pop(null);
                   }
