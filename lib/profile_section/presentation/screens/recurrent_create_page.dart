@@ -214,7 +214,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
 
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold(
           'Registro de gastos recurrentes',

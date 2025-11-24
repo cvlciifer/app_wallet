@@ -21,26 +21,38 @@ class UnderlinedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveColor = color ?? AwColors.appBarColor;
 
-    final child = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (icon != null) ...[
-          Icon(icon, color: effectiveColor, size: 18),
-          const SizedBox(width: 6),
-        ],
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: AwSize.s14,
-            fontWeight: FontWeight.bold,
-            color: effectiveColor,
-            decoration: TextDecoration.underline,
-            decorationColor: effectiveColor,
-            decorationThickness: 1.3,
+    final child = LayoutBuilder(builder: (context, constraints) {
+      final hasBoundedWidth = constraints.maxWidth.isFinite;
+      final maxTextWidth = hasBoundedWidth
+          ? constraints.maxWidth
+          : MediaQuery.of(context).size.width * 0.5;
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, color: effectiveColor, size: 18),
+            const SizedBox(width: 6),
+          ],
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxTextWidth),
+            child: Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: AwSize.s14,
+                fontWeight: FontWeight.bold,
+                color: effectiveColor,
+                decoration: TextDecoration.underline,
+                decorationColor: effectiveColor,
+                decorationThickness: 1.3,
+              ),
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
 
     return Align(
       alignment: alignment,

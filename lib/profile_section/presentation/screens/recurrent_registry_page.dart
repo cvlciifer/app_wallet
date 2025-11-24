@@ -38,7 +38,7 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(recurrentRegistryProvider);
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold(
           'Registros',
@@ -95,7 +95,10 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                             if (_controller != null) {
                               await _controller!.loadExpensesSmart();
                             } else {
-                              final controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
+                              final controller =
+                                  prov.Provider.of<WalletExpensesController>(
+                                      context,
+                                      listen: false);
                               await controller.loadExpensesSmart();
                             }
                           } catch (_) {}
@@ -291,7 +294,7 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold('Registros', color: AwColors.white, size: AwSize.s18),
         showBackArrow: true,

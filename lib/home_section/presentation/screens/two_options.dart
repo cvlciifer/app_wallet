@@ -12,10 +12,16 @@ Future<void> showTwoOptionsDialog(
     barrierLabel: 'Opciones',
     pageBuilder: (ctx, a1, a2) => const SizedBox.shrink(),
     transitionBuilder: (ctx, animation, secondaryAnimation, child) {
-      final topOffset = Tween<Offset>(begin: const Offset(0, -1.2), end: Offset.zero)
-          .animate(CurvedAnimation(parent: animation, curve: const Interval(0.0, 0.8, curve: Curves.elasticOut)));
-      final bottomOffset = Tween<Offset>(begin: const Offset(0, 1.2), end: Offset.zero)
-          .animate(CurvedAnimation(parent: animation, curve: const Interval(0.1, 1.0, curve: Curves.elasticOut)));
+      final topOffset =
+          Tween<Offset>(begin: const Offset(0, -1.2), end: Offset.zero).animate(
+              CurvedAnimation(
+                  parent: animation,
+                  curve: const Interval(0.0, 0.8, curve: Curves.elasticOut)));
+      final bottomOffset =
+          Tween<Offset>(begin: const Offset(0, 1.2), end: Offset.zero).animate(
+              CurvedAnimation(
+                  parent: animation,
+                  curve: const Interval(0.1, 1.0, curve: Curves.elasticOut)));
 
       return Material(
         color: Colors.black45,
@@ -30,7 +36,8 @@ Future<void> showTwoOptionsDialog(
                   child: Card(
                     color: AwColors.white,
                     elevation: 10,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
                       onTap: () async {
@@ -42,16 +49,24 @@ Future<void> showTwoOptionsDialog(
                           onAddExpense();
                         } catch (_) {}
                       },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: SizedBox(
                           height: 85,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Icon(Icons.add, color: AwColors.appBarColor),
+                              const Icon(Icons.add,
+                                  color: AwColors.appBarColor),
                               AwSpacing.m,
-                              AwText.bold('Agregar gasto', color: AwColors.boldBlack),
+                              Expanded(
+                                child: AwText.bold(
+                                  'Agregar gasto',
+                                  color: AwColors.boldBlack,
+                                  maxLines: 2,
+                                  textOverflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -65,7 +80,8 @@ Future<void> showTwoOptionsDialog(
                   child: Card(
                     color: AwColors.white,
                     elevation: 10,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
                       onTap: () async {
@@ -86,7 +102,14 @@ Future<void> showTwoOptionsDialog(
                             children: [
                               Icon(Icons.repeat, color: AwColors.appBarColor),
                               AwSpacing.m,
-                              AwText.bold('Agregar gasto Recurrente', color: AwColors.boldBlack),
+                              Expanded(
+                                child: AwText.bold(
+                                  'Agregar gasto Recurrente',
+                                  color: AwColors.boldBlack,
+                                  maxLines: 2,
+                                  textOverflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -108,7 +131,8 @@ Future<void> showTwoOptionsDialog(
                     child: const CircleAvatar(
                       backgroundColor: AwColors.greyLight,
                       radius: 20,
-                      child: Icon(Icons.close, size: 20, color: AwColors.appBarColor),
+                      child: Icon(Icons.close,
+                          size: 20, color: AwColors.appBarColor),
                     ),
                   ),
                 ),

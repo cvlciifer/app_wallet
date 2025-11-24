@@ -13,7 +13,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _filters = ModalRoute.of(context)!.settings.arguments as Map<Category, bool>;
+    _filters =
+        ModalRoute.of(context)!.settings.arguments as Map<Category, bool>;
   }
 
   bool _allCategoriesDeselected() {
@@ -64,7 +65,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: WalletAppBar(
         title: const AwText.bold(
           'Filtros',

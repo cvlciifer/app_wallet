@@ -23,7 +23,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold('Configuraciones', color: AwColors.white),
         automaticallyImplyLeading: true,

@@ -164,10 +164,10 @@ class _AliasInputPageState extends State<AliasInputPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
-      appBar: const WalletAppBar(
+      backgroundColor: AwColors.white,
+      appBar: WalletAppBar(
         title: AwText.normal('Alias', color: AwColors.white),
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: !widget.initialSetup,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

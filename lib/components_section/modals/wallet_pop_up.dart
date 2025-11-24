@@ -65,7 +65,8 @@ class WalletPopup {
                               AwText.bold(title, color: AwColors.white),
                               if (message != null)
                                 Padding(
-                                  padding: const EdgeInsets.only(top: AwSize.s4),
+                                  padding:
+                                      const EdgeInsets.only(top: AwSize.s4),
                                   child: message,
                                 ),
                             ],
@@ -84,20 +85,20 @@ class WalletPopup {
     );
   }
 
-  static void showNotificationWarningOrange({
+  static Future<void> showNotificationWarningOrange({
     required BuildContext context,
     required String message,
-    int visibleTime = 2,
+    int? visibleTime = 2,
     bool isDismissible = true,
   }) {
-    showDialog(
+    return showDialog<void>(
       useRootNavigator: true,
       barrierDismissible: isDismissible,
       barrierColor: Colors.transparent,
       context: context,
       builder: (context) {
         setContext(context);
-        popUpTimeClose(visibleTime);
+        if (visibleTime != null && visibleTime > 0) popUpTimeClose(visibleTime);
         return Stack(
           children: [
             Positioned(

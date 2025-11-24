@@ -15,6 +15,7 @@ class PinPageScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AwColors.white,
       appBar: transparentAppBar
           ? WalletAppBar(
               showBackArrow: false,

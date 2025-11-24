@@ -101,11 +101,8 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                       child: AwText.normal(
                         formatNumber(available),
                         size: 30, // keep as requested
-                        color: available < 0
-                            ? AwColors.red
-                            : (available == 0.0
-                                ? AwColors.appBarColor
-                                : AwColors.boldBlack),
+                        color:
+                            available < 0 ? AwColors.red : AwColors.boldBlack,
                       ),
                     ),
 

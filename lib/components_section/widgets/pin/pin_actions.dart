@@ -19,18 +19,38 @@ class PinActions extends StatelessWidget {
         if (hasConnection)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: UnderlinedButton(
-                    text: '¿No eres tú?',
-                    onTap: onNotYou,
-                    color: AwColors.blue,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: UnderlinedButton(
+            child: LayoutBuilder(builder: (context, constraints) {
+              final maxW = constraints.maxWidth;
+              final showInline = maxW.isFinite && maxW >= 300;
+
+              if (showInline) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    UnderlinedButton(
+                      text: 'Olvidé mi PIN',
+                      icon: Icons.lock_reset,
+                      color: AwColors.blue,
+                      onTap: () async {
+                        await onForgotPin();
+                      },
+                    ),
+                    AwSpacing.s12,
+                    UnderlinedButton(
+                      text: '¿No eres tú?',
+                      onTap: onNotYou,
+                      color: AwColors.blue,
+                    ),
+                  ],
+                );
+              }
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  UnderlinedButton(
                     text: 'Olvidé mi PIN',
                     icon: Icons.lock_reset,
                     color: AwColors.blue,
@@ -38,9 +58,15 @@ class PinActions extends StatelessWidget {
                       await onForgotPin();
                     },
                   ),
-                ),
-              ],
-            ),
+                  AwSpacing.s,
+                  UnderlinedButton(
+                    text: '¿No eres tú?',
+                    onTap: onNotYou,
+                    color: AwColors.blue,
+                  ),
+                ],
+              );
+            }),
           ),
         // Se removieron opciones de depuración de la UI en producción.
       ],

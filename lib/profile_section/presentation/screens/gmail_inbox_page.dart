@@ -587,7 +587,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       context: context,
       builder: (ctx) {
         final maxHeight = MediaQuery.of(ctx).size.height * 0.7;
-        final maxWidth = MediaQuery.of(ctx).size.width * 1;
+        final maxWidth = MediaQuery.of(ctx).size.width * 0.92;
         return Dialog(
           backgroundColor: Colors.transparent,
           child: TicketCard(
@@ -631,59 +631,164 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        WalletButton.textButton(
-                          onPressed: () => Navigator.of(ctx).pop(),
-                          buttonText: 'Cerrar',
-                        ),
-                        const SizedBox(width: 12),
-                        WalletButton.primaryButton(
-                          onPressed: () async {
-                            Navigator.of(ctx).pop();
+                    LayoutBuilder(
+                      builder: (bCtx, constraints) {
+                        final available = constraints.maxWidth;
+                        final textScale = MediaQuery.of(ctx).textScaleFactor;
+                        final shouldStack = available < 360 || textScale > 1.15;
 
-                            final expense = Expense(
-                              title: comentario ?? title,
-                              amount: amount ?? 0.0,
-                              date: parsedDate,
-                              category: Category.serviciosCuentas,
-                            );
+                        if (shouldStack) {
+                          final btnWidth =
+                              (available * 0.85).clamp(120.0, 520.0);
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ConstrainedBox(
+                                  constraints:
+                                      BoxConstraints(maxWidth: btnWidth),
+                                  child: WalletButton.primaryButton(
+                                    onPressed: () async {
+                                      Navigator.of(ctx).pop();
 
-                            final returned = await Navigator.of(context).push<Expense?>(
-                              MaterialPageRoute(builder: (_) => NewExpenseScreen(initialExpense: expense)),
-                            );
+                                      final expense = Expense(
+                                        title: comentario ?? title,
+                                        amount: amount ?? 0.0,
+                                        date: parsedDate,
+                                        category: Category.serviciosCuentas,
+                                      );
 
-                            if (returned != null) {
-                              final conn = await Connectivity().checkConnectivity();
-                              final hasConnection = conn != ConnectivityResult.none;
-                              final controller = context.read<WalletExpensesController>();
+                                      final returned =
+                                          await Navigator.of(context)
+                                              .push<Expense?>(
+                                        MaterialPageRoute(
+                                            builder: (_) => NewExpenseScreen(
+                                                initialExpense: expense)),
+                                      );
 
-                              try {
-                                try {
-                                  riverpod.ProviderScope.containerOf(context, listen: false)
-                                      .read(globalLoaderProvider.notifier)
-                                      .state = true;
-                                } catch (_) {}
+                                      if (returned != null) {
+                                        final conn = await Connectivity()
+                                            .checkConnectivity();
+                                        final hasConnection =
+                                            conn != ConnectivityResult.none;
+                                        final controller = context
+                                            .read<WalletExpensesController>();
 
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const WalletHomePage()),
-                                  (route) => false,
-                                );
+                                        try {
+                                          try {
+                                            riverpod.ProviderScope.containerOf(
+                                                    context,
+                                                    listen: false)
+                                                .read(globalLoaderProvider
+                                                    .notifier)
+                                                .state = true;
+                                          } catch (_) {}
 
-                                await controller.addExpense(returned, hasConnection: hasConnection);
-                              } finally {
-                                try {
-                                  riverpod.ProviderScope.containerOf(context, listen: false)
-                                      .read(globalLoaderProvider.notifier)
-                                      .state = false;
-                                } catch (_) {}
-                              }
-                            }
-                          },
-                          buttonText: 'Agregar gasto',
-                        ),
-                      ],
+                                          Navigator.of(context)
+                                              .pushAndRemoveUntil(
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const WalletHomePage()),
+                                            (route) => false,
+                                          );
+
+                                          await controller.addExpense(returned,
+                                              hasConnection: hasConnection);
+                                        } finally {
+                                          try {
+                                            riverpod.ProviderScope.containerOf(
+                                                    context,
+                                                    listen: false)
+                                                .read(globalLoaderProvider
+                                                    .notifier)
+                                                .state = false;
+                                          } catch (_) {}
+                                        }
+                                      }
+                                    },
+                                    buttonText: 'Agregar gasto',
+                                  )),
+                              const SizedBox(height: 8),
+                              WalletButton.textButton(
+                                onPressed: () => Navigator.of(ctx).pop(),
+                                buttonText: 'Cerrar',
+                                alignment: MainAxisAlignment.center,
+                              ),
+                            ],
+                          );
+                        }
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            WalletButton.textButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              buttonText: 'Cerrar',
+                            ),
+                            const SizedBox(width: 12),
+                            ConstrainedBox(
+                              constraints:
+                                  BoxConstraints(maxWidth: maxWidth * 0.62),
+                              child: WalletButton.primaryButton(
+                                onPressed: () async {
+                                  Navigator.of(ctx).pop();
+
+                                  final expense = Expense(
+                                    title: comentario ?? title,
+                                    amount: amount ?? 0.0,
+                                    date: parsedDate,
+                                    category: Category.serviciosCuentas,
+                                  );
+
+                                  final returned = await Navigator.of(context)
+                                      .push<Expense?>(
+                                    MaterialPageRoute(
+                                        builder: (_) => NewExpenseScreen(
+                                            initialExpense: expense)),
+                                  );
+
+                                  if (returned != null) {
+                                    final conn = await Connectivity()
+                                        .checkConnectivity();
+                                    final hasConnection =
+                                        conn != ConnectivityResult.none;
+                                    final controller = context
+                                        .read<WalletExpensesController>();
+
+                                    try {
+                                      try {
+                                        riverpod.ProviderScope.containerOf(
+                                                context,
+                                                listen: false)
+                                            .read(globalLoaderProvider.notifier)
+                                            .state = true;
+                                      } catch (_) {}
+
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const WalletHomePage()),
+                                        (route) => false,
+                                      );
+
+                                      await controller.addExpense(returned,
+                                          hasConnection: hasConnection);
+                                    } finally {
+                                      try {
+                                        riverpod.ProviderScope.containerOf(
+                                                context,
+                                                listen: false)
+                                            .read(globalLoaderProvider.notifier)
+                                            .state = false;
+                                      } catch (_) {}
+                                    }
+                                  }
+                                },
+                                buttonText: 'Agregar gasto',
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 8),
                   ],

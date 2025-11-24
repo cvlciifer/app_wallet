@@ -36,7 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold('Regístrate', color: AwColors.white),
         automaticallyImplyLeading: true,

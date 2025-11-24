@@ -77,33 +77,41 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
         child: Transform.rotate(
           angle: chartAngle,
           alignment: Alignment.center,
-          child: SizedBox(
-            height: 300,
-            width: 300,
-            child: PieChart(
-              PieChartData(
-                sections: _getPieChartSections(widget.data),
-                pieTouchData: PieTouchData(touchCallback: (event, response) {
-                  try {
-                    if (response == null) return;
-                    final touched = response.touchedSection;
-                    if (touched == null) return;
+          child: LayoutBuilder(builder: (ctx, constraints) {
+            final maxSide = math.min(
+                constraints.maxWidth,
+                constraints.maxHeight.isFinite ? constraints.maxHeight : double.infinity);
+            final baseSize = maxSide.isFinite && maxSide > 0 ? maxSide : 300.0;
+            final pieSize = math.min(300.0, baseSize);
 
-                    final index = touched.touchedSectionIndex;
-                    if (index < 0 || index >= widget.data.length) return;
+            return SizedBox(
+              height: pieSize,
+              width: pieSize,
+              child: PieChart(
+                PieChartData(
+                  sections: _getPieChartSections(widget.data, pieSize),
+                  pieTouchData: PieTouchData(touchCallback: (event, response) {
+                    try {
+                      if (response == null) return;
+                      final touched = response.touchedSection;
+                      if (touched == null) return;
 
-                    final item = widget.data[index];
-                    if (event.runtimeType.toString().contains('FlTapUpEvent')) {
-                      _showCategoryPopup(context, item);
-                    }
-                  } catch (_) {}
-                }),
-                borderData: FlBorderData(show: false),
-                sectionsSpace: 0,
-                centerSpaceRadius: 40,
+                      final index = touched.touchedSectionIndex;
+                      if (index < 0 || index >= widget.data.length) return;
+
+                      final item = widget.data[index];
+                      if (event.runtimeType.toString().contains('FlTapUpEvent')) {
+                        _showCategoryPopup(context, item);
+                      }
+                    } catch (_) {}
+                  }),
+                  borderData: FlBorderData(show: false),
+                  sectionsSpace: 0,
+                  centerSpaceRadius: pieSize * 0.13,
+                ),
               ),
-            ),
-          ),
+            );
+          }),
         ),
       ),
     );
@@ -242,7 +250,7 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
     _animController.reset();
   }
 
-  List<PieChartSectionData> _getPieChartSections(List<Map<String, dynamic>> data) {
+  List<PieChartSectionData> _getPieChartSections(List<Map<String, dynamic>> data, double pieSize) {
     final labels = data.map((d) => (d['label'] as String)).toList();
 
     final Map<String, Color> labelColor = {};
@@ -297,9 +305,9 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
         color: color,
         value: amount,
         title: '',
-        radius: 100,
-        titleStyle: const TextStyle(
-          fontSize: 16,
+        radius: pieSize * 0.33,
+        titleStyle: TextStyle(
+          fontSize: math.max(12, pieSize * 0.05),
           fontWeight: FontWeight.bold,
           color: AwColors.white,
         ),

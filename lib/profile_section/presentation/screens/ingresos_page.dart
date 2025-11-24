@@ -65,8 +65,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
     final ctrl = ref.read(ingresosProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
-      appBar: WalletAppBar(
+      backgroundColor: AwColors.white,
+      appBar: const WalletAppBar(
         title: AwText.bold('Ingreso mensual', color: AwColors.white),
         automaticallyImplyLeading: true,
       ),

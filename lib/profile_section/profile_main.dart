@@ -43,6 +43,21 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
   @override
   Widget build(BuildContext context) {
     final aliasFromProvider = prov.Provider.of<AliasProvider>(context).alias;
+    final double _headerTextScale = MediaQuery.textScaleFactorOf(context);
+    double aliasSize = AwSize.s24;
+    double emailSize = AwSize.s14;
+    if (_headerTextScale > 1.0) {
+      aliasSize = (AwSize.s24 / _headerTextScale) * 0.95;
+      aliasSize = aliasSize.clamp(14.0, AwSize.s24);
+      emailSize = (AwSize.s14 / _headerTextScale) * 0.95;
+      emailSize = emailSize.clamp(10.0, AwSize.s14);
+    }
+    // Button text size inside header (scaled down when zoomed)
+    double _buttonTextSize = AwSize.s14;
+    if (_headerTextScale > 1.0) {
+      _buttonTextSize = (AwSize.s14 / _headerTextScale) * 0.95;
+      _buttonTextSize = _buttonTextSize.clamp(10.0, AwSize.s14);
+    }
     return Scaffold(
       backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
@@ -56,9 +71,9 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: HeaderLabel(
               cardStyle: true,
-              // muestra resumen de ingresos al voltear la tarjeta
               backChild: HomeIncomeSummary(
-                controller: prov.Provider.of<WalletExpensesController>(context, listen: false),
+                controller: prov.Provider.of<WalletExpensesController>(context,
+                    listen: false),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -75,11 +90,12 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         AwText.bold(
-                          aliasFromProvider != null && aliasFromProvider.isNotEmpty
+                          aliasFromProvider != null &&
+                                  aliasFromProvider.isNotEmpty
                               ? 'Hola, $aliasFromProvider 👋'
                               : 'Hola...👋',
                           color: AwColors.white,
-                          size: AwSize.s24,
+                          size: aliasSize,
                           textOverflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
@@ -87,32 +103,72 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                         AwText.bold(
                           userEmail ?? '',
                           color: AwColors.white.withOpacity(0.95),
-                          size: AwSize.s14,
+                          size: emailSize,
                           textOverflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
                         AwSpacing.s6,
-                        // Row que contiene la fecha a la izquierda y el botón 'Cerrar sesión' a la derecha
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            AwText.normal(
-                              // Fecha de hoy en formato DD/MM/YYYY
-                              "${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}",
-                              color: AwColors.white.withOpacity(0.95),
-                              size: AwSize.s14,
-                              textOverflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                            UnderlinedButton(
-                              text: 'Cerrar sesión',
-                              icon: Icons.logout,
-                              color: AwColors.white,
-                              onTap: () {
-                                LogOutDialog.showLogOutDialog(context);
-                              },
-                            ),
-                          ],
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final textScale =
+                                MediaQuery.textScaleFactorOf(context);
+                            double dateSize = AwSize.s14;
+                            if (textScale > 1.0) {
+                              dateSize = (AwSize.s14 / textScale) * 0.95;
+                              dateSize = dateSize.clamp(10.0, AwSize.s14);
+                            }
+
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: AwText.normal(
+                                    "${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}",
+                                    color: AwColors.white.withOpacity(0.95),
+                                    size: dateSize,
+                                    textOverflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                                AwSpacing.w6,
+                                GestureDetector(
+                                  onTap: () {
+                                    LogOutDialog.showLogOutDialog(context);
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0, vertical: 6.0),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.logout,
+                                            color: AwColors.white, size: 16),
+                                        const SizedBox(width: 6),
+                                        ConstrainedBox(
+                                          constraints:
+                                              BoxConstraints(maxWidth: 140),
+                                          child: Text(
+                                            'Cerrar sesión',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: _buttonTextSize,
+                                              fontWeight: FontWeight.bold,
+                                              color: AwColors.white,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor: AwColors.white,
+                                              decorationThickness: 1.3,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -126,7 +182,8 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: AwText.bold('Menú', color: AwColors.blue, size: AwSize.s18),
+              child:
+                  AwText.bold('Menú', color: AwColors.blue, size: AwSize.s18),
             ),
           ),
           AwSpacing.s12,
@@ -134,9 +191,25 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
             child: SafeArea(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                   child: Column(
                     children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: SettingsCard(
+                          title: 'Ingresos mensuales',
+                          icon: Icons.calendar_month,
+                          onTap: () async {
+                            try {
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) => const IngresosPage()));
+                            } catch (_) {}
+                          },
+                        ),
+                      ),
+                      AwSpacing.s6,
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
@@ -144,9 +217,11 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.savings,
                           onTap: () async {
                             try {
-                              final result = await Navigator.of(context).push<bool>(
+                              final result =
+                                  await Navigator.of(context).push<bool>(
                                 MaterialPageRoute(
-                                  builder: (_) => const IngresosImprevistosPage(),
+                                  builder: (_) =>
+                                      const IngresosImprevistosPage(),
                                 ),
                               );
                               if (!mounted) return;
@@ -169,28 +244,33 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           title: 'Ver correos (Gmail)',
                           icon: Icons.email,
                           onTap: () async {
-                            final connectivity = await Connectivity().checkConnectivity();
+                            final connectivity =
+                                await Connectivity().checkConnectivity();
                             if (connectivity == ConnectivityResult.none) {
                               if (!mounted) return;
                               WalletPopup.showNotificationWarningOrange(
                                 // ignore: use_build_context_synchronously
                                 context: context,
-                                message: 'No es posible abrir correos sin conexión',
+                                message:
+                                    'No es posible abrir correos sin conexión',
                                 visibleTime: 2,
                                 isDismissible: true,
                               );
                               return;
                             }
                             try {
-                              await Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (_) => const GmailInboxPage()));
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) => const GmailInboxPage()));
                             } catch (e) {
-                              if (kDebugMode) log('Error abriendo GmailInboxPage: $e');
+                              if (kDebugMode)
+                                log('Error abriendo GmailInboxPage: $e');
                               if (mounted) {
                                 WalletPopup.showNotificationWarningOrange(
                                   // ignore: use_build_context_synchronously
                                   context: context,
-                                  message: 'No es posible abrir la bandeja de correos',
+                                  message:
+                                      'No es posible abrir la bandeja de correos',
                                   visibleTime: 2,
                                   isDismissible: true,
                                 );
@@ -208,8 +288,10 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.list_alt,
                           onTap: () async {
                             try {
-                              await Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (_) => const RecurrentRegistryPage()));
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const RecurrentRegistryPage()));
                             } catch (_) {}
                           },
                         ),
@@ -222,7 +304,9 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                           icon: Icons.settings,
                           onTap: () async {
                             try {
-                              await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
+                              await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) => const SettingsPage()));
                             } catch (_) {}
                           },
                         ),
