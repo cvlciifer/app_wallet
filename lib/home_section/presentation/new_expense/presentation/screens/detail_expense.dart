@@ -12,24 +12,73 @@ class DetailExpenseDialog {
           ),
           content: const AwText(text: 'Estás a punto de borrar un gasto. ¿Estás seguro?'),
           actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                WalletButton.primaryButton(
-                  buttonText: 'Cancelar',
-                  onPressed: () => Navigator.of(confirmCtx).pop(),
-                ),
-                const SizedBox(width: 8),
-                WalletButton.primaryButton(
-                  buttonText: 'Continuar',
-                  onPressed: () {
-                    Navigator.of(confirmCtx).pop();
-                    Navigator.of(context).pop();
-                    if (onRemoveExpense != null) onRemoveExpense(expense);
-                  },
-                  backgroundColor: AwColors.red,
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 180),
+                    child: SizedBox(
+                      height: AwSize.s48,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(confirmCtx).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AwColors.blueGrey,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AwSize.s16),
+                          ),
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'Cancelar',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AwColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 180),
+                    child: SizedBox(
+                      height: AwSize.s48,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(confirmCtx).pop();
+                          Navigator.of(context).pop();
+                          if (onRemoveExpense != null) onRemoveExpense(expense);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AwColors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AwSize.s16),
+                          ),
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'Continuar',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AwColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
