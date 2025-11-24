@@ -1,8 +1,5 @@
 import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/profile_section/presentation/screens/header_label.dart';
-import 'package:app_wallet/profile_section/presentation/screens/settings_page.dart';
-import 'package:app_wallet/components_section/widgets/home_income_summary.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as prov;
 
@@ -43,21 +40,17 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
   @override
   Widget build(BuildContext context) {
     final aliasFromProvider = prov.Provider.of<AliasProvider>(context).alias;
-    final double _headerTextScale = MediaQuery.textScaleFactorOf(context);
-    double aliasSize = AwSize.s24;
-    double emailSize = AwSize.s14;
-    if (_headerTextScale > 1.0) {
-      aliasSize = (AwSize.s24 / _headerTextScale) * 0.95;
-      aliasSize = aliasSize.clamp(14.0, AwSize.s24);
-      emailSize = (AwSize.s14 / _headerTextScale) * 0.95;
-      emailSize = emailSize.clamp(10.0, AwSize.s14);
-    }
-    // Button text size inside header (scaled down when zoomed)
-    double _buttonTextSize = AwSize.s14;
-    if (_headerTextScale > 1.0) {
-      _buttonTextSize = (AwSize.s14 / _headerTextScale) * 0.95;
-      _buttonTextSize = _buttonTextSize.clamp(10.0, AwSize.s14);
-    }
+
+    // Use centralized responsive font helper so we keep consistent
+    // min/max bounds and avoid manual inverse-scaling math.
+    double aliasSize = responsiveFontSize(context, AwSize.s24,
+        min: AwSize.s14, max: AwSize.s20);
+    double emailSize = responsiveFontSize(context, AwSize.s14,
+        min: AwSize.s8, max: AwSize.s14);
+    // Button text size inside header
+    double _buttonTextSize = responsiveFontSize(context, AwSize.s14,
+        min: AwSize.s8, max: AwSize.s14);
+
     return Scaffold(
       backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
@@ -115,7 +108,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                             double dateSize = AwSize.s14;
                             if (textScale > 1.0) {
                               dateSize = (AwSize.s14 / textScale) * 0.95;
-                              dateSize = dateSize.clamp(10.0, AwSize.s14);
+                              dateSize = dateSize.clamp(AwSize.s8, AwSize.s14);
                             }
 
                             return Row(
@@ -125,7 +118,9 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                                   child: AwText.normal(
                                     "${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}",
                                     color: AwColors.white.withOpacity(0.95),
-                                    size: dateSize,
+                                    size: responsiveFontSize(
+                                        context, AwSize.s14,
+                                        min: AwSize.s8, max: AwSize.s14),
                                     textOverflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                   ),
@@ -141,12 +136,12 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.logout,
+                                        const Icon(Icons.logout,
                                             color: AwColors.white, size: 16),
                                         const SizedBox(width: 6),
                                         ConstrainedBox(
-                                          constraints:
-                                              BoxConstraints(maxWidth: 140),
+                                          constraints: const BoxConstraints(
+                                              maxWidth: 140),
                                           child: Text(
                                             'Cerrar sesión',
                                             maxLines: 1,

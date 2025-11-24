@@ -38,7 +38,7 @@ class WalletPopup {
                   onVerticalDragEnd: (_) => closePopUp(),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        vertical: AwSize.s12, horizontal: AwSize.s16),
+                        vertical: AwSize.s16, horizontal: AwSize.s16),
                     decoration: BoxDecoration(
                       color: AwColors.green,
                       borderRadius: BorderRadius.circular(AwSize.s6),
@@ -63,11 +63,9 @@ class WalletPopup {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               LayoutBuilder(builder: (ctx, constraints) {
-                                final ts = MediaQuery.of(ctx).textScaleFactor;
-                                final computedSize =
-                                    (AwSize.s14 / (ts <= 0 ? 1.0 : ts))
-                                        .clamp(AwSize.s8, AwSize.s14)
-                                        .toDouble();
+                                final computedSize = responsiveFontSize(
+                                    ctx, AwSize.s14,
+                                    min: AwSize.s8, max: AwSize.s14);
                                 return AwText.bold(
                                   title,
                                   color: AwColors.white,
@@ -157,15 +155,15 @@ class WalletPopup {
                         Expanded(
                           child: LayoutBuilder(
                             builder: (ctx, constraints) {
-                              final ts = MediaQuery.of(ctx).textScaleFactor;
-                              final computedSize =
-                                  (AwSize.s14 / (ts <= 0 ? 1.0 : ts))
-                                      .clamp(AwSize.s8, AwSize.s14)
-                                      .toDouble();
+                              final computedSize = responsiveFontSize(
+                                  ctx, AwSize.s14,
+                                  min: AwSize.s8, max: AwSize.s14);
                               return AwText.normal(
                                 message,
                                 color: AwColors.white,
                                 size: computedSize,
+                                maxLines: null,
+                                textOverflow: TextOverflow.visible,
                               );
                             },
                           ),
@@ -243,11 +241,9 @@ class WalletPopup {
                         const SizedBox(width: AwSize.s10),
                         Expanded(
                           child: LayoutBuilder(builder: (ctx, constraints) {
-                            final ts = MediaQuery.of(ctx).textScaleFactor;
-                            final computedSize =
-                                (AwSize.s14 / (ts <= 0 ? 1.0 : ts))
-                                    .clamp(AwSize.s8, AwSize.s14)
-                                    .toDouble();
+                            final computedSize = responsiveFontSize(
+                                ctx, AwSize.s14,
+                                min: AwSize.s8, max: AwSize.s14);
                             return AwText.bold(
                               title,
                               color: AwColors.white,
@@ -312,11 +308,9 @@ class WalletPopup {
                       children: [
                         Expanded(
                           child: LayoutBuilder(builder: (ctx, constraints) {
-                            final ts = MediaQuery.of(ctx).textScaleFactor;
-                            final computedSize =
-                                (AwSize.s14 / (ts <= 0 ? 1.0 : ts))
-                                    .clamp(AwSize.s8, AwSize.s14)
-                                    .toDouble();
+                            final computedSize = responsiveFontSize(
+                                ctx, AwSize.s14,
+                                min: AwSize.s8, max: AwSize.s14);
                             return AwText.normal(
                               message,
                               color: AwColors.white,

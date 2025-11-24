@@ -14,17 +14,11 @@ class EnterPinContent extends ConsumerStatefulWidget {
 
 class _EnterPinContentState extends ConsumerState<EnterPinContent> {
   final GlobalKey<PinEntryAreaState> _pinKey = GlobalKey<PinEntryAreaState>();
-  bool _showFailurePopup = false;
-  Timer? _failureTimer;
-  bool _showSuccessPopup = false;
-  Timer? _successTimer;
   int _currentLength = 0;
   bool _submitting = false;
 
   @override
   void dispose() {
-    _failureTimer?.cancel();
-    _successTimer?.cancel();
     super.dispose();
   }
 
@@ -50,20 +44,30 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
     if (!mounted) return;
 
     if (ok) {
+      try {
+        WalletPopup.showNotificationSuccess(
+          context: context,
+          title: 'PIN correcto',
+          visibleTime: 2,
+          isDismissible: true,
+        );
+      } catch (_) {}
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const WalletHomePage()));
     } else {
-      setState(() {
-        _showFailurePopup = true;
-      });
       _pinKey.currentState?.clear();
       if (mounted) setState(() => _currentLength = 0);
-      _failureTimer?.cancel();
-      _failureTimer = Timer(const Duration(seconds: 3), () {
-        if (!mounted) return;
-        setState(() => _showFailurePopup = false);
-        _pinKey.currentState?.clear();
-      });
+      try {
+        final remaining = (PinService.maxAttempts -
+                ref.read(enterPinProvider(widget.accountId)).attempts)
+            .clamp(0, PinService.maxAttempts);
+        WalletPopup.showNotificationWarningOrange(
+          context: context,
+          message: 'PIN incorrecto. Quedan $remaining intento(s).',
+          visibleTime: 2,
+          isDismissible: true,
+        );
+      } catch (_) {}
       try {
         final pinService = PinService();
         final lock =
@@ -254,14 +258,6 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
             ),
           ),
         ),
-        if (_showFailurePopup) ...[
-          EnterPinFailed(
-              remainingAttempts: (PinService.maxAttempts - state.attempts)
-                  .clamp(0, PinService.maxAttempts)),
-        ],
-        if (_showSuccessPopup) ...[
-          const EnterPinSuccessful(),
-        ],
       ],
     );
 

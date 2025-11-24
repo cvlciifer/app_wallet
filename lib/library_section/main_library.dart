@@ -133,3 +133,7 @@ export 'package:app_wallet/profile_section/presentation/screens/ingresos_imprevi
 export 'package:app_wallet/core/services/zoom_service.dart';
 export 'package:app_wallet/core/services/zoom_dialog_service.dart';
 export 'package:app_wallet/components_section/widgets/zoom_aware.dart';
+export 'package:app_wallet/components_section/utils/responsive.dart';
+export 'package:app_wallet/profile_section/presentation/screens/header_label.dart';
+export 'package:app_wallet/profile_section/presentation/screens/settings_page.dart';
+export 'package:app_wallet/components_section/widgets/home_income_summary.dart';

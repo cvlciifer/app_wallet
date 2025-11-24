@@ -457,23 +457,41 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       ],
       child: MaterialApp(
         builder: (context, child) {
-          return riverpod.Consumer(builder: (ctx, ref, _) {
-            final showLoader = ref.watch(globalLoaderProvider);
-            return Stack(
-              children: [
-                child ?? const SizedBox.shrink(),
-                if (showLoader)
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withOpacity(0.45),
-                      child: const Center(
-                        child: WalletLoader(color: AwColors.appBarColor),
+          const double kMinTextScale = 1;
+          const double kMaxTextScale = 1.5;
+          final mq = MediaQuery.of(context);
+          // ignore: deprecated_member_use
+          double clampedScale = mq.textScaleFactor;
+          try {
+            clampedScale =
+                // ignore: deprecated_member_use
+                mq.textScaleFactor.clamp(kMinTextScale, kMaxTextScale);
+          } catch (_) {}
+
+          // ignore: deprecated_member_use
+          final media = mq.copyWith(textScaleFactor: clampedScale);
+
+          return MediaQuery(
+            data: media,
+            child: riverpod.Consumer(builder: (ctx, ref, _) {
+              final showLoader = ref.watch(globalLoaderProvider);
+              return Stack(
+                children: [
+                  child ?? const SizedBox.shrink(),
+                  if (showLoader)
+                    Positioned.fill(
+                      child: Container(
+                        // ignore: deprecated_member_use
+                        color: AwColors.black.withOpacity(0.45),
+                        child: const Center(
+                          child: WalletLoader(color: AwColors.appBarColor),
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            );
-          });
+                ],
+              );
+            }),
+          );
         },
         navigatorKey: _navigatorKey,
         debugShowCheckedModeBanner: false,
