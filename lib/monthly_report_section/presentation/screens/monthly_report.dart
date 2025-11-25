@@ -3,7 +3,8 @@ import 'package:app_wallet/library_section/main_library.dart';
 class InformeMensualScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  const InformeMensualScreen({Key? key, required this.expenses}) : super(key: key);
+  const InformeMensualScreen({Key? key, required this.expenses})
+      : super(key: key);
 
   @override
   _InformeMensualScreenState createState() => _InformeMensualScreenState();
@@ -29,14 +30,19 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   }
 
   void _initializeSelectedMonthYear() {
-    final expenses =
-        widget.expenses.isNotEmpty ? widget.expenses : (context.read<WalletExpensesController>().allExpenses);
+    final expenses = widget.expenses.isNotEmpty
+        ? widget.expenses
+        : (context.read<WalletExpensesController>().allExpenses);
     final years = expenses.map((e) => e.date.year).toSet().toList();
     years.sort((a, b) => b.compareTo(a));
     if (years.isNotEmpty) {
       selectedYear = years.first;
     }
-    final months = expenses.where((e) => e.date.year == selectedYear).map((e) => e.date.month).toSet().toList();
+    final months = expenses
+        .where((e) => e.date.year == selectedYear)
+        .map((e) => e.date.month)
+        .toSet()
+        .toList();
     months.sort();
     if (months.isNotEmpty) {
       selectedMonth = months.first;
@@ -44,17 +50,25 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   }
 
   List<int> getAvailableYears() {
-    final controller = Provider.of<WalletExpensesController>(context, listen: false);
-    final source = widget.expenses.isNotEmpty ? widget.expenses : controller.allExpenses;
+    final controller =
+        Provider.of<WalletExpensesController>(context, listen: false);
+    final source =
+        widget.expenses.isNotEmpty ? widget.expenses : controller.allExpenses;
     final years = source.map((e) => e.date.year).toSet().toList();
     years.sort((a, b) => b.compareTo(a));
     return years;
   }
 
   List<int> getAvailableMonthsForYear(int year) {
-    final controller = Provider.of<WalletExpensesController>(context, listen: false);
-    final source = widget.expenses.isNotEmpty ? widget.expenses : controller.allExpenses;
-    final months = source.where((e) => e.date.year == year).map((e) => e.date.month).toSet().toList();
+    final controller =
+        Provider.of<WalletExpensesController>(context, listen: false);
+    final source =
+        widget.expenses.isNotEmpty ? widget.expenses : controller.allExpenses;
+    final months = source
+        .where((e) => e.date.year == year)
+        .map((e) => e.date.month)
+        .toSet()
+        .toList();
     months.sort();
     return months;
   }
@@ -69,7 +83,8 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
     // Listen to controller so reports refresh when local data changes (offline-friendly)
     if (!_initializedFromController) {
       try {
-        final controller = Provider.of<WalletExpensesController>(context, listen: false);
+        final controller =
+            Provider.of<WalletExpensesController>(context, listen: false);
         final mf = controller.monthFilter;
         if (mf != null) {
           selectedMonth = mf.month;
@@ -80,12 +95,15 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
     }
 
     final controller = Provider.of<WalletExpensesController>(context);
-    final sourceExpenses = widget.expenses.isNotEmpty ? widget.expenses : controller.allExpenses;
+    final sourceExpenses =
+        widget.expenses.isNotEmpty ? widget.expenses : controller.allExpenses;
     final filteredExpenses = sourceExpenses.where((expense) {
-      return expense.date.month == selectedMonth && expense.date.year == selectedYear;
+      return expense.date.month == selectedMonth &&
+          expense.date.year == selectedYear;
     }).toList();
 
-    final double totalExpenses = filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
+    final double totalExpenses =
+        filteredExpenses.fold(0, (sum, expense) => sum + expense.amount);
     final expenseBuckets = Category.values.map((category) {
       return WalletExpenseBucket.forCategory(filteredExpenses, category);
     }).toList();
@@ -122,7 +140,8 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0, vertical: 10.0),
                 decoration: BoxDecoration(
                   color: AwColors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -139,28 +158,32 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    const SizedBox(height: 12.0),
+                    AwSpacing.s12,
                     Text(
                       'Selecciona Año y Mes para Filtrar:',
                       style: Theme.of(context).textTheme.titleMedium!.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    const SizedBox(height: 8.0),
+                    AwSpacing.s,
                     Builder(builder: (context) {
                       final availableYears = getAvailableYears();
-                      if (!availableYears.contains(selectedYear) && availableYears.isNotEmpty) {
+                      if (!availableYears.contains(selectedYear) &&
+                          availableYears.isNotEmpty) {
                         selectedYear = availableYears.first;
                       }
-                      final availableMonths = getAvailableMonthsForYear(selectedYear);
-                      if (!availableMonths.contains(selectedMonth) && availableMonths.isNotEmpty) {
+                      final availableMonths =
+                          getAvailableMonthsForYear(selectedYear);
+                      if (!availableMonths.contains(selectedMonth) &&
+                          availableMonths.isNotEmpty) {
                         selectedMonth = availableMonths.first;
                       }
 
                       return WalletMonthYearSelector(
                         selectedMonth: selectedMonth,
                         selectedYear: selectedYear,
-                        onMonthChanged: (m) => setState(() => selectedMonth = m),
+                        onMonthChanged: (m) =>
+                            setState(() => selectedMonth = m),
                         onYearChanged: (y) => setState(() {
                           selectedYear = y;
                           final availableMonths = getAvailableMonthsForYear(y);
@@ -182,7 +205,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
               ),
             ),
 
-            const SizedBox(height: 16.0),
+            AwSpacing.m,
 
             // List below the card
             Expanded(
@@ -198,9 +221,11 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                         title: bucket.category.displayName,
                         icon: categoryIcons[bucket.category] ?? Icons.category,
                         iconColor: bucket.category.color,
-                        subtitle: 'Total: ${formatNumber(bucket.totalExpenses)}',
+                        subtitle:
+                            'Total: ${formatNumber(bucket.totalExpenses)}',
                         onTap: () {
-                          final categoryExpenses = filteredExpenses.where((expense) {
+                          final categoryExpenses =
+                              filteredExpenses.where((expense) {
                             return expense.category == bucket.category;
                           }).toList();
                           Navigator.of(context).push(
@@ -213,7 +238,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
                           );
                         },
                       ),
-                      const SizedBox(height: 6),
+                      AwSpacing.s6,
                     ],
                   );
                 },

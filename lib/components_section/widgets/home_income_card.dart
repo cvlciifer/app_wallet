@@ -1,8 +1,6 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:app_wallet/profile_section/presentation/screens/ingresos_page.dart';
 import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
-import 'package:app_wallet/components_section/components/ticket_card_home.dart';
 
 class HomeIncomeCard extends StatefulWidget {
   final WalletExpensesController controller;
@@ -93,10 +91,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 6),
-
-                    // Balance centered
+                    AwSpacing.s6,
                     Center(
                       child: AwText.normal(
                         formatNumber(available),
@@ -105,12 +100,10 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                             available < 0 ? AwColors.red : AwColors.boldBlack,
                       ),
                     ),
-
-                    const SizedBox(height: 8),
-                    const Divider(height: 1, thickness: 1),
-                    const SizedBox(height: 8),
-
-                    const SizedBox(height: 6),
+                    AwSpacing.s,
+                    const AwDivider(margin: EdgeInsets.zero),
+                    AwSpacing.s,
+                    AwSpacing.s6,
                     Row(
                       children: [
                         Expanded(
@@ -127,7 +120,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        AwSpacing.w12,
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -144,7 +137,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    AwSpacing.s6,
                   ],
                 ),
               ),
@@ -156,7 +149,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
           return Column(
             children: [
               buildTicketCard(wide: false),
-              const SizedBox(height: 24),
+              AwSpacing.s24,
             ],
           );
         }
@@ -164,7 +157,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
         return Column(
           children: [
             buildTicketCard(wide: true),
-            const SizedBox(height: 24),
+            AwSpacing.s24,
           ],
         );
       },

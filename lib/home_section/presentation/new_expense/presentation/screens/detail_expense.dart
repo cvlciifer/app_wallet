@@ -3,7 +3,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 class DetailExpenseDialog {
   static void show(BuildContext context, Expense expense,
       {void Function(Expense expense)? onRemoveExpense}) {
-    void _showDeleteConfirmation(BuildContext context, Expense expense) {
+    void showDeleteConfirmation(BuildContext context, Expense expense) {
       showDialog(
         context: context,
         builder: (confirmCtx) => AlertDialog(
@@ -120,7 +120,7 @@ class DetailExpenseDialog {
                   constraints: const BoxConstraints(),
                   icon: const Icon(Icons.delete, size: 28),
                   color: AwColors.red,
-                  onPressed: () => _showDeleteConfirmation(ctx, expense),
+                  onPressed: () => showDeleteConfirmation(ctx, expense),
                 ),
               ),
             ),
@@ -135,7 +135,7 @@ class DetailExpenseDialog {
                 size: AwSize.s24,
               ),
               DetailExpenseContent(expense: expense),
-              const SizedBox(height: 12),
+              AwSpacing.s12,
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -146,7 +146,7 @@ class DetailExpenseDialog {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              AwSpacing.s12,
             ],
           ),
         ),

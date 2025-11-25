@@ -271,9 +271,9 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               topContent,
-                              const SizedBox(height: 8.0),
+                              AwSpacing.s,
                               buttonWidget,
-                              const SizedBox(height: 8.0),
+                              AwSpacing.s,
                             ],
                           ),
                         );

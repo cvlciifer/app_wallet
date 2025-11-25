@@ -4,8 +4,9 @@ import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
 
 class HomeIncomeSummary extends StatelessWidget {
   final WalletExpensesController controller;
+  final Color? mainTextColor;
 
-  const HomeIncomeSummary({Key? key, required this.controller})
+  const HomeIncomeSummary({Key? key, required this.controller, this.mainTextColor})
       : super(key: key);
 
   @override
@@ -49,9 +50,9 @@ class HomeIncomeSummary extends StatelessWidget {
             subSize = (subSize / textScale) * 0.95;
           }
           final Widget gapSmallWidget =
-              isTight ? const SizedBox(height: 4) : AwSpacing.s6;
+              isTight ? AwSpacing.xs : AwSpacing.s6;
           final Widget gapMediumWidget = isTight || textScale > 1.0
-              ? const SizedBox(height: 6)
+              ? AwSpacing.s6
               : AwSpacing.s12;
 
           if (total == 0 && spent == 0) {
@@ -122,8 +123,9 @@ class HomeIncomeSummary extends StatelessWidget {
                       child: AwText.normal(
                         formatNumber(available),
                         size: mainSize,
-                        color:
-                            available < 0 ? AwColors.red : AwColors.boldBlack,
+                        color: available < 0
+                            ? AwColors.red
+                            : (mainTextColor ?? AwColors.boldBlack),
                       ),
                     ),
                   ),

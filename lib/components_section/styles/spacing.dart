@@ -18,6 +18,9 @@ class AwSpacing {
   /// Size: 12 px
   static const SizedBox s12 = SizedBox(height: 12);
 
+  /// Size: 14 px
+  static const SizedBox s14 = SizedBox(height: 14);
+
   /// Size: 16 px
   static const SizedBox m = SizedBox(height: 16);
 
@@ -26,6 +29,9 @@ class AwSpacing {
 
   /// Size: 20 px
   static const SizedBox s20 = SizedBox(height: 20);
+
+  /// Size: 24 px
+  static const SizedBox s24 = SizedBox(height: 24);
 
   /// Size: 30 px
   static const SizedBox s30 = SizedBox(height: 30);
@@ -63,8 +69,17 @@ class AwSpacing {
   /// Width: 12 px (horizontal spacer)
   static const SizedBox w12 = SizedBox(width: 12);
 
+  /// Width: 16 px (horizontal spacer)
+  static const SizedBox w16 = SizedBox(width: 16);
+
   /// Width: 20 px (horizontal spacer)
   static const SizedBox w20 = SizedBox(width: 20);
+
+  /// Width: 48 px (horizontal spacer)
+  static const SizedBox w48 = SizedBox(width: 48);
+
+  /// Square: 40x40 px (placeholder / spacer)
+  static const SizedBox box40 = SizedBox(width: 40, height: 40);
 
   /// SizedBox de ancho 300 que acepta un child
   static Widget box300({required Widget child}) {

@@ -4,7 +4,8 @@ class CategoryPicker extends StatelessWidget {
   final TextEditingController controller;
   final Category selectedCategory;
   final String? selectedSubcategoryId;
-  final void Function(Category category, String? subId, String displayName) onSelect;
+  final void Function(Category category, String? subId, String displayName)
+      onSelect;
 
   const CategoryPicker({
     Key? key,
@@ -36,11 +37,11 @@ class CategoryPicker extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                color: Colors.grey.shade100,
+                color: AwColors.grey100,
               ),
               child: Icon(icon, color: selectedCategory.color),
             ),
-            const SizedBox(width: 12),
+            AwSpacing.w12,
             Expanded(
               child: TextField(
                 controller: controller,
@@ -51,15 +52,23 @@ class CategoryPicker extends StatelessWidget {
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.keyboard_arrow_down),
                     onPressed: () => _openCategoryBottomSheet(
-                        controller, selectedCategory, selectedSubcategoryId, onSelect, context),
+                        controller,
+                        selectedCategory,
+                        selectedSubcategoryId,
+                        onSelect,
+                        context),
                   ),
-                  border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade400)),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade400)),
-                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AwColors.appBarColor)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    border: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: AwColors.grey400)),
+                    enabledBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: AwColors.grey400)),
+                  focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: AwColors.appBarColor)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                 ),
-                onTap: () =>
-                    _openCategoryBottomSheet(controller, selectedCategory, selectedSubcategoryId, onSelect, context),
+                onTap: () => _openCategoryBottomSheet(controller,
+                    selectedCategory, selectedSubcategoryId, onSelect, context),
               ),
             ),
           ],
@@ -68,19 +77,24 @@ class CategoryPicker extends StatelessWidget {
     );
   }
 
-  void _openCategoryBottomSheet(TextEditingController controller, Category initialCategory, String? initialSubId,
-      void Function(Category category, String? subId, String displayName) onSelect, BuildContext context) {
+  void _openCategoryBottomSheet(
+      TextEditingController controller,
+      Category initialCategory,
+      String? initialSubId,
+      void Function(Category category, String? subId, String displayName)
+          onSelect,
+      BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AwColors.transparent,
       builder: (ctx) {
         return FractionallySizedBox(
           heightFactor: 0.70,
           alignment: Alignment.bottomCenter,
           child: Container(
             decoration: const BoxDecoration(
-              color: Colors.white,
+              color: AwColors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -105,14 +119,19 @@ class _CategoryBottomSheetContent extends StatefulWidget {
   final void Function(Category, String?, String) onSelect;
 
   const _CategoryBottomSheetContent(
-      {Key? key, required this.initialCategory, required this.initialSubId, required this.onSelect})
+      {Key? key,
+      required this.initialCategory,
+      required this.initialSubId,
+      required this.onSelect})
       : super(key: key);
 
   @override
-  State<_CategoryBottomSheetContent> createState() => _CategoryBottomSheetContentState();
+  State<_CategoryBottomSheetContent> createState() =>
+      _CategoryBottomSheetContentState();
 }
 
-class _CategoryBottomSheetContentState extends State<_CategoryBottomSheetContent> {
+class _CategoryBottomSheetContentState
+    extends State<_CategoryBottomSheetContent> {
   String _search = '';
   late final ScrollController _scrollController;
 
@@ -144,7 +163,9 @@ class _CategoryBottomSheetContentState extends State<_CategoryBottomSheetContent
             width: 40,
             height: 4,
             margin: const EdgeInsets.only(bottom: 8, top: 4),
-            decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(
+                color: AwColors.grey300,
+                borderRadius: BorderRadius.circular(8)),
           ),
         ),
         Row(
@@ -157,13 +178,14 @@ class _CategoryBottomSheetContentState extends State<_CategoryBottomSheetContent
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        AwSpacing.s,
         TextField(
-          decoration:
-              const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Buscar categoría o subcategoría'),
+          decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              hintText: 'Buscar categoría o subcategoría'),
           onChanged: (v) => setState(() => _search = v),
         ),
-        const SizedBox(height: 8),
+        AwSpacing.s,
         Expanded(
           child: Scrollbar(
             controller: _scrollController,
@@ -177,21 +199,28 @@ class _CategoryBottomSheetContentState extends State<_CategoryBottomSheetContent
                 final subcats = subcategoriesByCategory[category] ?? [];
                 final mainMatches = _matches(mainName);
                 final anySubMatches = subcats.any((s) => _matches(s.name));
-                if (!mainMatches && !anySubMatches) return const SizedBox.shrink();
+                if (!mainMatches && !anySubMatches) {
+                  return const SizedBox.shrink();
+                }
 
                 return ExpansionTile(
                   leading: Icon(categoryIcons[category], color: category.color),
                   title: AwText.bold(mainName),
                   children: [
                     ListTile(
-                      leading: Icon(categoryIcons[category], color: category.color),
-                      title: AwText(text: 'Sin subcategoría (usar ${mainName.toLowerCase()})'),
+                      leading:
+                          Icon(categoryIcons[category], color: category.color),
+                      title: AwText(
+                          text:
+                              'Sin subcategoría (usar ${mainName.toLowerCase()})'),
                       onTap: () => widget.onSelect(category, null, mainName),
                     ),
                     ...subcats.where((s) => _matches(s.name)).map((s) {
                       return ListTile(
                         leading: Icon(s.icon,
-                            color: widget.initialSubId == s.id ? category.color : category.color.withOpacity(0.5)),
+                            color: widget.initialSubId == s.id
+                                ? category.color
+                                : category.color.withOpacity(0.5)),
                         title: AwText(text: s.name),
                         onTap: () => widget.onSelect(category, s.id, s.name),
                       );

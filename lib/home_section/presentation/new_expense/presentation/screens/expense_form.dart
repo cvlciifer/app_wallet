@@ -60,40 +60,40 @@ class _ExpenseFormState extends State<ExpenseForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 12),
+                AwSpacing.s12,
                 const FormHeader(
                   title: 'Agrega un nuevo gasto',
                   subtitle:
                       'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
                 ),
-                const SizedBox(height: 5),
+                AwSpacing.xs,
                 _buildTitle(),
-                const SizedBox(height: 12),
+                AwSpacing.s12,
                 CategoryPicker(
                   controller: _categoryController,
                   selectedCategory: _selectedCategory,
                   selectedSubcategoryId: _selectedSubcategoryId,
                   onSelect: _selectCategory,
                 ),
-                const SizedBox(height: 24),
+                AwSpacing.s24,
                 AmountInput(
                     controller: _amountController,
                     onChanged: _handleAmountChange),
-                const SizedBox(height: 24),
+                AwSpacing.s24,
                 DateSelector(
                   selectedDate: _selectedDate,
                   onTap: _presentDatePicker,
                 ),
-                const SizedBox(height: 20),
+                AwSpacing.s20,
                 WalletButton.primaryButton(
                   buttonText: 'Añadir Gasto',
                   onPressed: _submitForm,
                 ),
-                const SizedBox(height: 30),
+                AwSpacing.s30,
               ],
             ),
           ),
-          const SizedBox(height: 40),
+          AwSpacing.s40,
         ],
       ),
     );
