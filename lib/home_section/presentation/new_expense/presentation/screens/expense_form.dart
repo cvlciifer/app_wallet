@@ -38,6 +38,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
           NumberFormatHelper.formatAmount(init.amount.toInt().toString());
       _categoryController.text = init.category.toString().split('.').last;
     }
+    // Si no hay un gasto inicial, por defecto seleccionar la fecha de hoy
+    _selectedDate ??= DateTime.now();
   }
 
   @override
@@ -105,7 +107,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
     final lastDate = DateTime(now.year + 1, now.month, now.day);
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: now,
+      initialDate: _selectedDate ?? now,
       firstDate: firstDate,
       lastDate: lastDate,
     );
