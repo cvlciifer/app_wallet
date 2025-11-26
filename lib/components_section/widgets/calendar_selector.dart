@@ -155,7 +155,7 @@ class _WalletMonthYearSelectorState extends State<WalletMonthYearSelector> {
                 }).toList(),
                 onChanged: (value) => widget.onMonthChanged(value!),
               ),
-              const SizedBox(width: 12),
+              AwSpacing.w12,
               DropdownButton<int>(
                 value: widget.selectedYear,
                 items: widget.availableYears.map((y) {
@@ -169,7 +169,7 @@ class _WalletMonthYearSelectorState extends State<WalletMonthYearSelector> {
             ],
           ),
           if (widget.showTotal) ...[
-            const SizedBox(height: 8),
+            AwSpacing.s,
             AwText(
               text: 'Total: ${widget.formatNumber(widget.totalAmount)}',
               size: AwSize.s18,

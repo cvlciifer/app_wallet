@@ -85,7 +85,7 @@ class RegistroIngresosPage extends ConsumerWidget {
                                 children: [
                                   const AwText.bold('Editar ingreso',
                                       size: AwSize.s16),
-                                  const SizedBox(height: 8),
+                                  AwSpacing.s,
                                   CustomTextField(
                                       controller: fijoCtrl,
                                       label: 'Ingreso mensual',

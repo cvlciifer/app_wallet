@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 
@@ -64,6 +63,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
     } catch (e) {
       final msg = e.toString();
       WalletPopup.showNotificationWarningOrange(
+        // ignore: use_build_context_synchronously
         context: context,
         message: msg,
         visibleTime: 3,
@@ -75,6 +75,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
     }
 
     try {
+      // ignore: use_build_context_synchronously
       ProviderScope.containerOf(context, listen: false)
           .read(resetFlowProvider.notifier)
           .clear();
@@ -89,6 +90,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
           name: 'ConfirmPinPage', error: e, stackTrace: st);
     }
     WalletPopup.showNotificationSuccess(
+      // ignore: use_build_context_synchronously
       context: context,
       title: 'PIN configurado correctamente',
       visibleTime: 2,
@@ -140,10 +142,10 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
   void _showOverlay() {
     if (_overlayEntry != null) return;
     _overlayEntry = OverlayEntry(builder: (context) {
-      return Positioned.fill(
+      return const Positioned.fill(
         child: Material(
-          color: Colors.black45,
-          child: const Center(child: WalletLoader(color: AwColors.appBarColor)),
+          color: AwColors.black45,
+          child: Center(child: WalletLoader(color: AwColors.appBarColor)),
         ),
       );
     });
@@ -166,9 +168,13 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
         children: [
           LayoutBuilder(builder: (ctx, constraints) {
             final mq = MediaQuery.of(ctx);
+            // ignore: deprecated_member_use
             final textScale = mq.textScaleFactor;
             final availH = constraints.maxHeight;
-            final needsScroll = textScale > 1.05 || availH < 700 || mq.viewInsets.bottom > 0 || mq.viewPadding.bottom > 0;
+            final needsScroll = textScale > 1.05 ||
+                availH < 700 ||
+                mq.viewInsets.bottom > 0 ||
+                mq.viewPadding.bottom > 0;
 
             final content = Padding(
               padding: EdgeInsets.only(
@@ -184,7 +190,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                   AwSpacing.s12,
                   GreetingHeader(alias: _alias ?? widget.alias),
                   AwSpacing.s12,
-                  AwText.bold('Confirma tu PIN',
+                  const AwText.bold('Confirma tu PIN',
                       size: AwSize.s16, color: AwColors.appBarColor),
                   AwSpacing.s,
                   const AwText.normal(
@@ -211,23 +217,36 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                           child: SizedBox(
                             width: double.infinity,
                             child: Builder(builder: (context) {
-                              final len = _pinKey.currentState?.currentLength ?? 0;
+                              final len =
+                                  _pinKey.currentState?.currentLength ?? 0;
                               final ready = len == widget.digits;
                               return ElevatedButton(
                                 style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.resolveWith(
-                                      (states) => states.contains(MaterialState.disabled) ? AwColors.blueGrey : AwColors.appBarColor),
-                                  foregroundColor: MaterialStateProperty.resolveWith((_) => Colors.white),
+                                  // ignore: deprecated_member_use
+                                  backgroundColor:
+                                      MaterialStateProperty.resolveWith(
+                                          // ignore: deprecated_member_use
+                                          (states) => states.contains(
+                                                  MaterialState.disabled)
+                                              ? AwColors.blueGrey
+                                              : AwColors.appBarColor),
+                                  // ignore: deprecated_member_use
+                                  foregroundColor:
+                                      MaterialStateProperty.resolveWith(
+                                          (_) => AwColors.white),
                                 ),
                                 onPressed: ready
                                     ? () {
-                                        _secondPin = _pinKey.currentState?.currentPin ?? '';
+                                        _secondPin =
+                                            _pinKey.currentState?.currentPin ??
+                                                '';
                                         _save();
                                       }
                                     : null,
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 14.0),
-                                  child: AwText.bold('Guardar PIN', color: Colors.white),
+                                  child: AwText.bold('Guardar PIN',
+                                      color: AwColors.white),
                                 ),
                               );
                             }),

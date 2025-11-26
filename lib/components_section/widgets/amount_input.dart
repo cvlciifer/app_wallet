@@ -4,7 +4,8 @@ class AmountInput extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String>? onChanged;
 
-  const AmountInput({Key? key, required this.controller, this.onChanged}) : super(key: key);
+  const AmountInput({Key? key, required this.controller, this.onChanged})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -14,12 +15,12 @@ class AmountInput extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
+            color: AwColors.grey100,
             borderRadius: BorderRadius.circular(8),
           ),
           child: const AwText.bold('CLP \$'),
         ),
-        const SizedBox(width: 16),
+        AwSpacing.w16,
         Expanded(
           flex: 8,
           child: CustomTextField(

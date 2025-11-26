@@ -12,10 +12,11 @@ class AwAlert {
   }) {
     return showDialog<void>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.45),
+      // ignore: deprecated_member_use
+      barrierColor: AwColors.black.withOpacity(0.45),
       builder: (ctx) => Dialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AwColors.transparent,
         child: TicketCard(
           roundTopCorners: true,
           topCornerRadius: 10,
@@ -44,12 +45,12 @@ class AwAlert {
                 color: titleColor ?? AwColors.appBarColor,
                 size: titleSize,
               ),
-              const SizedBox(height: 8),
+              AwSpacing.s,
               AwText.normal(
                 content,
                 size: contentSize,
               ),
-              const SizedBox(height: 12),
+              AwSpacing.s12,
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -59,7 +60,7 @@ class AwAlert {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              AwSpacing.s12,
             ],
           ),
         ),

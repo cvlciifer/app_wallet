@@ -3,6 +3,9 @@ import 'package:app_wallet/library_section/main_library.dart';
 class AwSpacing {
   AwSpacing._();
 
+  /// Size: 2px
+  static const SizedBox xxs = SizedBox(height: 2);
+
   // Size: 4px
   static const SizedBox xs = SizedBox(height: 4);
 
@@ -60,11 +63,17 @@ class AwSpacing {
   /// Size: 256 px
   static const SizedBox xxxl = SizedBox(height: 256);
 
+  /// Width: 4 px (horizontal spacer)
+  static const SizedBox xw = SizedBox(width: 4);
+
   /// Width: 6 px (horizontal spacer)
   static const SizedBox w6 = SizedBox(width: 6);
 
   /// Width: 8 px (horizontal spacer)
   static const SizedBox w = SizedBox(width: 8);
+
+  /// Width: 10 px (horizontal spacer)
+  static const SizedBox w10 = SizedBox(width: 10);
 
   /// Width: 12 px (horizontal spacer)
   static const SizedBox w12 = SizedBox(width: 12);
@@ -77,6 +86,9 @@ class AwSpacing {
 
   /// Width: 48 px (horizontal spacer)
   static const SizedBox w48 = SizedBox(width: 48);
+
+  /// Width: 60 px (horizontal spacer)
+  static const SizedBox w60 = SizedBox(width: 60);
 
   /// Square: 40x40 px (placeholder / spacer)
   static const SizedBox box40 = SizedBox(width: 40, height: 40);

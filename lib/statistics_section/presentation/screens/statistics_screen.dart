@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 
 class EstadisticasScreen extends StatefulWidget {
@@ -9,6 +7,7 @@ class EstadisticasScreen extends StatefulWidget {
       : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _EstadisticasScreenState createState() => _EstadisticasScreenState();
 }
 
@@ -202,7 +201,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              AwSpacing.w16,
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -273,7 +272,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      AwSpacing.s,
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(2, (i) {

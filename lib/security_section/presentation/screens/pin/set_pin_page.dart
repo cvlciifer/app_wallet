@@ -54,9 +54,13 @@ class _SetPinPageState extends State<SetPinPage> {
     return PinPageScaffold(
       child: LayoutBuilder(builder: (ctx, constraints) {
         final mq = MediaQuery.of(ctx);
+        // ignore: deprecated_member_use
         final textScale = mq.textScaleFactor;
         final availH = constraints.maxHeight;
-        final needsScroll = textScale > 1.05 || availH < 700 || mq.viewInsets.bottom > 0 || mq.viewPadding.bottom > 0;
+        final needsScroll = textScale > 1.05 ||
+            availH < 700 ||
+            mq.viewInsets.bottom > 0 ||
+            mq.viewPadding.bottom > 0;
 
         final content = Padding(
           padding: EdgeInsets.only(
@@ -114,7 +118,7 @@ class _SetPinPageState extends State<SetPinPage> {
                               foregroundColor:
                                   // ignore: deprecated_member_use
                                   MaterialStateProperty.resolveWith(
-                                      (states) => Colors.white),
+                                      (states) => AwColors.white),
                             ),
                             onPressed: ready
                                 ? () {
@@ -126,8 +130,8 @@ class _SetPinPageState extends State<SetPinPage> {
                                 : null,
                             child: const Padding(
                               padding: EdgeInsets.symmetric(vertical: 14.0),
-                              child:
-                                  AwText.bold('Continuar', color: Colors.white),
+                              child: AwText.bold('Continuar',
+                                  color: AwColors.white),
                             ),
                           );
                         }),

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -168,7 +167,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                                 foregroundColor:
                                     // ignore: deprecated_member_use
                                     MaterialStateProperty.resolveWith(
-                                        (states) => Colors.white),
+                                        (states) => AwColors.white),
                               ),
                               onPressed: enabled
                                   ? () {
@@ -181,13 +180,13 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                               child: const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 14.0),
                                 child: AwText.bold('Continuar',
-                                    color: Colors.white),
+                                    color: AwColors.white),
                               ),
                             );
                           }),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      AwSpacing.s12,
                       PinActions(
                         hasConnection: state.hasConnection,
                         onNotYou: () async {
@@ -196,6 +195,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                           } catch (_) {}
                           await AuthService().clearLoginState();
                           if (!mounted) return;
+                          // ignore: use_build_context_synchronously
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
                                 builder: (_) => const LoginScreen()),
@@ -227,6 +227,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                               final remainingDuration =
                                   blockedUntil ?? const Duration(days: 1);
                               if (!mounted) return;
+                              // ignore: use_build_context_synchronously
                               Navigator.of(context).push(MaterialPageRoute(
                                   builder: (_) => PinLockedPage(
                                         remaining: remainingDuration,
@@ -235,6 +236,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                                         returnToEnterPin: true,
                                       )));
                             } else {
+                              // ignore: use_build_context_synchronously
                               Navigator.of(context).push(MaterialPageRoute(
                                 builder: (_) => ForgotPinPage(
                                   initialEmail: email,
@@ -243,8 +245,9 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                               ));
                             }
                           } catch (e, st) {
-                            if (kDebugMode)
+                            if (kDebugMode) {
                               log('Forgot PIN error', error: e, stackTrace: st);
+                            }
                             try {
                               loader.state = false;
                             } catch (_) {}

@@ -29,7 +29,7 @@ class FormHeader extends StatelessWidget {
           color: titleColor ?? AwColors.boldBlack,
         ),
         if (subtitle != null) ...[
-          const SizedBox(height: 6),
+          AwSpacing.s6,
           AwText(
             text: subtitle!,
             color: subtitleColor ?? AwColors.blueGrey,
