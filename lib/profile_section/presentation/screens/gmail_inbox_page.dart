@@ -36,7 +36,8 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
     try {
       const query =
           'from:("BancoEstado" OR "@bancoestado.cl" OR "noreply@correo.bancoestado.cl" OR "notificaciones@correo.bancoestado.cl")';
-      final msgs = await _service.listLatestMessages(maxResults: 50, query: query);
+      final msgs =
+          await _service.listLatestMessages(maxResults: 50, query: query);
       final outgoing = msgs.where((m) => _isOutgoingMessage(m)).toList();
 
       final toCheck = <GmailMessageInfo>[];
@@ -54,13 +55,16 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
           final body = await _service.getMessageBody(m.id);
           final match = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
           if (match != null) {
-            final raw = match.group(1)!.replaceAll('.', '').replaceAll(',', '.');
+            final raw =
+                match.group(1)!.replaceAll('.', '').replaceAll(',', '.');
             _amountCache[m.id] = double.tryParse(raw);
           } else {
             _amountCache[m.id] = null;
           }
 
-          final commentMatch = RegExp(r'Comentario:[ \t]*(.*)', caseSensitive: false, multiLine: true).firstMatch(body);
+          final commentMatch = RegExp(r'Comentario:[ \t]*(.*)',
+                  caseSensitive: false, multiLine: true)
+              .firstMatch(body);
           _commentCache[m.id] = commentMatch?.group(1)?.trim();
         } catch (_) {
           _amountCache[m.id] = null;
@@ -96,8 +100,15 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       'Acabas de realizar una Transferencia Electronica',
     ];
 
-    final normalized = textToAnalyze.replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
-    final normalizedFrom = m.from.toLowerCase().replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
+    final normalized = textToAnalyze
+        .replaceAll('é', 'e')
+        .replaceAll('ó', 'o')
+        .replaceAll('á', 'a');
+    final normalizedFrom = m.from
+        .toLowerCase()
+        .replaceAll('é', 'e')
+        .replaceAll('ó', 'o')
+        .replaceAll('á', 'a');
 
     if (knownSenders.any((s) => normalizedFrom.contains(s))) {
       if (normalized.contains('pago') ||
@@ -109,7 +120,8 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
     }
 
     for (final p in bancoEstadoPhrases) {
-      final pn = p.replaceAll('ó', 'o').replaceAll('é', 'e').replaceAll('á', 'a');
+      final pn =
+          p.replaceAll('ó', 'o').replaceAll('é', 'e').replaceAll('á', 'a');
       if (normalized.contains(pn)) return true;
     }
 
@@ -118,8 +130,11 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       RegExp(r'se debi?t?o?\b.*\$?\s*\d', caseSensitive: false),
       RegExp(r'pago efectuado.*tarjeta', caseSensitive: false),
       RegExp(r'transferencia enviad', caseSensitive: false),
-      RegExp(r'ha realizado una compra en|compra por internet|compra registrada', caseSensitive: false),
-      RegExp(r'cargo automatico|cargo por pago|se realizo un cargo', caseSensitive: false),
+      RegExp(
+          r'ha realizado una compra en|compra por internet|compra registrada',
+          caseSensitive: false),
+      RegExp(r'cargo automatico|cargo por pago|se realizo un cargo',
+          caseSensitive: false),
     ];
 
     for (final re in generalPatterns) {
@@ -162,20 +177,25 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
   Widget _buildList(List<GmailMessageInfo> messages) {
     _currentMessages = messages;
     if (messages.isEmpty) {
-      return const Center(child: Text('No hay correos en la bandeja de entrada'));
+      return const Center(
+          child: Text('No hay correos en la bandeja de entrada'));
     }
 
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
-        if (notification is OverscrollNotification && notification.metrics.pixels <= 0 && !_isRefreshing) {
+        if (notification is OverscrollNotification &&
+            notification.metrics.pixels <= 0 &&
+            !_isRefreshing) {
           setState(() {
             _pullDistance += notification.overscroll.abs();
-            if (_pullDistance > _refreshTriggerDistance * 2) _pullDistance = _refreshTriggerDistance * 2;
+            if (_pullDistance > _refreshTriggerDistance * 2)
+              _pullDistance = _refreshTriggerDistance * 2;
           });
         }
 
         if (notification is ScrollEndNotification) {
-          final progress = (_pullDistance / _refreshTriggerDistance).clamp(0.0, 1.0);
+          final progress =
+              (_pullDistance / _refreshTriggerDistance).clamp(0.0, 1.0);
           if (progress >= 1.0 && !_isRefreshing) {
             _performRefresh();
           } else if (!_isRefreshing) {
@@ -196,16 +216,20 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
               String formattedDate = m.date;
               try {
                 final parsed = DateTime.parse(m.date);
-                formattedDate = DateFormat('dd/MM/yyyy').format(parsed.toLocal());
+                formattedDate =
+                    DateFormat('dd/MM/yyyy').format(parsed.toLocal());
               } catch (_) {}
 
               final subject = m.subject.isNotEmpty ? m.subject : '(sin asunto)';
-              final amountDetected = _extractAmountFromMessage(m) ?? _amountCache[m.id];
+              final amountDetected =
+                  _extractAmountFromMessage(m) ?? _amountCache[m.id];
               final comentarioRaw = _commentCache[m.id];
               String? comentarioToShow;
               if (comentarioRaw != null) {
-                final firstLine = comentarioRaw.split(RegExp(r'\r?\n')).first.trim();
-                comentarioToShow = firstLine.isEmpty ? 'sin comentario' : firstLine;
+                final firstLine =
+                    comentarioRaw.split(RegExp(r'\r?\n')).first.trim();
+                comentarioToShow =
+                    firstLine.isEmpty ? 'sin comentario' : firstLine;
               }
 
               final bool indicatesOut = _isOutgoingMessage(m);
@@ -221,29 +245,29 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                     textOverflow: TextOverflow.ellipsis,
                     color: AwColors.boldBlack,
                   ),
-                  const SizedBox(height: 6),
+                  AwSpacing.s6,
                   AwText(
                     text: _displayName(m.from),
                     size: 13,
-                    color: Colors.grey[800],
+                    color: AwColors.grey800,
                     maxLines: 1,
                     textOverflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 8),
+                  AwSpacing.w,
                   AwText(
                     text: formattedDate,
                     size: 12,
-                    color: Colors.grey,
+                    color: AwColors.grey,
                   ),
                   if (amountDetected != null)
                     AwText(
                       text: 'Monto: ${formatNumber(amountDetected)}',
                       size: 13,
-                      color: indicatesOut ? Colors.red : Colors.green,
+                      color: indicatesOut ? AwColors.red : AwColors.green,
                     ),
-                  const SizedBox(height: 8),
+                  AwSpacing.s,
                   if (comentarioRaw != null) ...[
-                    const SizedBox(height: 8),
+                    AwSpacing.s,
                     AwText(
                       text: 'Comentario: $comentarioToShow',
                       size: 14,
@@ -259,12 +283,13 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                 top: -10,
                 child: CircleAvatar(
                   radius: 14,
-                  backgroundColor: Colors.white,
+                  backgroundColor: AwColors.white,
                   child: SizedBox(
                     width: 22,
                     height: 22,
                     child: Theme(
-                      data: Theme.of(context).copyWith(unselectedWidgetColor: Colors.grey),
+                      data: Theme.of(context)
+                          .copyWith(unselectedWidgetColor: AwColors.grey),
                       child: Checkbox(
                         value: isSelected,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -309,11 +334,12 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                   _onMessageTap(m);
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(width: 8),
+                      AwSpacing.w,
                       Expanded(
                         child: TicketCard(
                           compactNotches: true,
@@ -321,7 +347,8 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                           topCornerRadius: 7,
                           overlays: overlays.isNotEmpty ? overlays : null,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 6),
                             child: content,
                           ),
                         ),
@@ -377,14 +404,17 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
 
         String? comentario;
         double? amount;
-        final commentMatch = RegExp(r'Comentario:[\t]*(.*)', caseSensitive: false, multiLine: true).firstMatch(body);
+        final commentMatch = RegExp(r'Comentario:[\t]*(.*)',
+                caseSensitive: false, multiLine: true)
+            .firstMatch(body);
         final rawComment = commentMatch?.group(1) ?? '';
         final firstLine = rawComment.split(RegExp(r'\r?\n')).first.trim();
         comentario = firstLine.isEmpty ? null : firstLine;
 
         final amountMatch = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
         if (amountMatch != null) {
-          final raw = amountMatch.group(1)!.replaceAll('.', '').replaceAll(',', '.');
+          final raw =
+              amountMatch.group(1)!.replaceAll('.', '').replaceAll(',', '.');
           amount = double.tryParse(raw);
         }
 
@@ -411,7 +441,8 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
 
     if (parsed.isEmpty) {
       WalletPopup.showNotificationWarningOrange(
-          context: context, message: 'No se pudieron parsear los correos seleccionados');
+          context: context,
+          message: 'No se pudieron parsear los correos seleccionados');
       return;
     }
 
@@ -426,17 +457,19 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
             compactNotches: true,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(ctx).size.height * 0.8, maxWidth: MediaQuery.of(ctx).size.width * 0.95),
+                  maxHeight: MediaQuery.of(ctx).size.height * 0.8,
+                  maxWidth: MediaQuery.of(ctx).size.width * 0.95),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
-                    AwText.bold('Vas a agregar ${parsed.length} gastos', size: 16),
-                    const SizedBox(height: 8),
+                    AwText.bold('Vas a agregar ${parsed.length} gastos',
+                        size: 16),
+                    AwSpacing.s,
                     Expanded(
                       child: ListView.separated(
                         itemCount: parsed.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        separatorBuilder: (_, __) => AwSpacing.s,
                         itemBuilder: (c, i) {
                           final p = parsed[i];
                           final GmailMessageInfo m = p['message'];
@@ -452,9 +485,12 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Expanded(child: AwText.bold(title, maxLines: 2)),
+                                      Expanded(
+                                          child:
+                                              AwText.bold(title, maxLines: 2)),
                                       IconButton(
                                         onPressed: () {
                                           parsed.removeAt(i);
@@ -462,15 +498,20 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                                             _selectedIds.remove(m.id);
                                           });
                                           Navigator.of(ctx).pop();
-                                          Future.delayed(Duration.zero, () => _openBatchConfirm());
+                                          Future.delayed(Duration.zero,
+                                              () => _openBatchConfirm());
                                         },
-                                        icon: const Icon(Icons.delete_forever, color: Colors.red),
+                                        icon: const Icon(Icons.delete_forever,
+                                            color: AwColors.red),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 6),
-                                  AwText(text: 'Fecha: ${DateFormat('dd/MM/yyyy').format(date)}'),
-                                  AwText(text: 'Monto: ${formatNumber(amount)}'),
+                                  AwSpacing.s6,
+                                  AwText(
+                                      text:
+                                          'Fecha: ${DateFormat('dd/MM/yyyy').format(date)}'),
+                                  AwText(
+                                      text: 'Monto: ${formatNumber(amount)}'),
                                   AwText(text: 'Categoría: cuenta y servicios'),
                                 ],
                               ),
@@ -479,12 +520,14 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    AwSpacing.s,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        WalletButton.textButton(onPressed: () => Navigator.of(ctx).pop(), buttonText: 'Cancelar'),
-                        const SizedBox(width: 12),
+                        WalletButton.textButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            buttonText: 'Cancelar'),
+                        AwSpacing.w12,
                         WalletButton.primaryButton(
                             onPressed: () async {
                               Navigator.of(ctx).pop();
@@ -506,15 +549,20 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
   Future<void> _addParsedExpenses(List<Map<String, dynamic>> parsed) async {
     if (parsed.isEmpty) return;
 
-    parsed.sort((a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime));
+    parsed.sort(
+        (a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime));
 
     final conn = await Connectivity().checkConnectivity();
     final hasConnection = conn != ConnectivityResult.none;
+    // ignore: use_build_context_synchronously
     final controller = context.read<WalletExpensesController>();
 
     try {
       try {
-        riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state = true;
+        // ignore: use_build_context_synchronously
+        riverpod.ProviderScope.containerOf(context, listen: false)
+            .read(globalLoaderProvider.notifier)
+            .state = true;
       } catch (_) {}
 
       for (final p in parsed) {
@@ -527,17 +575,23 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
 
         try {
           await controller.addExpense(expense, hasConnection: hasConnection);
+          // ignore: empty_catches
         } catch (e) {}
       }
     } finally {
       try {
-        riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state = false;
+        // ignore: use_build_context_synchronously
+        riverpod.ProviderScope.containerOf(context, listen: false)
+            .read(globalLoaderProvider.notifier)
+            .state = false;
       } catch (_) {}
     }
 
     _clearSelection();
-    Navigator.of(context)
-        .pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const WalletHomePage()), (route) => false);
+    // ignore: use_build_context_synchronously
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const WalletHomePage()),
+        (route) => false);
   }
 
   void _onMessageTap(GmailMessageInfo m) async {
@@ -556,22 +610,29 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       body = await _service.getMessageBody(m.id);
       log('body: $body');
 
-      final commentMatch = RegExp(r'Comentario:[\t]*(.*)', caseSensitive: false, multiLine: true).firstMatch(body);
+      final commentMatch =
+          RegExp(r'Comentario:[\t]*(.*)', caseSensitive: false, multiLine: true)
+              .firstMatch(body);
       final rawComment = commentMatch?.group(1) ?? '';
       final firstLine = rawComment.split(RegExp(r'\r?\n')).first.trim();
       comentario = firstLine.isEmpty ? null : firstLine;
       log('comentario: ${comentario ?? '<no comment>'}');
       final amountMatch = RegExp(r'\$\s*([\d.,]+)').firstMatch(body);
       if (amountMatch != null) {
-        final raw = amountMatch.group(1)!.replaceAll('.', '').replaceAll(',', '.');
+        final raw =
+            amountMatch.group(1)!.replaceAll('.', '').replaceAll(',', '.');
         amount = double.tryParse(raw);
       }
     } catch (e) {
+      // ignore: use_build_context_synchronously
       Navigator.of(context, rootNavigator: true).pop();
-      WalletPopup.showNotificationError(context: context, title: 'Error cargando el correo');
+      // ignore: use_build_context_synchronously
+      WalletPopup.showNotificationError(
+          context: context, title: 'Error cargando el correo');
       return;
     }
 
+    // ignore: use_build_context_synchronously
     Navigator.of(context, rootNavigator: true).pop();
 
     DateTime parsedDate;
@@ -584,56 +645,60 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
     final title = m.subject.isNotEmpty ? m.subject : 'Gasto detectado';
 
     await showDialog<void>(
+      // ignore: use_build_context_synchronously
       context: context,
       builder: (ctx) {
         final maxHeight = MediaQuery.of(ctx).size.height * 0.7;
         final maxWidth = MediaQuery.of(ctx).size.width * 0.92;
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AwColors.transparent,
           child: TicketCard(
             roundTopCorners: true,
             topCornerRadius: 10,
             compactNotches: true,
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: maxHeight, maxWidth: maxWidth),
+              constraints:
+                  BoxConstraints(maxHeight: maxHeight, maxWidth: maxWidth),
               child: Padding(
                 padding: const EdgeInsets.all(5),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
+                    AwSpacing.s,
                     AwText.bold(
                       title,
                       size: 16,
                     ),
-                    const SizedBox(height: 8),
-                    const SizedBox(height: 8),
+                    AwSpacing.s,
+                    AwSpacing.s,
                     if (amount != null)
                       AwText(
                         text: 'Monto: ${formatNumber(amount)}',
                       ),
                     if (comentario != null && comentario.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      AwSpacing.s,
                       AwText(
                         text: 'Comentario: $comentario',
                         size: 14,
                         color: Colors.black87,
                       ),
                     ],
-                    const SizedBox(height: 12),
+                    AwSpacing.s12,
                     Expanded(
                       child: SingleChildScrollView(
                         child: SelectableText(
                           body,
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                          style: const TextStyle(
+                              fontSize: 14, color: AwColors.black87),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    AwSpacing.s12,
                     LayoutBuilder(
                       builder: (bCtx, constraints) {
                         final available = constraints.maxWidth;
+                        // ignore: deprecated_member_use
                         final textScale = MediaQuery.of(ctx).textScaleFactor;
                         final shouldStack = available < 360 || textScale > 1.15;
 
@@ -670,12 +735,14 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                                             .checkConnectivity();
                                         final hasConnection =
                                             conn != ConnectivityResult.none;
+                                        // ignore: use_build_context_synchronously
                                         final controller = context
                                             .read<WalletExpensesController>();
 
                                         try {
                                           try {
                                             riverpod.ProviderScope.containerOf(
+                                                    // ignore: use_build_context_synchronously
                                                     context,
                                                     listen: false)
                                                 .read(globalLoaderProvider
@@ -683,6 +750,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                                                 .state = true;
                                           } catch (_) {}
 
+                                          // ignore: use_build_context_synchronously
                                           Navigator.of(context)
                                               .pushAndRemoveUntil(
                                             MaterialPageRoute(
@@ -707,7 +775,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                                     },
                                     buttonText: 'Agregar gasto',
                                   )),
-                              const SizedBox(height: 8),
+                              AwSpacing.s,
                               WalletButton.textButton(
                                 onPressed: () => Navigator.of(ctx).pop(),
                                 buttonText: 'Cerrar',
@@ -724,7 +792,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                               onPressed: () => Navigator.of(ctx).pop(),
                               buttonText: 'Cerrar',
                             ),
-                            const SizedBox(width: 12),
+                            AwSpacing.w12,
                             ConstrainedBox(
                               constraints:
                                   BoxConstraints(maxWidth: maxWidth * 0.62),
@@ -751,18 +819,21 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                                         .checkConnectivity();
                                     final hasConnection =
                                         conn != ConnectivityResult.none;
+                                    // ignore: use_build_context_synchronously
                                     final controller = context
                                         .read<WalletExpensesController>();
 
                                     try {
                                       try {
                                         riverpod.ProviderScope.containerOf(
+                                                // ignore: use_build_context_synchronously
                                                 context,
                                                 listen: false)
                                             .read(globalLoaderProvider.notifier)
                                             .state = true;
                                       } catch (_) {}
 
+                                      // ignore: use_build_context_synchronously
                                       Navigator.of(context).pushAndRemoveUntil(
                                         MaterialPageRoute(
                                             builder: (_) =>
@@ -775,6 +846,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                                     } finally {
                                       try {
                                         riverpod.ProviderScope.containerOf(
+                                                // ignore: use_build_context_synchronously
                                                 context,
                                                 listen: false)
                                             .read(globalLoaderProvider.notifier)
@@ -790,7 +862,7 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                         );
                       },
                     ),
-                    const SizedBox(height: 8),
+                    AwSpacing.s,
                   ],
                 ),
               ),
@@ -811,7 +883,8 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
             : const Text('Gmail - Bandeja de entrada'),
         actions: [
           if (_selectedIds.isNotEmpty) ...[
-            IconButton(onPressed: _clearSelection, icon: const Icon(Icons.clear)),
+            IconButton(
+                onPressed: _clearSelection, icon: const Icon(Icons.clear)),
           ],
           IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh)),
         ],
@@ -831,8 +904,9 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('Error: $err', textAlign: TextAlign.center),
-                    const SizedBox(height: 12),
-                    ElevatedButton(onPressed: _refresh, child: const Text('Reintentar')),
+                    AwSpacing.s12,
+                    ElevatedButton(
+                        onPressed: _refresh, child: const Text('Reintentar')),
                   ],
                 ),
               ),

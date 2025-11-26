@@ -139,7 +139,7 @@ class WalletButton {
                       color: iconColor,
                       size: iconSize,
                     ),
-                    const SizedBox(width: 8),
+                    AwSpacing.w,
                     AwText.bold(
                       buttonText,
                       color: AwColors.white,

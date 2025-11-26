@@ -72,8 +72,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
   Widget build(BuildContext context) {
     final flat = widget.flat;
     final InputBorder effectiveBorder = flat
-        ? UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.grey.shade400),
+        ? const UnderlineInputBorder(
+            borderSide: BorderSide(color: AwColors.grey400),
           )
         : OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -97,9 +97,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
         style: TextStyle(fontSize: effectiveTextSize),
         decoration: InputDecoration(
           labelText: widget.label.isNotEmpty ? widget.label : null,
-          labelStyle: widget.label.isNotEmpty ? TextStyle(color: Colors.black, fontSize: effectiveTextSize) : null,
+          labelStyle: widget.label.isNotEmpty
+              ? TextStyle(color: AwColors.black, fontSize: effectiveTextSize)
+              : null,
           hintText: showHint ? widget.hintText : null,
-          hintStyle: TextStyle(fontSize: effectiveTextSize, color: AwColors.grey),
+          hintStyle:
+              TextStyle(fontSize: effectiveTextSize, color: AwColors.grey),
           prefixText: widget.prefixText,
           counterText: widget.hideCounter ? '' : null,
           border: effectiveBorder,

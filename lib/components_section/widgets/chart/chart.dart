@@ -32,7 +32,9 @@ class _ChartState extends State<Chart> {
   }
 
   void _recomputeBuckets() {
-    _buckets = Category.values.map((c) => WalletExpenseBucket.forCategory(widget.expenses, c)).toList();
+    _buckets = Category.values
+        .map((c) => WalletExpenseBucket.forCategory(widget.expenses, c))
+        .toList();
 
     _maxTotalExpense = 0;
     for (final bucket in _buckets) {
@@ -154,7 +156,7 @@ class _ChartState extends State<Chart> {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            AwSpacing.s,
           ],
         ),
       );
@@ -170,6 +172,7 @@ class ChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
+      // ignore: deprecated_member_use
       ..color = AwColors.grey.withOpacity(0.5)
       ..strokeWidth = 1.5;
 

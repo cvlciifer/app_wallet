@@ -127,7 +127,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
               if (_localLoaderActive) ...[
                 Positioned.fill(
                   child: Container(
-                    color: Colors.white.withOpacity(0.9),
+                    // ignore: deprecated_member_use
+                    color: AwColors.white.withOpacity(0.9),
                     child: const Center(
                       child: SizedBox(
                         height: AwSize.s48,
@@ -200,7 +201,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
           ),
         ),
         Expanded(child: mainContent),
-        const SizedBox(width: AwSize.s60),
+        AwSpacing.w60,
       ],
     );
   }

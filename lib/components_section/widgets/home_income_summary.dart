@@ -4,8 +4,10 @@ import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
 
 class HomeIncomeSummary extends StatelessWidget {
   final WalletExpensesController controller;
+  final Color? mainTextColor;
 
-  const HomeIncomeSummary({Key? key, required this.controller})
+  const HomeIncomeSummary(
+      {Key? key, required this.controller, this.mainTextColor})
       : super(key: key);
 
   @override
@@ -30,6 +32,7 @@ class HomeIncomeSummary extends StatelessWidget {
               e.date.year == selectedMonth.year &&
               e.date.month == selectedMonth.month)
           .toList();
+      // ignore: avoid_types_as_parameter_names
       final spent = expensesThisMonth.fold(0.0, (sum, e) => sum + e.amount);
 
       final available = (total - spent).toDouble();
@@ -39,6 +42,7 @@ class HomeIncomeSummary extends StatelessWidget {
         child: LayoutBuilder(builder: (ctx, constraints) {
           final isTight =
               constraints.maxHeight.isFinite && constraints.maxHeight < 150;
+          // ignore: deprecated_member_use
           final double textScale = MediaQuery.textScaleFactorOf(ctx);
           // base sizes
           double mainSize = isTight ? 24.0 : 28.0;
@@ -48,11 +52,9 @@ class HomeIncomeSummary extends StatelessWidget {
             mainSize = (mainSize / textScale) * 0.95;
             subSize = (subSize / textScale) * 0.95;
           }
-          final Widget gapSmallWidget =
-              isTight ? const SizedBox(height: 4) : AwSpacing.s6;
-          final Widget gapMediumWidget = isTight || textScale > 1.0
-              ? const SizedBox(height: 6)
-              : AwSpacing.s12;
+          final Widget gapSmallWidget = isTight ? AwSpacing.xs : AwSpacing.s6;
+          final Widget gapMediumWidget =
+              isTight || textScale > 1.0 ? AwSpacing.s6 : AwSpacing.s12;
 
           if (total == 0 && spent == 0) {
             if (constraints.hasBoundedHeight) {
@@ -122,8 +124,9 @@ class HomeIncomeSummary extends StatelessWidget {
                       child: AwText.normal(
                         formatNumber(available),
                         size: mainSize,
-                        color:
-                            available < 0 ? AwColors.red : AwColors.boldBlack,
+                        color: available < 0
+                            ? AwColors.red
+                            : (mainTextColor ?? AwColors.boldBlack),
                       ),
                     ),
                   ),
@@ -155,7 +158,7 @@ class HomeIncomeSummary extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      AwSpacing.w12,
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,

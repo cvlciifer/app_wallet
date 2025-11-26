@@ -28,7 +28,7 @@ class ExpenseItem extends StatelessWidget {
               expense.title,
               color: AwColors.boldBlack,
             ),
-            const SizedBox(height: 4),
+            AwSpacing.xs,
             Row(
               children: [
                 AwText(
@@ -42,7 +42,7 @@ class ExpenseItem extends StatelessWidget {
                       categoryIcons[expense.category],
                       color: expense.category.color,
                     ),
-                    const SizedBox(width: 8),
+                    AwSpacing.w,
                     AwText.bold(expense.formattedDate),
                   ],
                 ),

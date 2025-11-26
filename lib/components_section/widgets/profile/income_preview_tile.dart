@@ -38,7 +38,7 @@ class IncomePreviewTile extends StatelessWidget {
               monthLabel,
               size: AwSize.s14,
             ),
-            const SizedBox(height: 8),
+            AwSpacing.s,
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -51,7 +51,7 @@ class IncomePreviewTile extends StatelessWidget {
                         size: AwSize.s12,
                         color: AwColors.black54,
                       ),
-                      const SizedBox(height: 4),
+                      AwSpacing.xs,
                       AwText.normal(
                         'Imprevisto:$imprevistoText',
                         size: AwSize.s12,
@@ -60,7 +60,7 @@ class IncomePreviewTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                AwSpacing.w12,
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -79,7 +79,8 @@ class IncomePreviewTile extends StatelessWidget {
                           ),
                         if (onDelete != null)
                           IconButton(
-                            icon: const Icon(Icons.delete, size: 18, color: Colors.redAccent),
+                            icon: const Icon(Icons.delete,
+                                size: 18, color: AwColors.redAccent),
                             onPressed: onDelete,
                             tooltip: 'Eliminar',
                           ),

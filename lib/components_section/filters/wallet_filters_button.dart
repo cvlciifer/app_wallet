@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/components_section/buttons/underlined_button.dart';
 
 class WalletFiltersButton extends StatelessWidget {
   final VoidCallback onTap;
@@ -22,7 +21,7 @@ class WalletFiltersButton extends StatelessWidget {
             children: [
               const Icon(Icons.filter_list,
                   color: AwColors.appBarColor, size: 20),
-              const SizedBox(width: 4),
+              AwSpacing.xw,
               UnderlinedButton(
                 text: 'Filtros',
                 onTap: onTap,

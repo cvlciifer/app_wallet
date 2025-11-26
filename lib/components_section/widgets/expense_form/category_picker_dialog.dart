@@ -35,8 +35,9 @@ class _CategoryPickerDialogState extends State<CategoryPickerDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              decoration:
-                  const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Buscar categoría o subcategoría'),
+              decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Buscar categoría o subcategoría'),
               onChanged: (v) => setState(() => _search = v),
             ),
             AwSpacing.s10,
@@ -48,15 +49,20 @@ class _CategoryPickerDialogState extends State<CategoryPickerDialog> {
                   final subcats = subcategoriesByCategory[category] ?? [];
                   final mainMatches = _matches(mainName);
                   final anySubMatches = subcats.any((s) => _matches(s.name));
-                  if (!mainMatches && !anySubMatches) return const SizedBox.shrink();
+                  if (!mainMatches && !anySubMatches)
+                    return const SizedBox.shrink();
 
                   return ExpansionTile(
-                    leading: Icon(categoryIcons[category], color: category.color),
+                    leading:
+                        Icon(categoryIcons[category], color: category.color),
                     title: AwText.bold(mainName),
                     children: [
                       ListTile(
-                        leading: Icon(categoryIcons[category], color: category.color),
-                        title: AwText(text: 'Sin subcategoría (usar ${mainName.toLowerCase()})'),
+                        leading: Icon(categoryIcons[category],
+                            color: category.color),
+                        title: AwText(
+                            text:
+                                'Sin subcategoría (usar ${mainName.toLowerCase()})'),
                         onTap: () {
                           widget.onCategorySelected(category, null);
                           Navigator.of(context).pop();
@@ -67,10 +73,12 @@ class _CategoryPickerDialogState extends State<CategoryPickerDialog> {
                           leading: Icon(s.icon,
                               color: widget.selectedSubcategoryId == s.id
                                   ? category.color
+                                  // ignore: deprecated_member_use
                                   : category.color.withOpacity(0.5)),
                           title: AwText(text: s.name),
-                          trailing:
-                              widget.selectedSubcategoryId == s.id ? Icon(Icons.check, color: category.color) : null,
+                          trailing: widget.selectedSubcategoryId == s.id
+                              ? Icon(Icons.check, color: category.color)
+                              : null,
                           onTap: () {
                             widget.onCategorySelected(category, s.id);
                             Navigator.of(context).pop();

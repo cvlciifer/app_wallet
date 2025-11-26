@@ -41,14 +41,11 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
   Widget build(BuildContext context) {
     final aliasFromProvider = prov.Provider.of<AliasProvider>(context).alias;
 
-    // Use centralized responsive font helper so we keep consistent
-    // min/max bounds and avoid manual inverse-scaling math.
     double aliasSize = responsiveFontSize(context, AwSize.s24,
         min: AwSize.s14, max: AwSize.s20);
     double emailSize = responsiveFontSize(context, AwSize.s14,
         min: AwSize.s8, max: AwSize.s14);
-    // Button text size inside header
-    double _buttonTextSize = responsiveFontSize(context, AwSize.s14,
+    double buttonTextSize = responsiveFontSize(context, AwSize.s14,
         min: AwSize.s8, max: AwSize.s14);
 
     return Scaffold(
@@ -67,6 +64,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
               backChild: HomeIncomeSummary(
                 controller: prov.Provider.of<WalletExpensesController>(context,
                     listen: false),
+                mainTextColor: AwColors.white,
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -76,7 +74,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                     backgroundColor: AwColors.blue,
                     child: Icon(Icons.person, size: 40, color: AwColors.white),
                   ),
-                  const SizedBox(width: 16),
+                  AwSpacing.w16,
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,7 +136,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                                       children: [
                                         const Icon(Icons.logout,
                                             color: AwColors.white, size: 16),
-                                        const SizedBox(width: 6),
+                                        AwSpacing.w6,
                                         ConstrainedBox(
                                           constraints: const BoxConstraints(
                                               maxWidth: 140),
@@ -147,7 +145,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              fontSize: _buttonTextSize,
+                                              fontSize: buttonTextSize,
                                               fontWeight: FontWeight.bold,
                                               color: AwColors.white,
                                               decoration:

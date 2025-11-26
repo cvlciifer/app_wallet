@@ -92,9 +92,7 @@ export 'package:app_wallet/security_section/presentation/controllers/lock_status
 export 'package:app_wallet/security_section/presentation/screens/pin/forgot_pin_page.dart';
 export 'package:app_wallet/components_section/buttons/underlined_button.dart';
 export 'package:app_wallet/components_section/widgets/settings_card.dart';
-export 'package:app_wallet/components_section/buttons/enter_pin_failed.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/pin_locked_page.dart';
-export 'package:app_wallet/components_section/buttons/enter_pin_successful.dart';
 export 'package:app_wallet/components_section/widgets/pin/greeting_header.dart';
 export 'package:app_wallet/components_section/widgets/pin/pin_page_scaffold.dart';
 export 'package:app_wallet/core/providers/security/enter_pin_notifier.dart';

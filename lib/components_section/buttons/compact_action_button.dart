@@ -38,7 +38,7 @@ class CompactActionButton extends StatelessWidget {
           child: AwText.bold(
             text,
             size: AwSize.s14,
-            color: textColor ?? Colors.white,
+            color: textColor ?? AwColors.white,
           ),
         ),
       );
@@ -52,6 +52,7 @@ class CompactActionButton extends StatelessWidget {
           side: BorderSide(color: borderColor ?? AwColors.indigoInk),
           minimumSize: Size.fromHeight(height),
           backgroundColor:
+              // ignore: deprecated_member_use
               backgroundColor ?? AwColors.indigoInk.withOpacity(0.65),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
           shape:

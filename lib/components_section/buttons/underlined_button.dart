@@ -32,7 +32,7 @@ class UnderlinedButton extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, color: effectiveColor, size: 18),
-            const SizedBox(width: 6),
+            AwSpacing.w6,
           ],
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxTextWidth),

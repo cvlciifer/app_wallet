@@ -42,8 +42,8 @@ class MonthsCountArrowSelector extends StatelessWidget {
             ),
           )
         else
-          const SizedBox(width: 40, height: 40),
-        const SizedBox(width: 12),
+          AwSpacing.box40,
+        AwSpacing.w12,
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 18),
           decoration: BoxDecoration(
@@ -64,7 +64,7 @@ class MonthsCountArrowSelector extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 12),
+        AwSpacing.w12,
         // Right arrow: render only when next is available, otherwise keep spacer
         if (canNext)
           InkWell(
@@ -74,14 +74,16 @@ class MonthsCountArrowSelector extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: AwColors.appBarColor.withOpacity(0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.chevron_right, color: AwColors.appBarColor),
+              child:
+                  const Icon(Icons.chevron_right, color: AwColors.appBarColor),
             ),
           )
         else
-          const SizedBox(width: 40, height: 40),
+          AwSpacing.box40,
       ],
     );
   }

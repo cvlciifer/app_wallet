@@ -3,6 +3,9 @@ import 'package:app_wallet/library_section/main_library.dart';
 class AwSpacing {
   AwSpacing._();
 
+  /// Size: 2px
+  static const SizedBox xxs = SizedBox(height: 2);
+
   // Size: 4px
   static const SizedBox xs = SizedBox(height: 4);
 
@@ -18,6 +21,9 @@ class AwSpacing {
   /// Size: 12 px
   static const SizedBox s12 = SizedBox(height: 12);
 
+  /// Size: 14 px
+  static const SizedBox s14 = SizedBox(height: 14);
+
   /// Size: 16 px
   static const SizedBox m = SizedBox(height: 16);
 
@@ -26,6 +32,9 @@ class AwSpacing {
 
   /// Size: 20 px
   static const SizedBox s20 = SizedBox(height: 20);
+
+  /// Size: 24 px
+  static const SizedBox s24 = SizedBox(height: 24);
 
   /// Size: 30 px
   static const SizedBox s30 = SizedBox(height: 30);
@@ -54,17 +63,35 @@ class AwSpacing {
   /// Size: 256 px
   static const SizedBox xxxl = SizedBox(height: 256);
 
+  /// Width: 4 px (horizontal spacer)
+  static const SizedBox xw = SizedBox(width: 4);
+
   /// Width: 6 px (horizontal spacer)
   static const SizedBox w6 = SizedBox(width: 6);
 
   /// Width: 8 px (horizontal spacer)
   static const SizedBox w = SizedBox(width: 8);
 
+  /// Width: 10 px (horizontal spacer)
+  static const SizedBox w10 = SizedBox(width: 10);
+
   /// Width: 12 px (horizontal spacer)
   static const SizedBox w12 = SizedBox(width: 12);
 
+  /// Width: 16 px (horizontal spacer)
+  static const SizedBox w16 = SizedBox(width: 16);
+
   /// Width: 20 px (horizontal spacer)
   static const SizedBox w20 = SizedBox(width: 20);
+
+  /// Width: 48 px (horizontal spacer)
+  static const SizedBox w48 = SizedBox(width: 48);
+
+  /// Width: 60 px (horizontal spacer)
+  static const SizedBox w60 = SizedBox(width: 60);
+
+  /// Square: 40x40 px (placeholder / spacer)
+  static const SizedBox box40 = SizedBox(width: 40, height: 40);
 
   /// SizedBox de ancho 300 que acepta un child
   static Widget box300({required Widget child}) {

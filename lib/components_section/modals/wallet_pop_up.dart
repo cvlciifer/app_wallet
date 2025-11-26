@@ -19,7 +19,7 @@ class WalletPopup {
     showDialog(
       useRootNavigator: true,
       barrierDismissible: isDismissible ?? true,
-      barrierColor: Colors.transparent,
+      barrierColor: AwColors.transparent,
       context: context,
       builder: (context) {
         setContext(context);
@@ -31,7 +31,7 @@ class WalletPopup {
               left: AwSize.s18,
               right: AwSize.s18,
               child: Material(
-                color: Colors.transparent,
+                color: AwColors.transparent,
                 child: GestureDetector(
                   onTap: () => closePopUp(),
                   onHorizontalDragEnd: (_) => closePopUp(),
@@ -57,7 +57,7 @@ class WalletPopup {
                           color: AwColors.white,
                           size: AwSize.s20,
                         ),
-                        const SizedBox(width: AwSize.s10),
+                        AwSpacing.w10,
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +103,7 @@ class WalletPopup {
     return showDialog<void>(
       useRootNavigator: true,
       barrierDismissible: isDismissible,
-      barrierColor: Colors.transparent,
+      barrierColor: AwColors.transparent,
       context: context,
       builder: (context) {
         setContext(context);
@@ -141,7 +141,7 @@ class WalletPopup {
                           height: AwSize.s34,
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white,
+                            color: AwColors.white,
                           ),
                           child: const Center(
                             child: Icon(
@@ -151,7 +151,7 @@ class WalletPopup {
                             ),
                           ),
                         ),
-                        const SizedBox(width: AwSize.s12),
+                        AwSpacing.w12,
                         Expanded(
                           child: LayoutBuilder(
                             builder: (ctx, constraints) {
@@ -225,6 +225,7 @@ class WalletPopup {
                       borderRadius: BorderRadius.circular(AwSize.s6),
                       boxShadow: [
                         BoxShadow(
+                          // ignore: deprecated_member_use
                           color: AwColors.grey.withOpacity(0.15),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
@@ -238,7 +239,7 @@ class WalletPopup {
                           color: AwColors.white,
                           size: AwSize.s20,
                         ),
-                        const SizedBox(width: AwSize.s10),
+                        AwSpacing.w10,
                         Expanded(
                           child: LayoutBuilder(builder: (ctx, constraints) {
                             final computedSize = responsiveFontSize(
@@ -273,7 +274,7 @@ class WalletPopup {
     showDialog(
       useRootNavigator: true,
       barrierDismissible: isDismissible ?? true,
-      barrierColor: Colors.transparent,
+      barrierColor: AwColors.transparent,
       context: context,
       builder: (context) {
         setContext(context);
@@ -285,7 +286,7 @@ class WalletPopup {
               left: AwSize.s18,
               right: AwSize.s18,
               child: Material(
-                color: Colors.transparent,
+                color: AwColors.transparent,
                 child: GestureDetector(
                   onTap: () => closePopUp(),
                   onHorizontalDragEnd: (_) => closePopUp(),
@@ -298,6 +299,7 @@ class WalletPopup {
                       borderRadius: BorderRadius.circular(AwSize.s6),
                       boxShadow: [
                         BoxShadow(
+                          // ignore: deprecated_member_use
                           color: AwColors.grey.withOpacity(0.15),
                           blurRadius: 8,
                           offset: const Offset(0, 4),

@@ -27,6 +27,7 @@ class WalletAppBar extends StatefulWidget implements PreferredSizeWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _WalletAppBarState createState() => _WalletAppBarState();
 
   @override
@@ -98,7 +99,7 @@ class _WalletAppBarState extends State<WalletAppBar> {
                 Icons.account_balance_wallet,
                 size: widget.zoomLogo ? AwSize.s32 : AwSize.s24,
               ),
-            const SizedBox(width: AwSize.s16),
+            AwSpacing.w16,
           ],
     );
   }

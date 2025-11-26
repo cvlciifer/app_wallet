@@ -44,13 +44,13 @@ class PinEntryAreaState extends State<PinEntryArea> {
             onCompleted: widget.onCompleted,
             autoComplete: widget.autoComplete,
             onChanged: widget.onChanged),
-        const SizedBox(height: 12),
+        AwSpacing.s12,
         NumericKeypad(
           onDigit: (d) => appendDigit(d),
           onBackspace: () => deleteDigit(),
         ),
         if (widget.actions != null) ...[
-          const SizedBox(height: 12),
+          AwSpacing.s12,
           widget.actions!,
         ],
       ],

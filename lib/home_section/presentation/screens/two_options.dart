@@ -24,7 +24,7 @@ Future<void> showTwoOptionsDialog(
                   curve: const Interval(0.1, 1.0, curve: Curves.elasticOut)));
 
       return Material(
-        color: Colors.black45,
+        color: AwColors.black45,
         child: Center(
           child: SizedBox(
             width: 360,
@@ -49,15 +49,14 @@ Future<void> showTwoOptionsDialog(
                           onAddExpense();
                         } catch (_) {}
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
                         child: SizedBox(
                           height: 85,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const Icon(Icons.add,
-                                  color: AwColors.appBarColor),
+                              Icon(Icons.add, color: AwColors.appBarColor),
                               AwSpacing.m,
                               Expanded(
                                 child: AwText.bold(

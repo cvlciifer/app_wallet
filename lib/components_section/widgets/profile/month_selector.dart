@@ -31,15 +31,16 @@ class MonthSelector extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: canPrev
+                  // ignore: deprecated_member_use
                   ? AwColors.appBarColor.withOpacity(0.08)
-                  : Colors.transparent,
+                  : AwColors.transparent,
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.chevron_left,
                 color: canPrev ? AwColors.appBarColor : AwColors.grey),
           ),
         ),
-        const SizedBox(width: 12),
+        AwSpacing.w12,
 
         Expanded(
           child: AnimatedSwitcher(
@@ -55,6 +56,7 @@ class MonthSelector extends StatelessWidget {
                 color: AwColors.appBarColor.withOpacity(0.04),
                 borderRadius: BorderRadius.circular(12),
                 border:
+                    // ignore: deprecated_member_use
                     Border.all(color: AwColors.appBarColor.withOpacity(0.08)),
               ),
               child: Row(
@@ -79,7 +81,7 @@ class MonthSelector extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(width: 12),
+        AwSpacing.w12,
         InkWell(
           onTap: canNext ? onNext : null,
           borderRadius: BorderRadius.circular(24),
@@ -88,8 +90,9 @@ class MonthSelector extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: canNext
+                  // ignore: deprecated_member_use
                   ? AwColors.appBarColor.withOpacity(0.08)
-                  : Colors.transparent,
+                  : AwColors.transparent,
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.chevron_right,

@@ -17,7 +17,7 @@ class CategoryDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final subcats = subcategoriesByCategory[category] ?? [];
 
-    IconData _iconForSubId(String? subId) {
+    IconData iconForSubId(String? subId) {
       if (subId == null) return categoryIcons[category] ?? Icons.category;
       for (final s in subcats) {
         if (s.id == subId) return s.icon;
@@ -30,7 +30,7 @@ class CategoryDetailScreen extends StatelessWidget {
       return categoryIcons[category] ?? Icons.category;
     }
 
-    String _nameForSubId(String? subId) {
+    String nameForSubId(String? subId) {
       if (subId == null) return 'Sin subcategoría';
       for (final s in subcats) {
         if (s.id == subId) return s.name;
@@ -59,6 +59,7 @@ class CategoryDetailScreen extends StatelessWidget {
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
+        // ignore: deprecated_member_use
         color: Theme.of(context).colorScheme.background,
         child: expenses.isEmpty
             ? Center(
@@ -88,8 +89,8 @@ class CategoryDetailScreen extends StatelessWidget {
                   itemCount: expenses.length,
                   itemBuilder: (context, index) {
                     final e = expenses[index];
-                    final subName = _nameForSubId(e.subcategoryId);
-                    final subIcon = _iconForSubId(e.subcategoryId);
+                    final subName = nameForSubId(e.subcategoryId);
+                    final subIcon = iconForSubId(e.subcategoryId);
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 20.0),
                       child: TicketCard(
@@ -126,6 +127,7 @@ class CategoryDetailScreen extends StatelessWidget {
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
+                                          // ignore: deprecated_member_use
                                           .withOpacity(0.6),
                                     ),
                           ),
@@ -165,7 +167,7 @@ class CategoryDetailScreen extends StatelessWidget {
                                                 .onSurface,
                                           ),
                                     ),
-                                    const SizedBox(height: 4),
+                                    AwSpacing.xxs,
                                     FittedBox(
                                       fit: BoxFit.scaleDown,
                                       alignment: Alignment.centerRight,

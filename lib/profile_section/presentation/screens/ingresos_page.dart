@@ -2,10 +2,8 @@ import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/components_section/widgets/profile/income_preview_tile.dart';
 import 'package:app_wallet/profile_section/presentation/screens/registro_ingresos_page.dart';
 import 'package:app_wallet/components_section/widgets/profile/month_selector.dart';
-import 'package:app_wallet/profile_section/presentation/screens/ingresos_imprevistos_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
-import 'package:intl/intl.dart';
 
 class IngresosPage extends ConsumerStatefulWidget {
   const IngresosPage({Key? key}) : super(key: key);
@@ -16,7 +14,8 @@ class IngresosPage extends ConsumerStatefulWidget {
 
 class _IngresosPageState extends ConsumerState<IngresosPage> {
   final TextEditingController _amountController = TextEditingController();
-  final _clpFormatter = NumberFormat.currency(locale: 'es_CL', symbol: '\$', decimalDigits: 0);
+  final _clpFormatter =
+      NumberFormat.currency(locale: 'es_CL', symbol: '\$', decimalDigits: 0);
   Timer? _maxErrorTimer;
   bool _showMaxError = false;
   bool _isAmountValid = false;
@@ -42,7 +41,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
   void _onAmountChanged() {
     final digits = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
     final current = int.tryParse(digits) ?? 0;
-    final valid = digits.isNotEmpty && current <= MaxAmountFormatter.kEightDigitsMaxAmount;
+    final valid = digits.isNotEmpty &&
+        current <= MaxAmountFormatter.kEightDigitsMaxAmount;
     if (valid != _isAmountValid) {
       if (!mounted) return;
       setState(() {
@@ -88,7 +88,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                   color: AwColors.modalGrey,
                 ),
                 AwSpacing.s18,
-                const AwText.normal('Mes de inicio', size: AwSize.s14, color: AwColors.grey),
+                const AwText.normal('Mes de inicio',
+                    size: AwSize.s14, color: AwColors.grey),
                 AwSpacing.s6,
                 MonthSelector(
                   month: state.previewMonths.isNotEmpty
@@ -100,7 +101,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                   onNext: () => ctrl.setStartOffset(state.startOffset + 1),
                 ),
                 AwSpacing.s12,
-                const AwText.normal('Cantidad de meses', size: AwSize.s14, color: AwColors.grey),
+                const AwText.normal('Cantidad de meses',
+                    size: AwSize.s14, color: AwColors.grey),
                 AwSpacing.s6,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -113,7 +115,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                         onPressed: () => ctrl.setMonths(state.months - 1),
                       )
                     else
-                      const SizedBox(width: 48),
+                      AwSpacing.w48,
 
                     AwText.bold(
                       state.months == 1 ? '1 mes' : '${state.months} meses',
@@ -129,7 +131,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                         onPressed: () => ctrl.setMonths(state.months + 1),
                       )
                     else
-                      const SizedBox(width: 48),
+                      AwSpacing.w48,
                   ],
                 ),
                 AwSpacing.m,
@@ -161,7 +163,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                 if (_showMaxError)
                   const Padding(
                     padding: EdgeInsets.only(top: 8.0),
-                    child: AwText.normal('Tope máximo: 8 dígitos (99.999.999)', color: AwColors.red, size: AwSize.s14),
+                    child: AwText.normal('Tope máximo: 8 dígitos (99.999.999)',
+                        color: AwColors.red, size: AwSize.s14),
                   ),
                 AwSpacing.s12,
                 Row(
@@ -170,12 +173,15 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                       child: ElevatedButton(
                         onPressed: _isAmountValid
                             ? () async {
-                                final fijo =
-                                    int.tryParse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+                                final fijo = int.tryParse(_amountController.text
+                                        .replaceAll(RegExp(r'[^0-9]'), '')) ??
+                                    0;
                                 if (fijo <= 0) return;
                                 for (final d in state.previewMonths) {
-                                  final monthDate = DateTime(d.year, d.month, 1);
-                                  await ctrl.updateIncomeForDate(monthDate, fijo, null);
+                                  final monthDate =
+                                      DateTime(d.year, d.month, 1);
+                                  await ctrl.updateIncomeForDate(
+                                      monthDate, fijo, null);
                                 }
                                 WalletPopup.showNotificationSuccess(
                                   context: context,
@@ -186,9 +192,11 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AwColors.blueGrey,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AwSize.s12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AwSize.s12)),
                         ),
-                        child: AwText.bold('Guardar Ingreso', color: AwColors.white),
+                        child: const AwText.bold('Guardar Ingreso',
+                            color: AwColors.white),
                       ),
                     ),
                   ],
@@ -198,29 +206,38 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                   height: AwSize.s48,
                   child: ElevatedButton(
                     onPressed: () async {
-                      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RegistroIngresosPage()));
+                      await Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const RegistroIngresosPage()));
                       await ctrl.loadLocalIncomes();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AwColors.appBarColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AwSize.s16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AwSize.s16)),
                     ),
                     child: const Center(
-                      child: AwText.bold('Registro de ingresos', color: AwColors.white),
+                      child: AwText.bold('Registro de ingresos',
+                          color: AwColors.white),
                     ),
                   ),
                 ),
                 AwSpacing.s20,
-                const AwText.bold('Ingresos por meses', size: AwSize.s18, color: AwColors.appBarColor),
+                const AwText.bold('Ingresos por meses',
+                    size: AwSize.s18, color: AwColors.appBarColor),
                 AwSpacing.s6,
                 Column(
                   children: state.previewMonths.map((d) {
                     final id = '${d.year}${d.month.toString().padLeft(2, '0')}';
                     final existing = state.localIncomes[id];
-                    final fijo = existing != null ? (existing['ingreso_fijo'] as int? ?? 0) : 0;
-                    final imprevisto = existing != null ? (existing['ingreso_imprevisto'] as int? ?? 0) : 0;
+                    final fijo = existing != null
+                        ? (existing['ingreso_fijo'] as int? ?? 0)
+                        : 0;
+                    final imprevisto = existing != null
+                        ? (existing['ingreso_imprevisto'] as int? ?? 0)
+                        : 0;
                     final total = fijo + imprevisto;
-                    String monthLabelRaw = (d.year == DateTime.now().year && d.month == DateTime.now().month)
+                    String monthLabelRaw = (d.year == DateTime.now().year &&
+                            d.month == DateTime.now().month)
                         ? 'Mes actual'
                         : DateFormat('MMMM yyyy', 'es').format(d);
                     // Capitalize first letter of month label
@@ -239,16 +256,20 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                         onTap: () async {
                           final saved = await Navigator.of(context).push<bool>(
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  IngresosImprevistosPage(initialMonth: monthDate, initialImprevisto: imprevisto),
+                              builder: (_) => IngresosImprevistosPage(
+                                  initialMonth: monthDate,
+                                  initialImprevisto: imprevisto),
                             ),
                           );
                           if (saved == true) await ctrl.loadLocalIncomes();
                         },
                         onEdit: () async {
-                          final fmt = NumberFormat.currency(locale: 'es_CL', symbol: '', decimalDigits: 0);
-                          final fijoCtrl = TextEditingController(text: fmt.format(fijo));
-                          final impCtrl = TextEditingController(text: fmt.format(imprevisto));
+                          final fmt = NumberFormat.currency(
+                              locale: 'es_CL', symbol: '', decimalDigits: 0);
+                          final fijoCtrl =
+                              TextEditingController(text: fmt.format(fijo));
+                          final impCtrl = TextEditingController(
+                              text: fmt.format(imprevisto));
                           final ok = await showDialog<bool>(
                             context: context,
                             builder: (ctx) => Dialog(
@@ -257,16 +278,19 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const AwText.bold('Editar ingreso del mes', size: AwSize.s16),
-                                    const SizedBox(height: 8),
+                                    const AwText.bold('Editar ingreso del mes',
+                                        size: AwSize.s16),
+                                    AwSpacing.s,
                                     CustomTextField(
                                         controller: fijoCtrl,
                                         label: 'Ingreso mensual',
                                         keyboardType: TextInputType.number,
                                         inputFormatters: [
                                           MaxAmountFormatter(
-                                              maxDigits: MaxAmountFormatter.kEightDigits,
-                                              maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount,
+                                              maxDigits: MaxAmountFormatter
+                                                  .kEightDigits,
+                                              maxAmount: MaxAmountFormatter
+                                                  .kEightDigitsMaxAmount,
                                               onAttemptOverLimit: () {
                                                 if (mounted) {
                                                   /* ignore UI here */
@@ -281,8 +305,10 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                                         keyboardType: TextInputType.number,
                                         inputFormatters: [
                                           MaxAmountFormatter(
-                                              maxDigits: MaxAmountFormatter.kEightDigits,
-                                              maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount,
+                                              maxDigits: MaxAmountFormatter
+                                                  .kEightDigits,
+                                              maxAmount: MaxAmountFormatter
+                                                  .kEightDigitsMaxAmount,
                                               onAttemptOverLimit: () {
                                                 if (mounted) {
                                                   /* ignore UI here */
@@ -295,11 +321,15 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         TextButton(
-                                            onPressed: () => Navigator.of(ctx).pop(false),
+                                            onPressed: () =>
+                                                Navigator.of(ctx).pop(false),
                                             child: const Text('Cancelar')),
                                         ElevatedButton(
-                                          onPressed: () => Navigator.of(ctx).pop(true),
-                                          style: ElevatedButton.styleFrom(backgroundColor: AwColors.lightBlue),
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(true),
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  AwColors.lightBlue),
                                           child: const Text('Guardar'),
                                         ),
                                       ],
@@ -310,9 +340,14 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                             ),
                           );
                           if (ok == true) {
-                            final newFijo = int.tryParse(fijoCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-                            final newImp = int.tryParse(impCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-                            await ctrl.updateIncomeForDate(monthDate, newFijo, newImp == 0 ? null : newImp);
+                            final newFijo = int.tryParse(fijoCtrl.text
+                                    .replaceAll(RegExp(r'[^0-9]'), '')) ??
+                                0;
+                            final newImp = int.tryParse(impCtrl.text
+                                    .replaceAll(RegExp(r'[^0-9]'), '')) ??
+                                0;
+                            await ctrl.updateIncomeForDate(monthDate, newFijo,
+                                newImp == 0 ? null : newImp);
                             await ctrl.loadLocalIncomes();
                           }
                         },
@@ -327,13 +362,19 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                                   color: AwColors.modalGrey),
                               actions: [
                                 TextButton(
-                                    onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-                                TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Eliminar')),
+                                    onPressed: () =>
+                                        Navigator.of(ctx).pop(false),
+                                    child: const Text('Cancelar')),
+                                TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(ctx).pop(true),
+                                    child: const Text('Eliminar')),
                               ],
                             ),
                           );
                           if (confirm == true) {
-                            final ok = await ctrl.deleteIncomeForDate(monthDate);
+                            final ok =
+                                await ctrl.deleteIncomeForDate(monthDate);
                             if (ok) {
                               WalletPopup.showNotificationSuccess(
                                 context: context,
