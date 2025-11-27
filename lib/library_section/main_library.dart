@@ -135,3 +135,5 @@ export 'package:app_wallet/components_section/utils/responsive.dart';
 export 'package:app_wallet/profile_section/presentation/screens/header_label.dart';
 export 'package:app_wallet/profile_section/presentation/screens/settings_page.dart';
 export 'package:app_wallet/components_section/widgets/home_income_summary.dart';
+export 'package:app_wallet/components_section/formatters/allowed_chars_formatter.dart';
+export 'package:app_wallet/components_section/widgets/alias.dart';
