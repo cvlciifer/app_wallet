@@ -103,46 +103,50 @@ class ExpensesList extends StatelessWidget {
     return Scrollbar(
       child: ListView.builder(
         itemCount: expenses.length,
-        itemBuilder: (ctx, index) => Dismissible(
-          key: ValueKey(expenses[index]),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            color: Theme.of(context).colorScheme.error.withOpacity(0.75),
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: const Icon(
-              Icons.delete,
-              color: AwColors.white,
-              size: 30,
+        itemBuilder: (ctx, index) {
+          final expense = expenses[index];
+          return Dismissible(
+            key: ValueKey(expense),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: Theme.of(context).colorScheme.error.withOpacity(0.75),
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: const Icon(
+                Icons.delete,
+                color: AwColors.white,
+                size: 30,
+              ),
             ),
-          ),
-          secondaryBackground: Container(
-            color: Theme.of(context).colorScheme.error.withOpacity(0.75),
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: const Icon(
-              Icons.delete,
-              color: Colors.white,
-              size: 30,
+            secondaryBackground: Container(
+              color: Theme.of(context).colorScheme.error.withOpacity(0.75),
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 30,
+              ),
             ),
-          ),
-          confirmDismiss: (direction) async {
-            if (direction == DismissDirection.endToStart) {
-              final confirmed =
-                  await _showDeleteConfirmationDialog(context, expenses[index]);
-              if (confirmed == true) {
-                onRemoveExpense(expenses[index]);
-                return true;
+            confirmDismiss: (direction) async {
+              if (direction == DismissDirection.endToStart) {
+                final confirmed =
+                    await _showDeleteConfirmationDialog(context, expense);
+                return confirmed == true;
               }
               return false;
-            }
-            return false;
-          },
-          child: InkWell(
-            onTap: () => _onExpenseTap(context, expenses[index]),
-            child: ExpenseItem(expenses[index]),
-          ),
-        ),
+            },
+            onDismissed: (direction) {
+              if (direction == DismissDirection.endToStart) {
+                onRemoveExpense(expense);
+              }
+            },
+            child: InkWell(
+              onTap: () => _onExpenseTap(context, expense),
+              child: ExpenseItem(expense),
+            ),
+          );
+        },
       ),
     );
   }
