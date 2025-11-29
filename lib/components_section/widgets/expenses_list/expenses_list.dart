@@ -10,8 +10,9 @@ class ExpensesList extends StatelessWidget {
   final List<Expense> expenses;
   final void Function(Expense expense) onRemoveExpense;
 
-  void _showDeleteConfirmationDialog(BuildContext context, Expense expense) {
-    showDialog(
+  Future<bool?> _showDeleteConfirmationDialog(
+      BuildContext context, Expense expense) {
+    return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const AwText.bold(
@@ -33,7 +34,7 @@ class ExpensesList extends StatelessWidget {
                   child: SizedBox(
                     height: AwSize.s48,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
+                      onPressed: () => Navigator.of(ctx).pop(false),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AwColors.blueGrey,
                         shape: RoundedRectangleBorder(
@@ -61,8 +62,7 @@ class ExpensesList extends StatelessWidget {
                     height: AwSize.s48,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(ctx).pop();
-                        onRemoveExpense(expense);
+                        Navigator.of(ctx).pop(true);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AwColors.red,
@@ -103,38 +103,50 @@ class ExpensesList extends StatelessWidget {
     return Scrollbar(
       child: ListView.builder(
         itemCount: expenses.length,
-        itemBuilder: (ctx, index) => Dismissible(
-          key: ValueKey(expenses[index]),
-          direction: DismissDirection.horizontal,
-          background: Container(
-            color: Theme.of(context).colorScheme.error.withOpacity(0.75),
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: const Icon(
-              Icons.delete,
-              color: AwColors.white,
-              size: 30,
+        itemBuilder: (ctx, index) {
+          final expense = expenses[index];
+          return Dismissible(
+            key: ValueKey(expense),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: Theme.of(context).colorScheme.error.withOpacity(0.75),
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: const Icon(
+                Icons.delete,
+                color: AwColors.white,
+                size: 30,
+              ),
             ),
-          ),
-          secondaryBackground: Container(
-            color: Theme.of(context).colorScheme.error.withOpacity(0.75),
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: const Icon(
-              Icons.delete,
-              color: Colors.white,
-              size: 30,
+            secondaryBackground: Container(
+              color: Theme.of(context).colorScheme.error.withOpacity(0.75),
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 30,
+              ),
             ),
-          ),
-          confirmDismiss: (direction) async {
-            _showDeleteConfirmationDialog(context, expenses[index]);
-            return false;
-          },
-          child: InkWell(
-            onTap: () => _onExpenseTap(context, expenses[index]),
-            child: ExpenseItem(expenses[index]),
-          ),
-        ),
+            confirmDismiss: (direction) async {
+              if (direction == DismissDirection.endToStart) {
+                final confirmed =
+                    await _showDeleteConfirmationDialog(context, expense);
+                return confirmed == true;
+              }
+              return false;
+            },
+            onDismissed: (direction) {
+              if (direction == DismissDirection.endToStart) {
+                onRemoveExpense(expense);
+              }
+            },
+            child: InkWell(
+              onTap: () => _onExpenseTap(context, expense),
+              child: ExpenseItem(expense),
+            ),
+          );
+        },
       ),
     );
   }
