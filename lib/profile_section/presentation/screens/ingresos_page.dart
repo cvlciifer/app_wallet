@@ -66,8 +66,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
 
     return Scaffold(
         backgroundColor: AwColors.white,
-        appBar: const WalletAppBar(
-          title: AwText.bold('Ingreso Mensual', color: AwColors.white),
+            appBar: const WalletAppBar(
+              title: AwText.bold('Mi Wallet', color: AwColors.white),
           automaticallyImplyLeading: true,
         ),
         body: SingleChildScrollView(
@@ -271,192 +271,201 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                         ),
                       ),
                       AwSpacing.s12,
-                      const AwText.bold('Ingresos por meses',
-                          size: AwSize.s18, color: AwColors.appBarColor),
-                      AwSpacing.s6,
-                      Column(
-                        children: state.previewMonths.map((d) {
-                          final id =
-                              '${d.year}${d.month.toString().padLeft(2, '0')}';
-                          final existing = state.localIncomes[id];
-                          final fijo = existing != null
-                              ? (existing['ingreso_fijo'] as int? ?? 0)
-                              : 0;
-                          final imprevisto = existing != null
-                              ? (existing['ingreso_imprevisto'] as int? ?? 0)
-                              : 0;
-                          final total = fijo + imprevisto;
-                          String monthLabelRaw =
-                              (d.year == DateTime.now().year &&
-                                      d.month == DateTime.now().month)
-                                  ? 'Mes actual'
-                                  : DateFormat('MMMM yyyy', 'es').format(d);
-                          // Capitalize first letter of month label
-                          final monthLabel = monthLabelRaw.isNotEmpty
-                              ? '${monthLabelRaw[0].toUpperCase()}${monthLabelRaw.substring(1)}'
-                              : monthLabelRaw;
-                          final monthDate = DateTime(d.year, d.month, 1);
+                      if (state.previewMonths.isNotEmpty) ...[
+                        const AwText.bold('Ingresos por meses',
+                            size: AwSize.s18, color: AwColors.appBarColor),
+                        AwSpacing.s6,
+                        Column(
+                          children: state.previewMonths.map((d) {
+                            final id =
+                                '${d.year}${d.month.toString().padLeft(2, '0')}';
+                            final existing = state.localIncomes[id];
+                            final fijo = existing != null
+                                ? (existing['ingreso_fijo'] as int? ?? 0)
+                                : 0;
+                            final imprevisto = existing != null
+                                ? (existing['ingreso_imprevisto'] as int? ?? 0)
+                                : 0;
+                            final total = fijo + imprevisto;
+                            String monthLabelRaw =
+                                (d.year == DateTime.now().year &&
+                                        d.month == DateTime.now().month)
+                                    ? 'Mes actual'
+                                    : DateFormat('MMMM yyyy', 'es').format(d);
+                            // Capitalize first letter of month label
+                            final monthLabel = monthLabelRaw.isNotEmpty
+                                ? '${monthLabelRaw[0].toUpperCase()}${monthLabelRaw.substring(1)}'
+                                : monthLabelRaw;
+                            final monthDate = DateTime(d.year, d.month, 1);
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: IncomePreviewTile(
-                              monthLabel: monthLabel,
-                              fijoText: _clpFormatter.format(fijo),
-                              imprevistoText: _clpFormatter.format(imprevisto),
-                              totalText: _clpFormatter.format(total),
-                              onTap: () async {
-                                final saved =
-                                    await Navigator.of(context).push<bool>(
-                                  MaterialPageRoute(
-                                    builder: (_) => IngresosImprevistosPage(
-                                        initialMonth: monthDate,
-                                        initialImprevisto: imprevisto),
-                                  ),
-                                );
-                                if (saved == true)
-                                  await ctrl.loadLocalIncomes();
-                              },
-                              onEdit: () async {
-                                final fmt = NumberFormat.currency(
-                                    locale: 'es_CL',
-                                    symbol: '',
-                                    decimalDigits: 0);
-                                final fijoCtrl = TextEditingController(
-                                    text: fmt.format(fijo));
-                                final impCtrl = TextEditingController(
-                                    text: fmt.format(imprevisto));
-                                final ok = await showDialog<bool>(
-                                  context: context,
-                                  builder: (ctx) => Dialog(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const AwText.bold(
-                                              'Editar ingreso del mes',
-                                              size: AwSize.s16),
-                                          AwSpacing.s6,
-                                          CustomTextField(
-                                              controller: fijoCtrl,
-                                              label: 'Ingreso mensual',
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              inputFormatters: [
-                                                MaxAmountFormatter(
-                                                    maxDigits:
-                                                        MaxAmountFormatter
-                                                            .kEightDigits,
-                                                    maxAmount: MaxAmountFormatter
-                                                        .kEightDigitsMaxAmount,
-                                                    onAttemptOverLimit: () {
-                                                      if (mounted) {
-                                                        /* ignore UI here */
-                                                      }
-                                                    }),
-                                                CLPTextInputFormatter()
-                                              ]),
-                                          AwSpacing.s6,
-                                          CustomTextField(
-                                              controller: impCtrl,
-                                              label: 'Imprevisto (opcional)',
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              inputFormatters: [
-                                                MaxAmountFormatter(
-                                                    maxDigits:
-                                                        MaxAmountFormatter
-                                                            .kEightDigits,
-                                                    maxAmount: MaxAmountFormatter
-                                                        .kEightDigitsMaxAmount,
-                                                    onAttemptOverLimit: () {
-                                                      if (mounted) {
-                                                        /* ignore UI here */
-                                                      }
-                                                    }),
-                                                CLPTextInputFormatter()
-                                              ]),
-                                          AwSpacing.s12,
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            children: [
-                                              TextButton(
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: IncomePreviewTile(
+                                monthLabel: monthLabel,
+                                fijoText: _clpFormatter.format(fijo),
+                                imprevistoText:
+                                    _clpFormatter.format(imprevisto),
+                                totalText: _clpFormatter.format(total),
+                                onTap: () async {
+                                  final saved =
+                                      await Navigator.of(context).push<bool>(
+                                    MaterialPageRoute(
+                                      builder: (_) => IngresosImprevistosPage(
+                                          initialMonth: monthDate,
+                                          initialImprevisto: imprevisto),
+                                    ),
+                                  );
+                                  if (saved == true)
+                                    await ctrl.loadLocalIncomes();
+                                },
+                                onEdit: () async {
+                                  final fmt = NumberFormat.currency(
+                                      locale: 'es_CL',
+                                      symbol: '',
+                                      decimalDigits: 0);
+                                  final fijoCtrl = TextEditingController(
+                                      text: fmt.format(fijo));
+                                  final impCtrl = TextEditingController(
+                                      text: fmt.format(imprevisto));
+                                  final ok = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => Dialog(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const AwText.bold(
+                                                'Editar ingreso del mes',
+                                                size: AwSize.s16),
+                                            AwSpacing.s6,
+                                            CustomTextField(
+                                                controller: fijoCtrl,
+                                                label: 'Ingreso mensual',
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                inputFormatters: [
+                                                  MaxAmountFormatter(
+                                                      maxDigits:
+                                                          MaxAmountFormatter
+                                                              .kEightDigits,
+                                                      maxAmount: MaxAmountFormatter
+                                                          .kEightDigitsMaxAmount,
+                                                      onAttemptOverLimit: () {
+                                                        if (mounted) {
+                                                          /* ignore UI here */
+                                                        }
+                                                      }),
+                                                  CLPTextInputFormatter()
+                                                ]),
+                                            AwSpacing.s6,
+                                            CustomTextField(
+                                                controller: impCtrl,
+                                                label: 'Imprevisto (opcional)',
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                inputFormatters: [
+                                                  MaxAmountFormatter(
+                                                      maxDigits:
+                                                          MaxAmountFormatter
+                                                              .kEightDigits,
+                                                      maxAmount: MaxAmountFormatter
+                                                          .kEightDigitsMaxAmount,
+                                                      onAttemptOverLimit: () {
+                                                        if (mounted) {
+                                                          /* ignore UI here */
+                                                        }
+                                                      }),
+                                                  CLPTextInputFormatter()
+                                                ]),
+                                            AwSpacing.s12,
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(ctx)
+                                                            .pop(false),
+                                                    child:
+                                                        const Text('Cancelar')),
+                                                ElevatedButton(
                                                   onPressed: () =>
                                                       Navigator.of(ctx)
-                                                          .pop(false),
-                                                  child:
-                                                      const Text('Cancelar')),
-                                              ElevatedButton(
-                                                onPressed: () =>
-                                                    Navigator.of(ctx).pop(true),
-                                                style: ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        AwColors.lightBlue),
-                                                child: const Text('Guardar'),
-                                              ),
-                                            ],
-                                          )
-                                        ],
+                                                          .pop(true),
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                          backgroundColor:
+                                                              AwColors
+                                                                  .lightBlue),
+                                                  child: const Text('Guardar'),
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                                if (ok == true) {
-                                  final newFijo = int.tryParse(fijoCtrl.text
-                                          .replaceAll(RegExp(r'[^0-9]'), '')) ??
-                                      0;
-                                  final newImp = int.tryParse(impCtrl.text
-                                          .replaceAll(RegExp(r'[^0-9]'), '')) ??
-                                      0;
-                                  await ctrl.updateIncomeForDate(monthDate,
-                                      newFijo, newImp == 0 ? null : newImp);
-                                  await ctrl.loadLocalIncomes();
-                                }
-                              },
-                              onDelete: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (ctx) => AlertDialog(
-                                    title:
-                                        const AwText.bold('Eliminar ingreso'),
-                                    content: AwText.normal(
-                                        '¿Eliminar ingreso fijo y imprevisto de ${DateFormat('MMMM yyyy', 'es').format(monthDate)}?',
-                                        size: AwSize.s14,
-                                        color: AwColors.modalGrey),
-                                    actions: [
-                                      TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(ctx).pop(false),
-                                          child: const Text('Cancelar')),
-                                      TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(ctx).pop(true),
-                                          child: const Text('Eliminar')),
-                                    ],
-                                  ),
-                                );
-                                if (confirm == true) {
-                                  final ok =
-                                      await ctrl.deleteIncomeForDate(monthDate);
-                                  if (ok) {
-                                    WalletPopup.showNotificationSuccess(
-                                      context: context,
-                                      title: 'Ingreso eliminado',
-                                    );
+                                  );
+                                  if (ok == true) {
+                                    final newFijo = int.tryParse(fijoCtrl.text
+                                            .replaceAll(
+                                                RegExp(r'[^0-9]'), '')) ??
+                                        0;
+                                    final newImp = int.tryParse(impCtrl.text
+                                            .replaceAll(
+                                                RegExp(r'[^0-9]'), '')) ??
+                                        0;
+                                    await ctrl.updateIncomeForDate(monthDate,
+                                        newFijo, newImp == 0 ? null : newImp);
                                     await ctrl.loadLocalIncomes();
-                                  } else {
-                                    WalletPopup.showNotificationWarningOrange(
-                                      context: context,
-                                      message: 'Error eliminando ingreso',
-                                    );
                                   }
-                                }
-                              },
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                                },
+                                onDelete: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title:
+                                          const AwText.bold('Eliminar ingreso'),
+                                      content: AwText.normal(
+                                          '¿Eliminar ingreso fijo y imprevisto de ${DateFormat('MMMM yyyy', 'es').format(monthDate)}?',
+                                          size: AwSize.s14,
+                                          color: AwColors.modalGrey),
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(ctx).pop(false),
+                                            child: const Text('Cancelar')),
+                                        TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(ctx).pop(true),
+                                            child: const Text('Eliminar')),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true) {
+                                    final ok = await ctrl
+                                        .deleteIncomeForDate(monthDate);
+                                    if (ok) {
+                                      WalletPopup.showNotificationSuccess(
+                                        context: context,
+                                        title: 'Ingreso eliminado',
+                                      );
+                                      await ctrl.loadLocalIncomes();
+                                    } else {
+                                      WalletPopup.showNotificationWarningOrange(
+                                        context: context,
+                                        message: 'Error eliminando ingreso',
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
                     ],
                   ),
                 ),

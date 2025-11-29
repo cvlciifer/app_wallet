@@ -40,11 +40,11 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
     final state = ref.watch(recurrentRegistryProvider);
     return Scaffold(
       backgroundColor: AwColors.white,
-      appBar: const WalletAppBar(
-        title: AwText.bold(
-          'Registros',
-          color: AwColors.white,
-        ),
+        appBar: const WalletAppBar(
+          title: AwText.bold(
+            'Mi Wallet',
+            color: AwColors.white,
+          ),
         showBackArrow: false,
         barColor: AwColors.appBarColor,
         automaticallyImplyLeading: true,

@@ -118,14 +118,14 @@ class _IngresosImprevistosPageState
     final monthLabel = DateTime(now.year, now.month + _selectedMonthOffset, 1);
     return Scaffold(
       backgroundColor: AwColors.white,
-      appBar: const WalletAppBar(
-        title: AwText.bold(
-          'Ingresos Imprevistos',
-          color: AwColors.white,
+        appBar: const WalletAppBar(
+          title: AwText.bold(
+            'Mi Wallet',
+            color: AwColors.white,
+          ),
+          automaticallyImplyLeading: true,
+          actions: [],
         ),
-        automaticallyImplyLeading: true,
-        actions: [],
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Center(

@@ -187,7 +187,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
     return Scaffold(
       backgroundColor: AwColors.white,
       appBar: WalletAppBar(
-        title: const AwText.normal('Alias', color: AwColors.white),
+        title: const AwText.bold('Configuraciones', color: AwColors.white),
         automaticallyImplyLeading: !widget.initialSetup,
       ),
       body: Padding(
