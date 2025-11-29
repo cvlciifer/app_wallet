@@ -63,10 +63,37 @@ class _ExpenseFormState extends State<ExpenseForm> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AwSpacing.s12,
-                const FormHeader(
-                  title: 'Agrega un nuevo gasto',
-                  subtitle:
-                      'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Icon(
+                        Icons.attach_money,
+                        color: AwColors.appBarColor,
+                        size: 44,
+                      ),
+                    ),
+                    AwSpacing.s,
+                    Center(
+                      child: AwText.bold(
+                        'Agrega un nuevo gasto',
+                        size: AwSize.s20,
+                        color: AwColors.appBarColor,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: AwSize.s6),
+                      child: Center(
+                        child: AwText(
+                          text:
+                              'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
+                          color: AwColors.blueGrey,
+                          size: AwSize.s14,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 AwSpacing.xs,
                 _buildTitle(),

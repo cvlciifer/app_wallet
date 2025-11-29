@@ -31,24 +31,36 @@ class AliasForm extends StatelessWidget {
       elevation: 6,
       color: AwColors.white,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AwText.bold(
-              'Configura Tu Alias',
-              size: AwSize.s20,
-              color: AwColors.appBarColor,
-              textAlign: TextAlign.left,
+            const Center(
+              child: Icon(
+                Icons.person_outline,
+                size: AwSize.s26,
+                color: AwColors.appBarColor,
+              ),
+            ),
+            AwSpacing.s12,
+            const Center(
+              child: AwText.bold(
+                'Configura Tu Alias',
+                size: AwSize.s20,
+                color: AwColors.appBarColor,
+                textAlign: TextAlign.center,
+              ),
             ),
             AwSpacing.s6,
-            const AwText.normal(
-              'Necesitamos que ingreses un alias para identificar este dispositivo al iniciar sesión.',
-              color: AwColors.boldBlack,
-              size: AwSize.s16,
-              textAlign: TextAlign.left,
+            const Center(
+              child: AwText.normal(
+                'Este alias se usará solo en este dispositivo.',
+                color: AwColors.boldBlack,
+                size: AwSize.s14,
+                textAlign: TextAlign.center,
+              ),
             ),
-            AwSpacing.xl,
+            AwSpacing.s12,
             CustomTextField(
               controller: controller,
               label: 'Alias',
@@ -71,7 +83,7 @@ class AliasForm extends StatelessWidget {
                   color: AwColors.red)
             else if (aliasError != null)
               AwText.normal(aliasError!, color: AwColors.red),
-            AwSpacing.s20,
+            AwSpacing.s12,
             Center(
               child: WalletButton.primaryButton(
                 buttonText: 'Confirmar',
@@ -81,7 +93,7 @@ class AliasForm extends StatelessWidget {
                 buttonTextColor: AwColors.white,
               ),
             ),
-            AwSpacing.s12,
+            AwSpacing.s,
             if (initialSetup)
               WalletButton.textButton(
                 buttonText: 'Configurar más tarde',

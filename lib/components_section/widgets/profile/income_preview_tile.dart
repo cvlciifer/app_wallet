@@ -34,9 +34,20 @@ class IncomePreviewTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AwText.normal(
-              monthLabel,
-              size: AwSize.s14,
+            Row(
+              children: [
+                const CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AwColors.white,
+                  child: Icon(Icons.calendar_month,
+                      size: AwSize.s16, color: AwColors.appBarColor),
+                ),
+                AwSpacing.w,
+                AwText.normal(
+                  monthLabel,
+                  size: AwSize.s14,
+                ),
+              ],
             ),
             AwSpacing.s,
             Row(

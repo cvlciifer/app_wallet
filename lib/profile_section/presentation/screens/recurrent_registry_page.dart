@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/core/models/recurring_expense.dart';
@@ -67,10 +66,31 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AwSpacing.s12,
-                    const AwText.bold(
-                      'Registro de gastos recurrentes',
-                      size: AwSize.s18,
-                      color: AwColors.white,
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              // ignore: deprecated_member_use
+                              color: AwColors.grey.withOpacity(0.08)),
+                        ),
+                        child: const Icon(
+                          Icons.list_alt,
+                          size: AwSize.s30,
+                          color: AwColors.appBarColor,
+                        ),
+                      ),
+                    ),
+                    AwSpacing.s12,
+                    const Center(
+                      child: AwText.bold(
+                        'Registro de Gastos Recurrentes',
+                        size: AwSize.s20,
+                        color: AwColors.appBarColor,
+                      ),
                     ),
                     AwSpacing.s6,
                     const AwText.normal(
