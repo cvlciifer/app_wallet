@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:async';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/components_section/widgets/profile/month_selector.dart';
@@ -121,7 +120,7 @@ class _IngresosImprevistosPageState
       backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold(
-          'Ingresos imprevistos',
+          'Ingresos Imprevistos',
           color: AwColors.white,
         ),
         automaticallyImplyLeading: true,
@@ -129,119 +128,142 @@ class _IngresosImprevistosPageState
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: TicketCard(
-          notchDepth: 12,
-          elevation: 6,
-          color: AwColors.white,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const AwText.bold(
-                'Ingresa un monto imprevisto.',
-                size: AwSize.s18,
-                color: AwColors.appBarColor,
-              ),
-              AwSpacing.s6,
-              const AwText.normal(
-                'Un ingreso imprevisto es un dinero extra que no recibes todos los meses, como horas extras o feriados, y que se suma a tu ingreso total.',
-                size: AwSize.s14,
-                color: AwColors.modalGrey,
-              ),
-              AwSpacing.s6,
-              AwText.normal(
-                'Este valor se verá reflejado en ${DateFormat('MMMM yyyy', 'es').format(monthLabel)}.',
-                size: AwSize.s14,
-                color: AwColors.modalGrey,
-              ),
-              AwSpacing.s18,
-              const AwText.normal('Mes seleccionado',
-                  size: AwSize.s14, color: AwColors.grey),
-              AwSpacing.s6,
-              MonthSelector(
-                month: monthLabel,
-                canPrev: _selectedMonthOffset > -12,
-                canNext: _selectedMonthOffset < 12,
-                onPrev: () {
-                  setState(() {
-                    if (_selectedMonthOffset > -12) _selectedMonthOffset--;
-                  });
-                  try {
-                    ref
-                        .read(ingresosProvider.notifier)
-                        .setStartOffset(_selectedMonthOffset);
-                  } catch (_) {}
-                },
-                onNext: () {
-                  setState(() {
-                    if (_selectedMonthOffset < 12) _selectedMonthOffset++;
-                  });
-                  try {
-                    ref
-                        .read(ingresosProvider.notifier)
-                        .setStartOffset(_selectedMonthOffset);
-                  } catch (_) {}
-                },
-              ),
-              AwSpacing.s12,
-              const AwText.normal('Valor imprevisto (CLP)',
-                  size: AwSize.s14, color: AwColors.grey),
-              AwSpacing.s6,
-              CustomTextField(
-                controller: _amountCtrl,
-                label: '',
-                hintText: 'p. ej. 50.000',
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  MaxAmountFormatter(
-                    maxDigits: MaxAmountFormatter.kEightDigits,
-                    maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount,
-                    onAttemptOverLimit: () {
-                      if (!mounted) return;
-                      setState(() {
-                        _showMaxError = true;
-                      });
-                      _maxErrorTimer?.cancel();
-                      _maxErrorTimer = Timer(const Duration(seconds: 2), () {
-                        if (mounted) {
-                          setState(() {
-                            _showMaxError = false;
-                          });
-                        }
-                      });
-                    },
-                  ),
-                  CLPTextInputFormatter(),
-                ],
-                textSize: 16,
-              ),
-              if (_showMaxError)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8.0),
-                  child: AwText.normal('Tope máximo: 8 dígitos (99.999.999)',
-                      color: AwColors.red, size: AwSize.s14),
-                ),
-              AwSpacing.s18,
-              SizedBox(
-                height: AwSize.s48,
-                child: ElevatedButton(
-                  onPressed: _isAmountValid && !_isSaving ? _save : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AwColors.modalPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AwSize.s16),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: TicketCard(
+              notchDepth: 12,
+              elevation: 6,
+              color: AwColors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Center(
+                      child: Icon(
+                        Icons.calendar_month,
+                        size: AwSize.s26,
+                        color: AwColors.appBarColor,
+                      ),
                     ),
-                  ),
-                  child: const Center(
-                    child: AwText.bold(
-                      'Agregar',
-                      color: AwColors.white,
+                    AwSpacing.s12,
+                    const Center(
+                      child: AwText.bold(
+                        'Ingresos Imprevistos',
+                        size: AwSize.s20,
+                        color: AwColors.appBarColor,
+                      ),
+                    ),
+                    AwSpacing.s6,
+                    const AwText.normal(
+                      'Un ingreso imprevisto es un dinero extra que no recibes todos los meses, como horas extras o feriados, y que se suma a tu ingreso total.',
                       size: AwSize.s14,
+                      color: AwColors.modalGrey,
                     ),
-                  ),
+                    AwSpacing.s6,
+                    AwText.normal(
+                      'Este valor se verá reflejado en ${DateFormat('MMMM yyyy', 'es').format(monthLabel)}.',
+                      size: AwSize.s14,
+                      color: AwColors.modalGrey,
+                    ),
+                    AwSpacing.s18,
+                    const AwText.normal('Mes seleccionado',
+                        size: AwSize.s14, color: AwColors.grey),
+                    AwSpacing.s6,
+                    MonthSelector(
+                      month: monthLabel,
+                      canPrev: _selectedMonthOffset > -12,
+                      canNext: _selectedMonthOffset < 12,
+                      onPrev: () {
+                        setState(() {
+                          if (_selectedMonthOffset > -12)
+                            _selectedMonthOffset--;
+                        });
+                        try {
+                          ref
+                              .read(ingresosProvider.notifier)
+                              .setStartOffset(_selectedMonthOffset);
+                        } catch (_) {}
+                      },
+                      onNext: () {
+                        setState(() {
+                          if (_selectedMonthOffset < 12) _selectedMonthOffset++;
+                        });
+                        try {
+                          ref
+                              .read(ingresosProvider.notifier)
+                              .setStartOffset(_selectedMonthOffset);
+                        } catch (_) {}
+                      },
+                    ),
+                    AwSpacing.s12,
+                    const AwText.normal('Valor imprevisto (CLP)',
+                        size: AwSize.s14, color: AwColors.grey),
+                    AwSpacing.s6,
+                    CustomTextField(
+                      controller: _amountCtrl,
+                      label: '',
+                      hintText: 'p. ej. 50.000',
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        MaxAmountFormatter(
+                          maxDigits: MaxAmountFormatter.kEightDigits,
+                          maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount,
+                          onAttemptOverLimit: () {
+                            if (!mounted) return;
+                            setState(() {
+                              _showMaxError = true;
+                            });
+                            _maxErrorTimer?.cancel();
+                            _maxErrorTimer =
+                                Timer(const Duration(seconds: 2), () {
+                              if (mounted) {
+                                setState(() {
+                                  _showMaxError = false;
+                                });
+                              }
+                            });
+                          },
+                        ),
+                        CLPTextInputFormatter(),
+                      ],
+                      textSize: 16,
+                    ),
+                    if (_showMaxError)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8.0),
+                        child: AwText.normal(
+                            'Tope máximo: 8 dígitos (99.999.999)',
+                            color: AwColors.red,
+                            size: AwSize.s14),
+                      ),
+                    AwSpacing.s18,
+                    SizedBox(
+                      height: AwSize.s48,
+                      child: ElevatedButton(
+                        onPressed: _isAmountValid && !_isSaving ? _save : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AwColors.modalPurple,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AwSize.s16),
+                          ),
+                        ),
+                        child: const Center(
+                          child: AwText.bold(
+                            'Agregar',
+                            color: AwColors.white,
+                            size: AwSize.s14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    AwSpacing.s20,
+                  ],
                 ),
               ),
-              AwSpacing.s20,
-            ],
+            ),
           ),
         ),
       ),

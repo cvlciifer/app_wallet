@@ -193,11 +193,10 @@ class _AliasInputPageState extends State<AliasInputPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AwSpacing.xl,
-              AliasForm(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: AliasForm(
                 controller: _controller,
                 aliasError: aliasError,
                 canContinue: _canContinue,
@@ -224,7 +223,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
                 },
                 initialSetup: widget.initialSetup,
               ),
-            ],
+            ),
           ),
         ),
       ),
