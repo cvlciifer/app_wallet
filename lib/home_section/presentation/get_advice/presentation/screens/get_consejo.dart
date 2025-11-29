@@ -39,7 +39,10 @@ class ConsejoProvider {
             'Tu consejo diario',
             color: AwColors.boldBlack,
           ),
-          content: AwText(text: consejo),
+          content: AwText(
+            text: consejo,
+            maxLines: null,
+          ),
           actions: <Widget>[
             WalletButton.primaryButton(
                 buttonText: 'Cerrar',

@@ -34,4 +34,7 @@ class AWImage {
   const AWImage._();
   static const settings = AssetImage('lib/icon_section/png/settings.png');
   static const ghost = AssetImage('lib/icon_section/png/ghost.png');
+  static const person = AssetImage('lib/icon_section/png/person.png');
+  static const security = AssetImage('lib/icon_section/png/security.png');
+  static const user = AssetImage('lib/icon_section/png/user.png');
 }

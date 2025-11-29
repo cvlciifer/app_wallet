@@ -5,8 +5,7 @@ class ForgotPinPage extends ConsumerStatefulWidget {
   final String? initialEmail;
   final bool allowBack;
 
-  const ForgotPinPage({Key? key, this.initialEmail, this.allowBack = false})
-      : super(key: key);
+  const ForgotPinPage({Key? key, this.initialEmail, this.allowBack = false}) : super(key: key);
 
   @override
   ConsumerState<ForgotPinPage> createState() => _ForgotPinPageState();
@@ -21,8 +20,7 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
     super.initState();
 
     final userEmail = AuthService().getCurrentUser()?.email ?? '';
-    _emailController =
-        TextEditingController(text: widget.initialEmail ?? userEmail);
+    _emailController = TextEditingController(text: widget.initialEmail ?? userEmail);
   }
 
   @override
@@ -54,8 +52,7 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
               elevation: 6,
               color: AwColors.white,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 10.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
@@ -83,8 +80,8 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
                     if (!(state.alias != null && state.alias!.isNotEmpty)) ...[
                       const Align(
                         alignment: Alignment.centerLeft,
-                        child: AwText.bold('Hola, ¿No recuerdas tu PIN?',
-                            size: AwSize.s20, color: AwColors.appBarColor),
+                        child:
+                            AwText.bold('Hola, ¿No recuerdas tu PIN?', size: AwSize.s20, color: AwColors.appBarColor),
                       ),
                       AwSpacing.s12,
                     ],
@@ -109,6 +106,12 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
                     // Acerca el área del botón al texto
                     _buildSendAreaWithState(state),
                     AwSpacing.s,
+                    Center(
+                      child: Image(
+                        image: AWImage.security,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -143,8 +146,7 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
               await AwAlert.showTicketInfo(
                 context,
                 title: 'Espera antes de reenviar',
-                content:
-                    'Debes esperar $formatted antes de solicitar otro enlace.',
+                content: 'Debes esperar $formatted antes de solicitar otro enlace.',
                 titleSize: AwSize.s20,
                 contentSize: AwSize.s14,
               );
@@ -155,17 +157,14 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
 
             final email = _emailController.text.trim();
             final uid = AuthService().getCurrentUser()?.uid;
-            final msg = await ref
-                .read(forgotPinProvider(uid).notifier)
-                .sendRecoveryEmail(email);
+            final msg = await ref.read(forgotPinProvider(uid).notifier).sendRecoveryEmail(email);
             if (!mounted) return;
             WalletPopup.showNotificationSuccess(
               context: context,
               title: msg,
             );
           },
-          backgroundColor:
-              isDisabled ? AwColors.blueGrey : AwColors.appBarColor,
+          backgroundColor: isDisabled ? AwColors.blueGrey : AwColors.appBarColor,
         ),
         AwSpacing.s6,
         AwText.normal(

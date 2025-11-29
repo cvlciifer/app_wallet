@@ -158,7 +158,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         children: [
                           // sombra justo debajo de la imagen
                           Positioned(
-                            bottom: 12,
+                            bottom: 0,
                             left: 0,
                             right: 0,
                             child: Center(
