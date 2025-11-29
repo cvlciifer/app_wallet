@@ -8,9 +8,7 @@ class ConfirmPinPage extends StatefulWidget {
   final int digits;
   final String? alias;
 
-  const ConfirmPinPage(
-      {Key? key, required this.firstPin, this.digits = 4, this.alias})
-      : super(key: key);
+  const ConfirmPinPage({Key? key, required this.firstPin, this.digits = 4, this.alias}) : super(key: key);
 
   @override
   State<ConfirmPinPage> createState() => _ConfirmPinPageState();
@@ -18,8 +16,7 @@ class ConfirmPinPage extends StatefulWidget {
 
 class _ConfirmPinPageState extends State<ConfirmPinPage> {
   String? _alias;
-  String? _secondPin;
-  final GlobalKey<PinEntryAreaState> _pinKey = GlobalKey<PinEntryAreaState>();
+  String _secondPin = '';
   OverlayEntry? _overlayEntry;
 
   void _onCompleted(String pin) {
@@ -29,9 +26,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
   }
 
   Future<void> _save() async {
-    _secondPin = _pinKey.currentState?.currentPin ?? _secondPin;
-
-    if (_secondPin == null || _secondPin != widget.firstPin) {
+    if (_secondPin.isEmpty || _secondPin != widget.firstPin) {
       WalletPopup.showNotificationWarningOrange(
         context: context,
         message: 'Los PIN no coinciden',
@@ -56,11 +51,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
       _showOverlay();
       setState(() {});
 
-      await pinService.setPin(
-          accountId: uid,
-          pin: _secondPin!,
-          digits: widget.digits,
-          alias: widget.alias);
+      await pinService.setPin(accountId: uid, pin: _secondPin, digits: widget.digits, alias: widget.alias);
     } catch (e) {
       final msg = e.toString();
       WalletPopup.showNotificationWarningOrange(
@@ -75,18 +66,14 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
     }
 
     try {
-      ProviderScope.containerOf(context, listen: false)
-          .read(resetFlowProvider.notifier)
-          .clear();
+      ProviderScope.containerOf(context, listen: false).read(resetFlowProvider.notifier).clear();
     } catch (_) {}
 
     try {
       final aliasOk = await AliasService().syncAliasForCurrentUser();
-      log('ConfirmPinPage: syncAliasForCurrentUser result=$aliasOk',
-          name: 'ConfirmPinPage');
+      log('ConfirmPinPage: syncAliasForCurrentUser result=$aliasOk', name: 'ConfirmPinPage');
     } catch (e, st) {
-      log('ConfirmPinPage: syncAliasForCurrentUser error=$e',
-          name: 'ConfirmPinPage', error: e, stackTrace: st);
+      log('ConfirmPinPage: syncAliasForCurrentUser error=$e', name: 'ConfirmPinPage', error: e, stackTrace: st);
     }
     WalletPopup.showNotificationSuccess(
       context: context,
@@ -168,7 +155,8 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
             final mq = MediaQuery.of(ctx);
             final textScale = mq.textScaleFactor;
             final availH = constraints.maxHeight;
-            final needsScroll = textScale > 1.05 || availH < 700 || mq.viewInsets.bottom > 0 || mq.viewPadding.bottom > 0;
+            final needsScroll =
+                textScale > 1.05 || availH < 700 || mq.viewInsets.bottom > 0 || mq.viewPadding.bottom > 0;
 
             final content = Padding(
               padding: EdgeInsets.only(
@@ -184,8 +172,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                   AwSpacing.s12,
                   GreetingHeader(alias: _alias ?? widget.alias),
                   AwSpacing.s12,
-                  AwText.bold('Confirma tu PIN',
-                      size: AwSize.s16, color: AwColors.appBarColor),
+                  AwText.bold('Confirma tu PIN', size: AwSize.s16, color: AwColors.appBarColor),
                   AwSpacing.s,
                   const AwText.normal(
                     'Confirma el PIN que ingresaste anteriormente para activar el acceso local.',
@@ -194,46 +181,45 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                     textAlign: TextAlign.center,
                   ),
                   AwSpacing.s20,
-                  PinEntryArea(
-                    key: _pinKey,
-                    digits: widget.digits,
-                    autoComplete: false,
-                    onCompleted: _onCompleted,
+                  PinSoftUIPage(
+                    onCompleted: (pin) async {
+                      _onCompleted(pin);
+                      return true;
+                    },
                     onChanged: (len) {
                       if (!mounted) return;
                       setState(() {});
                     },
-                    actions: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Builder(builder: (context) {
-                              final len = _pinKey.currentState?.currentLength ?? 0;
-                              final ready = len == widget.digits;
-                              return ElevatedButton(
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.resolveWith(
-                                      (states) => states.contains(MaterialState.disabled) ? AwColors.blueGrey : AwColors.appBarColor),
-                                  foregroundColor: MaterialStateProperty.resolveWith((_) => Colors.white),
-                                ),
-                                onPressed: ready
-                                    ? () {
-                                        _secondPin = _pinKey.currentState?.currentPin ?? '';
-                                        _save();
-                                      }
-                                    : null,
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 14.0),
-                                  child: AwText.bold('Guardar PIN', color: Colors.white),
-                                ),
-                              );
-                            }),
+                    onPinChanged: (pin) {
+                      if (!mounted) return;
+                      setState(() => _secondPin = pin);
+                    },
+                    title: 'Confirma tu PIN',
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Builder(builder: (context) {
+                        final ready = _secondPin.length == widget.digits;
+                        return ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.resolveWith((states) =>
+                                states.contains(MaterialState.disabled) ? AwColors.blueGrey : AwColors.appBarColor),
+                            foregroundColor: MaterialStateProperty.resolveWith((_) => Colors.white),
                           ),
-                        ),
-                      ],
+                          onPressed: ready
+                              ? () {
+                                  _save();
+                                }
+                              : null,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 14.0),
+                            child: AwText.bold('Guardar PIN', color: Colors.white),
+                          ),
+                        );
+                      }),
                     ),
                   ),
                 ],

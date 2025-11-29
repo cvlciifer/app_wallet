@@ -13,7 +13,7 @@ class EnterPinContent extends ConsumerStatefulWidget {
 }
 
 class _EnterPinContentState extends ConsumerState<EnterPinContent> {
-  final GlobalKey<PinEntryAreaState> _pinKey = GlobalKey<PinEntryAreaState>();
+  String _currentPin = '';
   int _currentLength = 0;
   bool _submitting = false;
 
@@ -22,8 +22,9 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
     super.dispose();
   }
 
-  Future<void> _onCompleted(String pin) async {
-    if (_submitting) return;
+  // now returns true on success, false on failure (used by PinSoftUIPage)
+  Future<bool?> _onCompleted(String pin) async {
+    if (_submitting) return null;
     _submitting = true;
     final notifier = ref.read(enterPinProvider(widget.accountId).notifier);
     final loader = ref.read(globalLoaderProvider.notifier);
@@ -33,7 +34,6 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
     try {
       ok = await notifier.verifyPin(pin: pin);
     } finally {
-      // ensure loader is cleared always (success, failure or exception)
       try {
         loader.state = false;
       } catch (_) {}
@@ -41,7 +41,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
       if (mounted) setState(() {});
     }
 
-    if (!mounted) return;
+    if (!mounted) return ok;
 
     if (ok) {
       try {
@@ -52,14 +52,11 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
           isDismissible: true,
         );
       } catch (_) {}
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const WalletHomePage()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const WalletHomePage()));
     } else {
-      _pinKey.currentState?.clear();
       if (mounted) setState(() => _currentLength = 0);
       try {
-        final remaining = (PinService.maxAttempts -
-                ref.read(enterPinProvider(widget.accountId)).attempts)
+        final remaining = (PinService.maxAttempts - ref.read(enterPinProvider(widget.accountId)).attempts)
             .clamp(0, PinService.maxAttempts);
         WalletPopup.showNotificationWarningOrange(
           context: context,
@@ -70,10 +67,9 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
       } catch (_) {}
       try {
         final pinService = PinService();
-        final lock =
-            await pinService.lockedRemaining(accountId: widget.accountId);
+        final lock = await pinService.lockedRemaining(accountId: widget.accountId);
         if (lock != null && lock > Duration.zero) {
-          if (!mounted) return;
+          if (!mounted) return ok;
           try {
             ref.read(globalLoaderProvider.notifier).state = false;
           } catch (_) {}
@@ -84,10 +80,12 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                     allowBack: false,
                     returnToEnterPin: true,
                   )));
-          return;
+          return ok;
         }
       } catch (_) {}
     }
+
+    return ok;
   }
 
   @override
@@ -96,17 +94,13 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
 
     ref.listen(resetFlowProvider, (previous, next) {
       if (next.status == ResetFlowStatus.allowed) {
-        Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const SetPinPage()));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const SetPinPage()));
       }
     });
 
-    ref.listen<EnterPinState>(enterPinProvider(widget.accountId),
-        (previous, next) async {
-      final wasLocked = previous?.lockedRemaining != null &&
-          previous!.lockedRemaining! > Duration.zero;
-      final isLocked =
-          next.lockedRemaining != null && next.lockedRemaining! > Duration.zero;
+    ref.listen<EnterPinState>(enterPinProvider(widget.accountId), (previous, next) async {
+      final wasLocked = previous?.lockedRemaining != null && previous!.lockedRemaining! > Duration.zero;
+      final isLocked = next.lockedRemaining != null && next.lockedRemaining! > Duration.zero;
       if (!wasLocked && isLocked) {
         if (!mounted) return;
         try {
@@ -134,125 +128,71 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
               children: [
                 AwSpacing.s12,
                 GreetingHeader(alias: state.alias),
-                AwSpacing.s12,
-                const AwText.bold('Ingresa tu PIN',
-                    size: AwSize.s16, color: AwColors.appBarColor),
-                AwSpacing.s12,
-                PinEntryArea(
-                  key: _pinKey,
+                AwSpacing.xs,
+                PinSoftUIPage(
                   onCompleted: _onCompleted,
-                  autoComplete: false,
                   onChanged: (len) {
                     if (!mounted) return;
                     setState(() => _currentLength = len);
                   },
-                  actions: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Builder(builder: (context) {
-                            final enabled = _currentLength == 4;
-                            return ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    // ignore: deprecated_member_use
-                                    MaterialStateProperty.resolveWith(
-                                        (states) => states.contains(
-                                                // ignore: deprecated_member_use
-                                                MaterialState.disabled)
-                                            ? AwColors.blueGrey
-                                            : AwColors.appBarColor),
-                                foregroundColor:
-                                    // ignore: deprecated_member_use
-                                    MaterialStateProperty.resolveWith(
-                                        (states) => Colors.white),
-                              ),
-                              onPressed: enabled
-                                  ? () {
-                                      final pin =
-                                          _pinKey.currentState?.currentPin ??
-                                              '';
-                                      _onCompleted(pin);
-                                    }
-                                  : null,
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 14.0),
-                                child: AwText.bold('Continuar',
-                                    color: Colors.white),
-                              ),
-                            );
-                          }),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      PinActions(
-                        hasConnection: state.hasConnection,
-                        onNotYou: () async {
-                          try {
-                            await FirebaseAuth.instance.signOut();
-                          } catch (_) {}
-                          await AuthService().clearLoginState();
-                          if (!mounted) return;
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                                builder: (_) => const LoginScreen()),
-                          );
-                        },
-                        onForgotPin: () async {
-                          final email = AuthService().getCurrentUser()?.email;
-                          final loader =
-                              ref.read(globalLoaderProvider.notifier);
-                          loader.state = true;
-                          try {
-                            final pinService = PinService();
-                            final remaining =
-                                await pinService.pinChangeRemainingCount(
-                                    accountId: widget.accountId);
-                            final blockedUntil =
-                                await pinService.pinChangeBlockedUntilNextDay(
-                                    accountId: widget.accountId);
+                  onPinChanged: (pin) {
+                    if (!mounted) return;
+                    setState(() => _currentPin = pin);
+                  },
+                  title: 'Ingresa tu PIN',
+                ),
+                PinActions(
+                  hasConnection: state.hasConnection,
+                  onNotYou: () async {
+                    try {
+                      await FirebaseAuth.instance.signOut();
+                    } catch (_) {}
+                    await AuthService().clearLoginState();
+                    if (!mounted) return;
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  },
+                  onForgotPin: () async {
+                    final email = AuthService().getCurrentUser()?.email;
+                    final loader = ref.read(globalLoaderProvider.notifier);
+                    loader.state = true;
+                    try {
+                      final pinService = PinService();
+                      final remaining = await pinService.pinChangeRemainingCount(accountId: widget.accountId);
+                      final blockedUntil = await pinService.pinChangeBlockedUntilNextDay(accountId: widget.accountId);
 
-                            final isBlocked = (remaining <= 0) ||
-                                (blockedUntil != null &&
-                                    blockedUntil > Duration.zero);
+                      final isBlocked = (remaining <= 0) || (blockedUntil != null && blockedUntil > Duration.zero);
 
-                            try {
-                              loader.state = false;
-                            } catch (_) {}
+                      try {
+                        loader.state = false;
+                      } catch (_) {}
 
-                            if (isBlocked) {
-                              final remainingDuration =
-                                  blockedUntil ?? const Duration(days: 1);
-                              if (!mounted) return;
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (_) => PinLockedPage(
-                                        remaining: remainingDuration,
-                                        accountId: widget.accountId,
-                                        allowBack: true,
-                                        returnToEnterPin: true,
-                                      )));
-                            } else {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (_) => ForgotPinPage(
-                                  initialEmail: email,
-                                  allowBack: false,
-                                ),
-                              ));
-                            }
-                          } catch (e, st) {
-                            if (kDebugMode)
-                              log('Forgot PIN error', error: e, stackTrace: st);
-                            try {
-                              loader.state = false;
-                            } catch (_) {}
-                          }
-                        },
-                      ),
-                    ],
-                  ),
+                      if (isBlocked) {
+                        final remainingDuration = blockedUntil ?? const Duration(days: 1);
+                        if (!mounted) return;
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => PinLockedPage(
+                                  remaining: remainingDuration,
+                                  accountId: widget.accountId,
+                                  allowBack: true,
+                                  returnToEnterPin: true,
+                                )));
+                      } else {
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => ForgotPinPage(
+                            initialEmail: email,
+                            allowBack: false,
+                          ),
+                        ));
+                      }
+                    } catch (e, st) {
+                      if (kDebugMode) log('Forgot PIN error', error: e, stackTrace: st);
+                      try {
+                        ref.read(globalLoaderProvider.notifier).state = false;
+                      } catch (_) {}
+                    }
+                  },
                 ),
               ],
             ),
@@ -262,19 +202,25 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
     );
 
     return ZoomAware(builder: (ctx, isZoomed, _) {
-      if (isZoomed) {
-        return PinPageScaffold(
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints:
-                  BoxConstraints(minHeight: MediaQuery.of(ctx).size.height),
-              child: inner,
-            ),
+      // Always allow scrolling to avoid RenderFlex overflow on small screens
+      return Scaffold(
+        appBar: const WalletAppBar(
+          automaticallyImplyLeading: false,
+          title: AwText.bold(
+            'Admin ',
+            color: AwColors.white,
+            size: AwSize.s22,
           ),
-        );
-      }
-
-      return PinPageScaffold(child: inner);
+          barColor: AwColors.appBarColor,
+        ),
+        backgroundColor: AwColors.white,
+        body: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: MediaQuery.of(ctx).size.height),
+            child: inner,
+          ),
+        ),
+      );
     });
   }
 }

@@ -23,8 +23,7 @@ class PinPageScaffold extends StatelessWidget {
               barColor: Colors.transparent,
               leading: allowBack
                   ? IconButton(
-                      icon: const Icon(Icons.arrow_back_ios,
-                          color: AwColors.appBarColor),
+                      icon: const Icon(Icons.arrow_back_ios, color: AwColors.appBarColor),
                       onPressed: () => Navigator.pop(context),
                     )
                   : null,

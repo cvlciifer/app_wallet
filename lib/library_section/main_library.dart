@@ -82,6 +82,7 @@ export 'package:app_wallet/security_section/presentation/screens/alias_input_pag
 export 'package:app_wallet/core/services/alias_service.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/confirm_pin_page.dart';
 export 'package:app_wallet/security_section/presentation/screens/pin/set_pin_page.dart';
+export 'package:app_wallet/security_section/presentation/screens/pin/pin_soft_ui_page.dart';
 export 'package:app_wallet/components_section/widgets/pin/pin.dart';
 export 'package:app_wallet/components_section/widgets/pin/numeric_keypad.dart';
 export 'package:app_wallet/components_section/widgets/pin/pin_failure_popup.dart';

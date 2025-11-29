@@ -46,7 +46,7 @@ class PinActions extends StatelessWidget {
                 );
               }
 
-              return Column(
+              return Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
