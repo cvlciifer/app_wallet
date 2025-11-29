@@ -8,16 +8,28 @@ class RecurrentList extends StatelessWidget {
   final List<RecurringExpense> items;
   final RecurrentItemTap? onTapItem;
 
-  const RecurrentList({Key? key, required this.items, this.onTapItem})
-      : super(key: key);
+  const RecurrentList({Key? key, required this.items, this.onTapItem}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16.0),
-        child: AwText.normal('No hay gastos recurrentes aún.',
-            color: AwColors.modalGrey),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AwText.normal('No hay gastos recurrentes aún.', color: AwColors.modalGrey),
+            AwSpacing.s6,
+            Center(
+              child: Image(
+                image: AWImage.ghost,
+                fit: BoxFit.contain,
+                width: 96,
+                height: 96,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -29,8 +41,7 @@ class RecurrentList extends StatelessWidget {
       separatorBuilder: (_, __) => const AwDivider(),
       itemBuilder: (ctx, i) {
         final r = items[i];
-        return RecurrentListItem(
-            recurring: r, onTap: (rec) => onTapItem?.call(rec));
+        return RecurrentListItem(recurring: r, onTap: (rec) => onTapItem?.call(rec));
       },
     );
   }
