@@ -97,7 +97,72 @@ class _WalletHomePageState extends State<WalletHomePage> {
       final conn = await Connectivity().checkConnectivity();
       final hasConnection = conn != ConnectivityResult.none;
       final controller = context.read<WalletExpensesController>();
-      await controller.addExpense(expense, hasConnection: hasConnection);
+      bool success = false;
+      try {
+        try {
+          riverpod.ProviderScope.containerOf(context, listen: false)
+              .read(globalLoaderProvider.notifier)
+              .state = true;
+        } catch (_) {}
+
+        await controller.addExpense(expense, hasConnection: hasConnection);
+        success = true;
+      } catch (e) {
+        try {
+          final popupCtx = Navigator.of(context, rootNavigator: true)
+                  .overlay
+                  ?.context ??
+              context;
+          WalletPopup.showNotificationError(
+            context: popupCtx,
+            title: 'Error al crear gasto.',
+          );
+        } catch (_) {}
+      } finally {
+        try {
+          riverpod.ProviderScope.containerOf(context, listen: false)
+              .read(globalLoaderProvider.notifier)
+              .state = false;
+        } catch (_) {}
+      }
+
+      if (success) {
+        try {
+          final popupCtx = Navigator.of(context, rootNavigator: true)
+                  .overlay
+                  ?.context ??
+              context;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            try {
+              if (!hasConnection) {
+                Future.microtask(() async {
+                  await Future.delayed(const Duration(milliseconds: 120));
+                  try {
+                    WalletPopup.showNotificationSuccess(
+                      context: popupCtx,
+                      title: 'Gasto creado correctamente.',
+                      message: const AwText.normal(
+                        'Será sincronizado cuando exista internet',
+                        color: AwColors.white,
+                        size: AwSize.s14,
+                      ),
+                      visibleTime: 2,
+                      isDismissible: true,
+                    );
+                  } catch (_) {}
+                });
+              } else {
+                try {
+                  WalletPopup.showNotificationSuccess(
+                    context: popupCtx,
+                    title: 'Gasto creado correctamente.',
+                  );
+                } catch (_) {}
+              }
+            } catch (_) {}
+          });
+        } catch (_) {}
+      }
     }
   }
 

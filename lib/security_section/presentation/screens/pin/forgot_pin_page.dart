@@ -1,12 +1,12 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ForgotPinPage extends ConsumerStatefulWidget {
   final String? initialEmail;
   final bool allowBack;
 
-  const ForgotPinPage({Key? key, this.initialEmail, this.allowBack = false}) : super(key: key);
+  const ForgotPinPage({Key? key, this.initialEmail, this.allowBack = false})
+      : super(key: key);
 
   @override
   ConsumerState<ForgotPinPage> createState() => _ForgotPinPageState();
@@ -21,7 +21,8 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
     super.initState();
 
     final userEmail = AuthService().getCurrentUser()?.email ?? '';
-    _emailController = TextEditingController(text: widget.initialEmail ?? userEmail);
+    _emailController =
+        TextEditingController(text: widget.initialEmail ?? userEmail);
   }
 
   @override
@@ -39,50 +40,77 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
     return Scaffold(
       backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
-        title: AwText.bold('Restablecer mi PIN', color: Colors.white),
+        title: AwText.bold('Restablecer PIN', color: Colors.white),
         showBackArrow: true,
         barColor: AwColors.appBarColor,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: AwSpacing.paddingPage,
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (state.alias != null && state.alias!.isNotEmpty) ...[
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: AwText.bold(
-                        'Hola ${state.alias!}, ¿no recuerdas tu PIN?',
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: TicketCard(
+              notchDepth: 12,
+              elevation: 6,
+              color: AwColors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Icon ilustrativo para consistencia con Configuraciones
+                    const Center(
+                      child: Icon(
+                        Icons.lock_reset,
                         size: AwSize.s30,
                         color: AwColors.appBarColor,
                       ),
                     ),
                     AwSpacing.s12,
-                  ],
-                  if (!(state.alias != null && state.alias!.isNotEmpty)) ...[
+                    if (state.alias != null && state.alias!.isNotEmpty) ...[
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: AwText.bold(
+                          'Hola ${state.alias!}, ¿No recuerdas tu PIN?',
+                          size: AwSize.s20,
+                          color: AwColors.appBarColor,
+                        ),
+                      ),
+                      AwSpacing.s12,
+                    ],
+                    if (!(state.alias != null && state.alias!.isNotEmpty)) ...[
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: AwText.bold('Hola, ¿No recuerdas tu PIN?',
+                            size: AwSize.s20, color: AwColors.appBarColor),
+                      ),
+                      AwSpacing.s12,
+                    ],
                     const Align(
                       alignment: Alignment.centerLeft,
-                      child: AwText.bold('Hola, ¿no recuerdas tu PIN?', size: AwSize.s30, color: AwColors.appBarColor),
+                      child: AwText.normal(
+                        'No te preocupes, te ayudaremos a crear uno nuevo.',
+                        color: AwColors.boldBlack,
+                        size: AwSize.s14,
+                      ),
+                    ),
+                    AwSpacing.s6,
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: AwText.normal(
+                        'Para continuar, debes abrir ese enlace desde este mismo dispositivo.',
+                        color: AwColors.boldBlack,
+                        size: AwSize.s14,
+                      ),
                     ),
                     AwSpacing.s12,
+                    // Acerca el área del botón al texto
+                    _buildSendAreaWithState(state),
+                    AwSpacing.s,
                   ],
-                  const Align(
-                      alignment: Alignment.centerLeft,
-                      child: AwText.normal('No te preocupes, te ayudaremos a crear uno nuevo.',
-                          color: AwColors.boldBlack, size: AwSize.s14)),
-                  AwSpacing.s6,
-                  const Align(
-                      alignment: Alignment.centerLeft,
-                      child: AwText.normal('Para continuar, debes abrir ese enlace desde este mismo dispositivo.',
-                          color: AwColors.boldBlack, size: AwSize.s14)),
-                  AwSpacing.s20,
-                  _buildSendAreaWithState(state),
-                  AwSpacing.s12,
-                ],
+                ),
               ),
             ),
           ),
@@ -93,13 +121,13 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
 
   Widget _buildSendAreaWithState(ForgotPinState state) {
     final hasSentBefore = state.lastSentAt != null;
-    String _formatRemainingMinutes(int seconds) {
+    String formatRemainingMinutes(int seconds) {
       final mins = (seconds + 59) ~/ 60; // round up
-      return '${mins} min';
+      return '$mins min';
     }
 
     final buttonText = state.remainingSeconds > 0
-        ? 'Reenviar (${_formatRemainingMinutes(state.remainingSeconds)})'
+        ? 'Reenviar (${formatRemainingMinutes(state.remainingSeconds)})'
         : (hasSentBefore ? 'Reenviar enlace' : 'Enviar enlace');
 
     final isDisabled = state.isSending || state.remainingSeconds > 0;
@@ -110,12 +138,13 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
           buttonText: buttonText,
           onPressed: () async {
             if (state.remainingSeconds > 0) {
-              final formatted = _formatRemainingMinutes(state.remainingSeconds);
+              final formatted = formatRemainingMinutes(state.remainingSeconds);
               if (!mounted) return;
               await AwAlert.showTicketInfo(
                 context,
                 title: 'Espera antes de reenviar',
-                content: 'Debes esperar $formatted antes de solicitar otro enlace.',
+                content:
+                    'Debes esperar $formatted antes de solicitar otro enlace.',
                 titleSize: AwSize.s20,
                 contentSize: AwSize.s14,
               );
@@ -126,14 +155,17 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
 
             final email = _emailController.text.trim();
             final uid = AuthService().getCurrentUser()?.uid;
-            final msg = await ref.read(forgotPinProvider(uid).notifier).sendRecoveryEmail(email);
+            final msg = await ref
+                .read(forgotPinProvider(uid).notifier)
+                .sendRecoveryEmail(email);
             if (!mounted) return;
             WalletPopup.showNotificationSuccess(
               context: context,
               title: msg,
             );
           },
-          backgroundColor: isDisabled ? AwColors.blueGrey : AwColors.appBarColor,
+          backgroundColor:
+              isDisabled ? AwColors.blueGrey : AwColors.appBarColor,
         ),
         AwSpacing.s6,
         AwText.normal(

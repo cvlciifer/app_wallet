@@ -38,7 +38,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 SizedBox(
                   width: double.infinity,
                   child: SettingsCard(
-                    title: 'Actualizar alias',
+                    title: 'Actualizar Alias',
                     icon: Icons.person_outline,
                     onTap: () {
                       () async {
@@ -75,7 +75,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 SizedBox(
                   width: double.infinity,
                   child: SettingsCard(
-                    title: 'Restablecer mi PIN',
+                    title: 'Restablecer PIN',
                     icon: Icons.lock_reset,
                     onTap: () async {
                       final connectivity =

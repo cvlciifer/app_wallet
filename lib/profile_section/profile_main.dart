@@ -191,7 +191,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
-                          title: 'Ingresos mensuales',
+                          title: 'Ingresos Mensuales',
                           icon: Icons.calendar_month,
                           onTap: () async {
                             try {
@@ -206,7 +206,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
-                          title: 'Ingresos imprevistos',
+                          title: 'Ingresos Imprevistos',
                           icon: Icons.savings,
                           onTap: () async {
                             try {
@@ -277,7 +277,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                       SizedBox(
                         width: double.infinity,
                         child: SettingsCard(
-                          title: 'Registro de gastos recurrentes',
+                          title: 'Registro de Gastos Recurrentes',
                           icon: Icons.list_alt,
                           onTap: () async {
                             try {
