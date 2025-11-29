@@ -16,6 +16,7 @@ export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:auto_size_text/auto_size_text.dart';
 
 // Archivos locales del proyecto o rutas
+export 'package:app_wallet/icon_section/icon_main.dart';
 export 'package:app_wallet/home_section/presentation/new_expense/presentation/models/expense.dart';
 export 'package:app_wallet/home_section/presentation/new_expense/presentation/models/category.dart';
 export 'package:app_wallet/home_section/presentation/new_expense/presentation/models/expense_bucket.dart';
