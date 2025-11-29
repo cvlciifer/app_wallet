@@ -10,8 +10,9 @@ class ExpensesList extends StatelessWidget {
   final List<Expense> expenses;
   final void Function(Expense expense) onRemoveExpense;
 
-  void _showDeleteConfirmationDialog(BuildContext context, Expense expense) {
-    showDialog(
+  Future<bool?> _showDeleteConfirmationDialog(
+      BuildContext context, Expense expense) {
+    return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const AwText.bold(
@@ -33,7 +34,7 @@ class ExpensesList extends StatelessWidget {
                   child: SizedBox(
                     height: AwSize.s48,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
+                      onPressed: () => Navigator.of(ctx).pop(false),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AwColors.blueGrey,
                         shape: RoundedRectangleBorder(
@@ -61,8 +62,7 @@ class ExpensesList extends StatelessWidget {
                     height: AwSize.s48,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(ctx).pop();
-                        onRemoveExpense(expense);
+                        Navigator.of(ctx).pop(true);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AwColors.red,
@@ -105,7 +105,7 @@ class ExpensesList extends StatelessWidget {
         itemCount: expenses.length,
         itemBuilder: (ctx, index) => Dismissible(
           key: ValueKey(expenses[index]),
-          direction: DismissDirection.horizontal,
+          direction: DismissDirection.endToStart,
           background: Container(
             color: Theme.of(context).colorScheme.error.withOpacity(0.75),
             alignment: Alignment.centerLeft,
@@ -127,7 +127,15 @@ class ExpensesList extends StatelessWidget {
             ),
           ),
           confirmDismiss: (direction) async {
-            _showDeleteConfirmationDialog(context, expenses[index]);
+            if (direction == DismissDirection.endToStart) {
+              final confirmed =
+                  await _showDeleteConfirmationDialog(context, expenses[index]);
+              if (confirmed == true) {
+                onRemoveExpense(expenses[index]);
+                return true;
+              }
+              return false;
+            }
             return false;
           },
           child: InkWell(
