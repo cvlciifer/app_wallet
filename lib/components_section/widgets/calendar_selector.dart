@@ -27,8 +27,7 @@ class WalletMonthYearSelector extends StatefulWidget {
 
   @override
   // ignore: library_private_types_in_public_api
-  _WalletMonthYearSelectorState createState() =>
-      _WalletMonthYearSelectorState();
+  _WalletMonthYearSelectorState createState() => _WalletMonthYearSelectorState();
 }
 
 class _WalletMonthYearSelectorState extends State<WalletMonthYearSelector> {
@@ -92,8 +91,7 @@ class _WalletMonthYearSelectorState extends State<WalletMonthYearSelector> {
             DropdownButton<int>(
               value: widget.selectedMonth,
               items: widget.availableMonths.map((m) {
-                final label = toBeginningOfSentenceCase(
-                        DateFormat('MMMM', 'es').format(DateTime(0, m))) ??
+                final label = toBeginningOfSentenceCase(DateFormat('MMMM', 'es').format(DateTime(0, m))) ??
                     DateFormat('MMMM', 'es').format(DateTime(0, m));
                 return DropdownMenuItem(
                   value: m,
@@ -123,8 +121,7 @@ class _WalletMonthYearSelectorState extends State<WalletMonthYearSelector> {
                         child: Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: AwText(
-                            text:
-                                'Total: ${widget.formatNumber(widget.totalAmount)}',
+                            text: 'Total: ${widget.formatNumber(widget.totalAmount)}',
                             size: AwSize.s18,
                           ),
                         ),
@@ -145,8 +142,7 @@ class _WalletMonthYearSelectorState extends State<WalletMonthYearSelector> {
               DropdownButton<int>(
                 value: widget.selectedMonth,
                 items: widget.availableMonths.map((m) {
-                  final label = toBeginningOfSentenceCase(
-                          DateFormat('MMMM', 'es').format(DateTime(0, m))) ??
+                  final label = toBeginningOfSentenceCase(DateFormat('MMMM', 'es').format(DateTime(0, m))) ??
                       DateFormat('MMMM', 'es').format(DateTime(0, m));
                   return DropdownMenuItem(
                     value: m,
@@ -170,9 +166,14 @@ class _WalletMonthYearSelectorState extends State<WalletMonthYearSelector> {
           ),
           if (widget.showTotal) ...[
             AwSpacing.s,
-            AwText(
-              text: 'Total: ${widget.formatNumber(widget.totalAmount)}',
-              size: AwSize.s18,
+            Align(
+              alignment: Alignment.centerRight,
+              child: AwText.bold(
+                'Total: ${widget.formatNumber(widget.totalAmount)}',
+                size: 20,
+                color: AwColors.boldBlack,
+                textAlign: TextAlign.right,
+              ),
             ),
           ]
         ],

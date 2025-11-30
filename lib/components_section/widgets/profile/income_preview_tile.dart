@@ -39,8 +39,7 @@ class IncomePreviewTile extends StatelessWidget {
                 const CircleAvatar(
                   radius: 16,
                   backgroundColor: AwColors.white,
-                  child: Icon(Icons.calendar_month,
-                      size: AwSize.s16, color: AwColors.appBarColor),
+                  child: Icon(Icons.calendar_month, size: AwSize.s16, color: AwColors.appBarColor),
                 ),
                 AwSpacing.w,
                 AwText.normal(
@@ -90,8 +89,7 @@ class IncomePreviewTile extends StatelessWidget {
                           ),
                         if (onDelete != null)
                           IconButton(
-                            icon: const Icon(Icons.delete,
-                                size: 18, color: AwColors.redAccent),
+                            icon: const Icon(Icons.delete, size: 18, color: AwColors.redAccent),
                             onPressed: onDelete,
                             tooltip: 'Eliminar',
                           ),

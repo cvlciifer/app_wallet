@@ -18,8 +18,6 @@ class RecurrentList extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AwText.normal('No hay gastos recurrentes aún.', color: AwColors.modalGrey),
-            AwSpacing.s6,
             Center(
               child: Image(
                 image: AWImage.ghost,
@@ -28,6 +26,12 @@ class RecurrentList extends StatelessWidget {
                 height: 96,
               ),
             ),
+            AwSpacing.s6,
+            AwText.normal(
+              'No hay gastos recurrentes aún.',
+              color: AwColors.modalGrey,
+            ),
+            AwSpacing.s6,
           ],
         ),
       );
