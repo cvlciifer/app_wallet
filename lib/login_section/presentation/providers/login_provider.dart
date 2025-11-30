@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
 import 'package:sqflite/sqflite.dart';
 
 class LoginProvider extends ChangeNotifier {
@@ -145,7 +144,8 @@ class LoginProvider extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       onError('Error de autenticación: ${e.message}');
     } catch (e) {
-      onError('Error al iniciar sesión con Google: $e');
+      String humanMsg = _humanizeGoogleSignInError(e);
+      onError(humanMsg);
     }
   }
 
@@ -199,4 +199,21 @@ class LoginProvider extends ChangeNotifier {
       log('Error al cerrar sesión: $e');
     }
   }
+}
+
+String _humanizeGoogleSignInError(Object e) {
+  final s = e.toString();
+
+  if (s.contains('ApiException: 7') || s.contains('network_error')) {
+    return 'No se pudo conectar con Google. Verifica tu conexión a internet e inténtalo nuevamente.';
+  }
+
+  if (e is PlatformException) {
+    final code = e.code;
+    if (code.contains('network_error')) {
+      return 'Hubo un problema de red al conectar con Google. Revisa tu conexión e inténtalo otra vez.';
+    }
+  }
+
+  return 'No se pudo iniciar sesión con Google. Inténtalo nuevamente.';
 }
