@@ -118,14 +118,14 @@ class _IngresosImprevistosPageState
     final monthLabel = DateTime(now.year, now.month + _selectedMonthOffset, 1);
     return Scaffold(
       backgroundColor: AwColors.white,
-        appBar: const WalletAppBar(
-          title: AwText.bold(
-            'Mi Wallet',
-            color: AwColors.white,
-          ),
-          automaticallyImplyLeading: true,
-          actions: [],
+      appBar: const WalletAppBar(
+        title: AwText.bold(
+          'Mi Wallet',
+          color: AwColors.white,
         ),
+        automaticallyImplyLeading: true,
+        actions: [],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Center(
@@ -141,20 +141,23 @@ class _IngresosImprevistosPageState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Center(
-                      child: Icon(
-                        Icons.calendar_month,
-                        size: AwSize.s26,
-                        color: AwColors.appBarColor,
-                      ),
-                    ),
-                    AwSpacing.s12,
-                    const Center(
-                      child: AwText.bold(
-                        'Ingresos Imprevistos',
-                        size: AwSize.s20,
-                        color: AwColors.appBarColor,
-                      ),
+                    const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.calendar_month,
+                          size: AwSize.s26,
+                          color: AwColors.appBarColor,
+                        ),
+                        AwSpacing.w12,
+                        Expanded(
+                          child: AwText.bold(
+                            'Ingresos Imprevistos',
+                            size: AwSize.s20,
+                            color: AwColors.appBarColor,
+                          ),
+                        ),
+                      ],
                     ),
                     AwSpacing.s6,
                     const AwText.normal(
@@ -162,6 +165,7 @@ class _IngresosImprevistosPageState
                       size: AwSize.s14,
                       color: AwColors.modalGrey,
                     ),
+                    AwSpacing.s6,
                     AwSpacing.s6,
                     AwText.normal(
                       'Este valor se verá reflejado en ${DateFormat('MMMM yyyy', 'es').format(monthLabel)}.',

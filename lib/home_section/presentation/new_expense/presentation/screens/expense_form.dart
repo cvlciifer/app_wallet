@@ -63,37 +63,31 @@ class _ExpenseFormState extends State<ExpenseForm> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AwSpacing.s12,
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: Icon(
-                        Icons.attach_money,
-                        color: AwColors.appBarColor,
-                        size: 44,
-                      ),
+                    Icon(
+                      Icons.attach_money,
+                      color: AwColors.appBarColor,
+                      size: AwSize.s26,
                     ),
-                    AwSpacing.s,
-                    Center(
+                    AwSpacing.w12,
+                    Expanded(
                       child: AwText.bold(
                         'Agrega un nuevo gasto',
                         size: AwSize.s20,
                         color: AwColors.appBarColor,
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(top: AwSize.s6),
-                      child: Center(
-                        child: AwText(
-                          text:
-                              'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
-                          color: AwColors.blueGrey,
-                          size: AwSize.s14,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
                   ],
+                ),
+                AwSpacing.s6,
+                const AwText(
+                  text:
+                      'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
+                  color: AwColors.blueGrey,
+                  size: AwSize.s14,
+                  textAlign: TextAlign.left,
                 ),
                 AwSpacing.xs,
                 _buildTitle(),

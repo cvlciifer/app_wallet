@@ -66,8 +66,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
 
     return Scaffold(
         backgroundColor: AwColors.white,
-            appBar: const WalletAppBar(
-              title: AwText.bold('Mi Wallet', color: AwColors.white),
+        appBar: const WalletAppBar(
+          title: AwText.bold('Mi Wallet', color: AwColors.white),
           automaticallyImplyLeading: true,
         ),
         body: SingleChildScrollView(
@@ -85,21 +85,23 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Icon centered above the in-ticket title
-                      const Center(
-                        child: Icon(
-                          Icons.calendar_month,
-                          size: AwSize.s26,
-                          color: AwColors.appBarColor,
-                        ),
-                      ),
-                      AwSpacing.s12,
-                      const Center(
-                        child: AwText.bold(
-                          'Ingreso Mensual',
-                          size: AwSize.s20,
-                          color: AwColors.appBarColor,
-                        ),
+                      const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.calendar_month,
+                            size: AwSize.s26,
+                            color: AwColors.appBarColor,
+                          ),
+                          AwSpacing.w12,
+                          Expanded(
+                            child: AwText.bold(
+                              'Ingreso Mensual',
+                              size: AwSize.s20,
+                              color: AwColors.appBarColor,
+                            ),
+                          ),
+                        ],
                       ),
                       AwSpacing.s6,
                       const AwText.normal(
@@ -108,6 +110,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                         color: AwColors.modalGrey,
                         maxLines: 4,
                       ),
+                      AwSpacing.s12,
                       AwSpacing.s12,
                       const AwText.normal('Selecciona el mes de inicio',
                           size: AwSize.s14, color: AwColors.grey),

@@ -40,11 +40,11 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
     final state = ref.watch(recurrentRegistryProvider);
     return Scaffold(
       backgroundColor: AwColors.white,
-        appBar: const WalletAppBar(
-          title: AwText.bold(
-            'Mi Wallet',
-            color: AwColors.white,
-          ),
+      appBar: const WalletAppBar(
+        title: AwText.bold(
+          'Mi Wallet',
+          color: AwColors.white,
+        ),
         showBackArrow: false,
         barColor: AwColors.appBarColor,
         automaticallyImplyLeading: true,
@@ -66,31 +66,23 @@ class _RecurrentRegistryPageState extends ConsumerState<RecurrentRegistryPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AwSpacing.s12,
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              // ignore: deprecated_member_use
-                              color: AwColors.grey.withOpacity(0.08)),
-                        ),
-                        child: const Icon(
+                    const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
                           Icons.list_alt,
-                          size: AwSize.s30,
+                          size: AwSize.s26,
                           color: AwColors.appBarColor,
                         ),
-                      ),
-                    ),
-                    AwSpacing.s12,
-                    const Center(
-                      child: AwText.bold(
-                        'Registro de Gastos Recurrentes',
-                        size: AwSize.s20,
-                        color: AwColors.appBarColor,
-                      ),
+                        AwSpacing.w12,
+                        Expanded(
+                          child: AwText.bold(
+                            'Registro de Gastos Recurrentes',
+                            size: AwSize.s20,
+                            color: AwColors.appBarColor,
+                          ),
+                        ),
+                      ],
                     ),
                     AwSpacing.s6,
                     const AwText.normal(

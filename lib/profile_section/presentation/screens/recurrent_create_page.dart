@@ -267,7 +267,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
       backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold(
-          'Registro de gastos recurrentes',
+          'Nuevo Gasto Recurrente',
           size: AwSize.s18,
           color: AwColors.white,
         ),
@@ -288,37 +288,31 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AwSpacing.s12,
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                    const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Center(
-                          child: Icon(
-                            Icons.attach_money,
-                            color: AwColors.appBarColor,
-                            size: 44,
-                          ),
+                        Icon(
+                          Icons.attach_money,
+                          color: AwColors.appBarColor,
+                          size: AwSize.s26,
                         ),
-                        AwSpacing.s,
-                        Center(
+                        AwSpacing.w12,
+                        Expanded(
                           child: AwText.bold(
                             'Crear gasto recurrente',
                             size: AwSize.s20,
                             color: AwColors.appBarColor,
                           ),
                         ),
-                        Padding(
-                          padding: EdgeInsets.only(top: AwSize.s6),
-                          child: Center(
-                            child: AwText(
-                              text:
-                                  'Un gasto recurrente es aquel que se repite durante un período determinado, como una cuota, una suscripción o un pago mensual. Ingresa la fecha de inicio (día, mes y año) y el número de meses que este gasto se mantendrá.',
-                              color: AwColors.blueGrey,
-                              size: AwSize.s14,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
                       ],
+                    ),
+                    AwSpacing.s6,
+                    const AwText(
+                      text:
+                          'Un gasto recurrente es aquel que se repite durante un período determinado, como una cuota, una suscripción o un pago mensual. Ingresa la fecha de inicio (día, mes y año) y el número de meses que este gasto se mantendrá.',
+                      color: AwColors.blueGrey,
+                      size: AwSize.s14,
+                      textAlign: TextAlign.left,
                     ),
                     AwSpacing.s12,
                     CustomTextField(

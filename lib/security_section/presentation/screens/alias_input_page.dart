@@ -1,4 +1,5 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:provider/provider.dart' as prov;
 
 class AliasInputPage extends StatefulWidget {
   final bool initialSetup;
@@ -184,6 +185,8 @@ class _AliasInputPageState extends State<AliasInputPage> {
   @override
   Widget build(BuildContext context) {
     final aliasError = _aliasError(_controller.text);
+
+    final aliasFromProvider = prov.Provider.of<AliasProvider>(context).alias;
     return Scaffold(
       backgroundColor: AwColors.white,
       appBar: WalletAppBar(
@@ -198,6 +201,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
               constraints: const BoxConstraints(maxWidth: 560),
               child: AliasForm(
                 controller: _controller,
+                displayAlias: aliasFromProvider,
                 aliasError: aliasError,
                 canContinue: _canContinue,
                 showInvalidChars: _showInvalidChars,

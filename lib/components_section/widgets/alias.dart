@@ -2,6 +2,7 @@ import 'package:app_wallet/library_section/main_library.dart';
 
 class AliasForm extends StatelessWidget {
   final TextEditingController controller;
+  final String? displayAlias;
   final String? aliasError;
   final bool canContinue;
   final bool showInvalidChars;
@@ -14,6 +15,7 @@ class AliasForm extends StatelessWidget {
   const AliasForm({
     Key? key,
     required this.controller,
+    this.displayAlias,
     this.aliasError,
     required this.canContinue,
     required this.showInvalidChars,
@@ -26,6 +28,12 @@ class AliasForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleText = controller.text.trim().isNotEmpty
+        ? '${controller.text.trim()}, Configura Tu Alias'
+        : (displayAlias != null && displayAlias!.trim().isNotEmpty
+            ? '${displayAlias!.trim()}, Configura Tu Alias'
+            : 'Configura Tu Alias');
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -34,21 +42,33 @@ class AliasForm extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Center(
-                child: Icon(
-                  Icons.person_outline,
-                  size: AwSize.s26,
-                  color: AwColors.appBarColor,
-                ),
-              ),
-              AwSpacing.s12,
-              const Center(
-                child: AwText.bold(
-                  'Configura Tu Alias',
-                  size: AwSize.s20,
-                  color: AwColors.appBarColor,
-                  textAlign: TextAlign.center,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.person_outline,
+                    size: AwSize.s26,
+                    color: AwColors.appBarColor,
+                  ),
+                  AwSpacing.w12,
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => AwAlert.showTicketInfo(
+                        context,
+                        title: 'Alias',
+                        content:
+                            'El alias te identifica en este dispositivo. Debe tener al menos una mayúscula y máximo 15 caracteres.',
+                        titleSize: AwSize.s18,
+                        contentSize: AwSize.s14,
+                      ),
+                      child: AwText.bold(
+                        titleText,
+                        size: AwSize.s20,
+                        color: AwColors.appBarColor,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               AwSpacing.s6,
               const Center(
@@ -78,7 +98,8 @@ class AliasForm extends StatelessWidget {
               ),
               AwSpacing.s12,
               if (showInvalidChars)
-                const AwText.normal('Solo se permiten letras y espacios', color: AwColors.red)
+                const AwText.normal('Solo se permiten letras y espacios',
+                    color: AwColors.red)
               else if (aliasError != null)
                 AwText.normal(aliasError!, color: AwColors.red),
               AwSpacing.s12,
@@ -86,7 +107,8 @@ class AliasForm extends StatelessWidget {
                 child: WalletButton.primaryButton(
                   buttonText: 'Confirmar',
                   onPressed: canContinue ? onConfirm : null,
-                  backgroundColor: canContinue ? AwColors.appBarColor : AwColors.blueGrey,
+                  backgroundColor:
+                      canContinue ? AwColors.appBarColor : AwColors.blueGrey,
                   buttonTextColor: AwColors.white,
                 ),
               ),
