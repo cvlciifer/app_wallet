@@ -12,13 +12,10 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
 
   Future<void> init() async {
     await loadLocalIncomes();
-    // Ensure startOffset is within allowed sliding window relative to now
     setStartOffset(state.startOffset);
   }
 
   void setStartOffset(int offset) {
-    // Clamp offset to [-12, +12] relative to current month so the UI only
-    // allows selecting start months within one year back/forward.
     final clamped = offset < -12 ? -12 : (offset > 12 ? 12 : offset);
     if (clamped == state.startOffset) return;
     state = state.copyWith(startOffset: clamped);
@@ -31,15 +28,12 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
       final map = <String, Map<String, dynamic>>{};
       for (final r in rows) {
         final id = r['id']?.toString() ?? '';
-        // Skip tombstones marked as pendingDelete so UI hides deleted incomes
         final syncStatus = r['sync_status'] as int? ?? 0;
         if (syncStatus == SyncStatus.pendingDelete.index) continue;
         if (id.isNotEmpty) map[id] = Map<String, dynamic>.from(r);
       }
       state = state.copyWith(localIncomes: map);
-    } catch (_) {
-      // ignore errors silently for now to preserve UX
-    }
+    } catch (_) {}
   }
 
   void setMonths(int m) {
