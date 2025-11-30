@@ -80,6 +80,12 @@ class _AliasInputPageState extends State<AliasInputPage> {
           uidCheck != null && await pinServiceCheck.hasPin(accountId: uidCheck);
       if (hasPinCheck) {
       } else {
+        try {
+          final aliasProv =
+              prov.Provider.of<AliasProvider>(context, listen: false);
+          await aliasProv.setAlias(normalized);
+        } catch (_) {}
+
         // ignore: use_build_context_synchronously
         Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (_) => SetPinPage(alias: normalized),
@@ -100,9 +106,9 @@ class _AliasInputPageState extends State<AliasInputPage> {
       return;
     }
 
-    final aliasService = AliasService();
     try {
-      await aliasService.setAliasForCurrentUser(normalized);
+      final aliasProv = prov.Provider.of<AliasProvider>(context, listen: false);
+      await aliasProv.setAlias(normalized);
     } catch (e) {
       if (mounted) {
         WalletPopup.showNotificationWarningOrange(
@@ -156,7 +162,7 @@ class _AliasInputPageState extends State<AliasInputPage> {
 
     Future.microtask(() async {
       try {
-        await aliasService.syncAliasForCurrentUser();
+        await AliasService().syncAliasForCurrentUser();
       } catch (_) {}
     });
 

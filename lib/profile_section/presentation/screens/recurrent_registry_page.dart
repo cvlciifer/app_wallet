@@ -258,24 +258,15 @@ class _RecurrentDetailPageState extends ConsumerState<RecurrentDetailPage> {
   }
 
   Future<void> _deleteFromThisMonth(int monthIndex) async {
-    final ok = await showDialog<bool>(
-        context: context,
-        builder: (ctx) {
-          return AlertDialog(
-            title: const AwText.bold('Eliminar desde este mes'),
-            content: const AwText(
-                text:
-                    'Se eliminarán los gastos de este mes y siguientes de la recurrencia. Esta acción no afecta meses anteriores.'),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('Cancelar')),
-              TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: const Text('Eliminar')),
-            ],
-          );
-        });
+    final ok = await AwAlert.showConfirmCard(
+      context,
+      title: 'Eliminar desde este mes',
+      content:
+          'Se eliminarán los gastos de este mes y siguientes de la recurrencia. Esta acción no afecta meses anteriores.',
+      cancelLabel: 'Cancelar',
+      confirmLabel: 'Eliminar',
+      confirmColor: AwColors.appBarColor,
+    );
     if (ok == true) {
       if (monthIndex == 0) {
         try {

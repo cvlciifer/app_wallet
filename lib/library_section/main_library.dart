@@ -138,3 +138,8 @@ export 'package:app_wallet/profile_section/presentation/screens/settings_page.da
 export 'package:app_wallet/components_section/widgets/home_income_summary.dart';
 export 'package:app_wallet/components_section/formatters/allowed_chars_formatter.dart';
 export 'package:app_wallet/components_section/widgets/alias.dart';
+export 'package:app_wallet/components_section/widgets/profile/income_preview_tile.dart';
+export 'package:app_wallet/components_section/widgets/profile/month_selector.dart';
+export 'package:app_wallet/components_section/widgets/profile/ingresos_amount_field.dart';
+export 'package:app_wallet/components_section/widgets/profile/ingresos_controls.dart';
+export 'package:app_wallet/components_section/widgets/profile/ingresos_preview_list.dart';

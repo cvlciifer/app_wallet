@@ -22,6 +22,28 @@ class _WalletHomePageState extends State<WalletHomePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
+        final args = ModalRoute.of(context)?.settings.arguments;
+        if (args is Map && args['showPopup'] == true) {
+          final lifecycle = WidgetsBinding.instance.lifecycleState;
+          final isResumed = lifecycle == AppLifecycleState.resumed;
+          final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+          if (isResumed && isCurrent) {
+            final popupCtx =
+                Navigator.of(context, rootNavigator: true).overlay?.context ??
+                    context;
+            WidgetsBinding.instance.addPostFrameCallback((__) {
+              try {
+                WalletPopup.showNotificationSuccess(
+                  context: popupCtx,
+                  title: args['title']?.toString() ?? 'Operación completada',
+                );
+              } catch (_) {}
+            });
+          }
+        }
+      } catch (_) {}
+
+      try {
         final provController = context.read<WalletExpensesController>();
         try {
           final container =
@@ -109,10 +131,9 @@ class _WalletHomePageState extends State<WalletHomePage> {
         success = true;
       } catch (e) {
         try {
-          final popupCtx = Navigator.of(context, rootNavigator: true)
-                  .overlay
-                  ?.context ??
-              context;
+          final popupCtx =
+              Navigator.of(context, rootNavigator: true).overlay?.context ??
+                  context;
           WalletPopup.showNotificationError(
             context: popupCtx,
             title: 'Error al crear gasto.',
@@ -128,10 +149,9 @@ class _WalletHomePageState extends State<WalletHomePage> {
 
       if (success) {
         try {
-          final popupCtx = Navigator.of(context, rootNavigator: true)
-                  .overlay
-                  ?.context ??
-              context;
+          final popupCtx =
+              Navigator.of(context, rootNavigator: true).overlay?.context ??
+                  context;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             try {
               if (!hasConnection) {

@@ -46,7 +46,7 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
             if (state.remainingSeconds > 0) {
               final formatted = formatRemainingMinutes(state.remainingSeconds);
               if (!mounted) return;
-              await AwAlert.showTicketInfo(
+              await AwAlert.showCardInfo(
                 context,
                 title: 'Espera antes de reenviar',
                 content:
@@ -108,64 +108,79 @@ class _ForgotPinPageState extends ConsumerState<ForgotPinPage> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.lock_reset,
-                        size: AwSize.s26,
-                        color: AwColors.appBarColor,
-                      ),
-                      AwSpacing.w12,
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (state.alias != null && state.alias!.isNotEmpty)
-                              AwText.bold(
-                                'Hola ${state.alias!}, ¿No recuerdas tu PIN?',
-                                size: AwSize.s20,
-                                color: AwColors.appBarColor,
-                              )
-                            else
-                              const AwText.bold('Hola, ¿No recuerdas tu PIN?',
-                                  size: AwSize.s20,
-                                  color: AwColors.appBarColor),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  AwSpacing.s6,
-                  const AwText.normal(
-                    'No te preocupes, te ayudaremos a crear uno nuevo.',
-                    color: AwColors.boldBlack,
-                    size: AwSize.s14,
-                  ),
-                  AwSpacing.s6,
-                  const AwText.normal(
-                    'Para continuar, debes abrir ese enlace desde este mismo dispositivo.',
-                    color: AwColors.boldBlack,
-                    size: AwSize.s14,
-                  ),
-                  AwSpacing.s12,
-                  // Acerca el área del botón al texto
-                  _buildSendAreaWithState(state),
-                  AwSpacing.s,
-                  const Center(
-                    child: Image(
-                      image: AWImage.security,
-                      fit: BoxFit.contain,
-                    ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AwColors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AwColors.black.withOpacity(0.12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AwSpacing.xl,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.lock_reset,
+                          size: AwSize.s40,
+                          color: AwColors.appBarColor,
+                        ),
+                        AwSpacing.w12,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (state.alias != null &&
+                                  state.alias!.isNotEmpty)
+                                AwText.bold(
+                                  'Hola ${state.alias!}, ¿No recuerdas tu PIN?',
+                                  size: AwSize.s30,
+                                  color: AwColors.appBarColor,
+                                )
+                              else
+                                const AwText.bold('Hola, ¿No recuerdas tu PIN?',
+                                    size: AwSize.s30,
+                                    color: AwColors.appBarColor),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    AwSpacing.s6,
+                    const AwText.normal(
+                      'No te preocupes, te ayudaremos a crear uno nuevo.',
+                      color: AwColors.boldBlack,
+                      size: AwSize.s14,
+                    ),
+                    AwSpacing.s6,
+                    const AwText.normal(
+                      'Para continuar, debes abrir ese enlace desde este mismo dispositivo.',
+                      color: AwColors.boldBlack,
+                      size: AwSize.s14,
+                    ),
+                    AwSpacing.s12,
+                    // Acerca el área del botón al texto
+                    _buildSendAreaWithState(state),
+                    AwSpacing.s,
+                    const Center(
+                      child: Image(
+                        image: AWImage.security,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
