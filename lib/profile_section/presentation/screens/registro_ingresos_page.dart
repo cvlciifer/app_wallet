@@ -2,7 +2,6 @@ import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/components_section/widgets/profile/income_preview_tile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
-import 'package:intl/intl.dart';
 
 class RegistroIngresosPage extends ConsumerWidget {
   const RegistroIngresosPage({Key? key}) : super(key: key);
@@ -14,18 +13,25 @@ class RegistroIngresosPage extends ConsumerWidget {
     final formatter =
         NumberFormat.currency(locale: 'es_CL', symbol: '\$', decimalDigits: 0);
 
-    // Build a sorted list of incomes from localIncomes map
     final entriesAll = state.localIncomes.values.toList();
-    // Filter to only months that have any ingreso (fijo>0 or imprevisto>0)
+    final now = DateTime.now();
+    final firstOfCurrent = DateTime(now.year, now.month, 1);
+
     final entries = entriesAll.where((row) {
       final fijo = (row['ingreso_fijo'] as int?) ?? 0;
       final imp = (row['ingreso_imprevisto'] as int?) ?? 0;
-      return fijo > 0 || imp > 0;
+      final fechaMs = (row['fecha'] as int?) ?? 0;
+      final dt = DateTime.fromMillisecondsSinceEpoch(fechaMs);
+      final firstOfRow = DateTime(dt.year, dt.month, 1);
+      return (fijo > 0 || imp > 0) &&
+          (firstOfRow.isAtSameMomentAs(firstOfCurrent) ||
+              firstOfRow.isAfter(firstOfCurrent));
     }).toList();
+
     entries.sort((a, b) {
       final fa = (a['fecha'] as int?) ?? 0;
       final fb = (b['fecha'] as int?) ?? 0;
-      return fb.compareTo(fa);
+      return fa.compareTo(fb);
     });
 
     return Scaffold(
@@ -47,7 +53,7 @@ class RegistroIngresosPage extends ConsumerWidget {
               children: [
                 AwSpacing.s6,
                 if (entries.isEmpty)
-                  AwText.normal('No hay ingresos registrados aún.',
+                  const AwText.normal('No hay ingresos registrados aún.',
                       size: AwSize.s14, color: AwColors.modalGrey),
                 ...entries.map((row) {
                   final fechaMs = (row['fecha'] as int?) ??
