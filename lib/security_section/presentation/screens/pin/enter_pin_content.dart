@@ -51,14 +51,20 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
           isDismissible: true,
         );
       } catch (_) {}
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const WalletHomePage()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const WalletHomePage()));
     } else {
+      // trigger shake animation on the PIN input so the user notices the error
+      try {
+        _pinKey.currentState?.triggerErrorAnimation();
+      } catch (_) {}
+
+      // wait for the shake animation to play before clearing the input
+      await Future.delayed(const Duration(milliseconds: 620));
+
       _pinKey.currentState?.clear();
       if (mounted) setState(() => _currentLength = 0);
       try {
-        final remaining = (PinService.maxAttempts -
-                ref.read(enterPinProvider(widget.accountId)).attempts)
+        final remaining = (PinService.maxAttempts - ref.read(enterPinProvider(widget.accountId)).attempts)
             .clamp(0, PinService.maxAttempts);
         WalletPopup.showNotificationWarningOrange(
           context: context,
@@ -69,8 +75,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
       } catch (_) {}
       try {
         final pinService = PinService();
-        final lock =
-            await pinService.lockedRemaining(accountId: widget.accountId);
+        final lock = await pinService.lockedRemaining(accountId: widget.accountId);
         if (lock != null && lock > Duration.zero) {
           if (!mounted) return;
           try {
@@ -95,17 +100,13 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
 
     ref.listen(resetFlowProvider, (previous, next) {
       if (next.status == ResetFlowStatus.allowed) {
-        Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const SetPinPage()));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const SetPinPage()));
       }
     });
 
-    ref.listen<EnterPinState>(enterPinProvider(widget.accountId),
-        (previous, next) async {
-      final wasLocked = previous?.lockedRemaining != null &&
-          previous!.lockedRemaining! > Duration.zero;
-      final isLocked =
-          next.lockedRemaining != null && next.lockedRemaining! > Duration.zero;
+    ref.listen<EnterPinState>(enterPinProvider(widget.accountId), (previous, next) async {
+      final wasLocked = previous?.lockedRemaining != null && previous!.lockedRemaining! > Duration.zero;
+      final isLocked = next.lockedRemaining != null && next.lockedRemaining! > Duration.zero;
       if (!wasLocked && isLocked) {
         if (!mounted) return;
         try {
@@ -126,21 +127,23 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
       children: [
         Center(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.only(top: 0.0, bottom: 40),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                AwSpacing.s12,
                 GreetingHeader(alias: state.alias),
                 AwSpacing.s12,
-                const AwText.bold('Ingresa tu PIN',
-                    size: AwSize.s16, color: AwColors.appBarColor),
-                AwSpacing.s12,
+                const AwText.bold(
+                  'Ingresa tu PIN',
+                  size: AwSize.s16,
+                  color: AwColors.white,
+                ),
+                AwSpacing.s30,
                 PinEntryArea(
                   key: _pinKey,
                   onCompleted: _onCompleted,
-                  autoComplete: false,
+                  autoComplete: true,
                   onChanged: (len) {
                     if (!mounted) return;
                     setState(() => _currentLength = len);
@@ -148,45 +151,7 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                   actions: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Builder(builder: (context) {
-                            final enabled = _currentLength == 4;
-                            return ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    // ignore: deprecated_member_use
-                                    MaterialStateProperty.resolveWith(
-                                        (states) => states.contains(
-                                                // ignore: deprecated_member_use
-                                                MaterialState.disabled)
-                                            ? AwColors.blueGrey
-                                            : AwColors.appBarColor),
-                                foregroundColor:
-                                    // ignore: deprecated_member_use
-                                    MaterialStateProperty.resolveWith(
-                                        (states) => AwColors.white),
-                              ),
-                              onPressed: enabled
-                                  ? () {
-                                      final pin =
-                                          _pinKey.currentState?.currentPin ??
-                                              '';
-                                      _onCompleted(pin);
-                                    }
-                                  : null,
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 14.0),
-                                child: AwText.bold('Continuar',
-                                    color: AwColors.white),
-                              ),
-                            );
-                          }),
-                        ),
-                      ),
-                      AwSpacing.s12,
+                      // PinActions kept (forgot PIN, not-you)
                       PinActions(
                         hasConnection: state.hasConnection,
                         onNotYou: () async {
@@ -197,35 +162,28 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
                           if (!mounted) return;
                           // ignore: use_build_context_synchronously
                           Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                                builder: (_) => const LoginScreen()),
+                            MaterialPageRoute(builder: (_) => const LoginScreen()),
                           );
                         },
                         onForgotPin: () async {
                           final email = AuthService().getCurrentUser()?.email;
-                          final loader =
-                              ref.read(globalLoaderProvider.notifier);
+                          final loader = ref.read(globalLoaderProvider.notifier);
                           loader.state = true;
                           try {
                             final pinService = PinService();
-                            final remaining =
-                                await pinService.pinChangeRemainingCount(
-                                    accountId: widget.accountId);
+                            final remaining = await pinService.pinChangeRemainingCount(accountId: widget.accountId);
                             final blockedUntil =
-                                await pinService.pinChangeBlockedUntilNextDay(
-                                    accountId: widget.accountId);
+                                await pinService.pinChangeBlockedUntilNextDay(accountId: widget.accountId);
 
-                            final isBlocked = (remaining <= 0) ||
-                                (blockedUntil != null &&
-                                    blockedUntil > Duration.zero);
+                            final isBlocked =
+                                (remaining <= 0) || (blockedUntil != null && blockedUntil > Duration.zero);
 
                             try {
                               loader.state = false;
                             } catch (_) {}
 
                             if (isBlocked) {
-                              final remainingDuration =
-                                  blockedUntil ?? const Duration(days: 1);
+                              final remainingDuration = blockedUntil ?? const Duration(days: 1);
                               if (!mounted) return;
                               // ignore: use_build_context_synchronously
                               Navigator.of(context).push(MaterialPageRoute(
@@ -267,17 +225,41 @@ class _EnterPinContentState extends ConsumerState<EnterPinContent> {
     return ZoomAware(builder: (ctx, isZoomed, _) {
       if (isZoomed) {
         return PinPageScaffold(
+          transparentAppBar: false,
+          appBar: const WalletAppBar(
+            title: AwText.bold(
+              'Bienvenido',
+              color: AwColors.white,
+            ),
+            barColor: AwColors.white,
+            showWalletIcon: false,
+            elevation: 6.0,
+            shadowColor: AwColors.white,
+          ),
           child: SingleChildScrollView(
             child: ConstrainedBox(
-              constraints:
-                  BoxConstraints(minHeight: MediaQuery.of(ctx).size.height),
+              constraints: BoxConstraints(minHeight: MediaQuery.of(ctx).size.height),
               child: inner,
             ),
           ),
         );
       }
 
-      return PinPageScaffold(child: inner);
+      return PinPageScaffold(
+        transparentAppBar: false,
+        appBar: const WalletAppBar(
+          title: AwText.bold(
+            'Bienvenido a AdminWallet',
+            color: AwColors.darkBlue,
+            size: 20,
+          ),
+          barColor: AwColors.white,
+          showWalletIcon: false,
+          elevation: 6.0,
+          shadowColor: AwColors.white,
+        ),
+        child: inner,
+      );
     });
   }
 }

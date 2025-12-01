@@ -4,9 +4,7 @@ class CategoryDetailScreen extends StatelessWidget {
   final Category category;
   final List<Expense> expenses;
 
-  const CategoryDetailScreen(
-      {Key? key, required this.category, required this.expenses})
-      : super(key: key);
+  const CategoryDetailScreen({Key? key, required this.category, required this.expenses}) : super(key: key);
 
   String formatNumber(double value) {
     final formatter = NumberFormat('#,##0', 'es');
@@ -66,16 +64,16 @@ class CategoryDetailScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.info_outline,
-                        size: AwSize.s50,
-                        color: Theme.of(context).colorScheme.primary),
+                    const Image(
+                      image: AWImage.ghost,
+                      fit: BoxFit.contain,
+                      width: 96,
+                      height: 96,
+                    ),
                     AwSpacing.m,
                     Text(
                       'No hay gastos asociados a esta categoría durante este mes.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium!
-                          .copyWith(fontSize: 18),
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -84,8 +82,7 @@ class CategoryDetailScreen extends StatelessWidget {
             : SafeArea(
                 bottom: true,
                 child: ListView.builder(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).padding.bottom + 56),
+                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 56),
                   itemCount: expenses.length,
                   itemBuilder: (context, index) {
                     final e = expenses[index];
@@ -100,11 +97,9 @@ class CategoryDetailScreen extends StatelessWidget {
                         compactNotches: true,
                         elevation: 4,
                         color: Theme.of(context).colorScheme.surface,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           leading: Icon(
                             subIcon,
                             size: AwSize.s30,
@@ -112,31 +107,25 @@ class CategoryDetailScreen extends StatelessWidget {
                           ),
                           title: Text(
                             e.title,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium!
-                                .copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                           ),
                           subtitle: Text(
                             subName,
-                            style:
-                                Theme.of(context).textTheme.bodySmall!.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          // ignore: deprecated_member_use
-                                          .withOpacity(0.6),
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      // ignore: deprecated_member_use
+                                      .withOpacity(0.6),
+                                ),
                           ),
                           trailing: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 88),
                             child: LayoutBuilder(
                               builder: (context, constraints) {
-                                final baseStyle =
-                                    Theme.of(context).textTheme.bodySmall!;
+                                final baseStyle = Theme.of(context).textTheme.bodySmall!;
                                 // If the vertical space for trailing is small, scale date down.
                                 final maxH = constraints.maxHeight;
                                 double dateScale = 1.0;
@@ -146,9 +135,7 @@ class CategoryDetailScreen extends StatelessWidget {
                                   dateScale = 0.88;
                                 }
 
-                                final dateStyle = baseStyle.copyWith(
-                                    fontSize:
-                                        (baseStyle.fontSize ?? 12) * dateScale);
+                                final dateStyle = baseStyle.copyWith(fontSize: (baseStyle.fontSize ?? 12) * dateScale);
 
                                 return Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -157,14 +144,9 @@ class CategoryDetailScreen extends StatelessWidget {
                                   children: [
                                     Text(
                                       formatNumber(e.amount),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium!
-                                          .copyWith(
+                                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
                                             fontWeight: FontWeight.bold,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                     ),
                                     AwSpacing.xxs,

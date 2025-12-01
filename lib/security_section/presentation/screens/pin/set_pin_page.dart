@@ -44,9 +44,8 @@ class _SetPinPageState extends State<SetPinPage> {
       );
       return;
     }
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => ConfirmPinPage(
-            firstPin: _firstPin!, digits: _digits, alias: widget.alias)));
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => ConfirmPinPage(firstPin: _firstPin!, digits: _digits, alias: widget.alias)));
   }
 
   @override
@@ -57,10 +56,7 @@ class _SetPinPageState extends State<SetPinPage> {
         // ignore: deprecated_member_use
         final textScale = mq.textScaleFactor;
         final availH = constraints.maxHeight;
-        final needsScroll = textScale > 1.05 ||
-            availH < 700 ||
-            mq.viewInsets.bottom > 0 ||
-            mq.viewPadding.bottom > 0;
+        final needsScroll = textScale > 1.05 || availH < 700 || mq.viewInsets.bottom > 0 || mq.viewPadding.bottom > 0;
 
         final content = Padding(
           padding: EdgeInsets.only(
@@ -76,12 +72,11 @@ class _SetPinPageState extends State<SetPinPage> {
               AwSpacing.s12,
               GreetingHeader(alias: _alias ?? widget.alias),
               AwSpacing.s12,
-              const AwText.bold('Configura tu PIN de seguridad',
-                  size: AwSize.s16, color: AwColors.appBarColor),
+              const AwText.bold('Configura tu PIN de seguridad', size: AwSize.s16, color: AwColors.white),
               AwSpacing.s,
-              const AwText.normal(
+              const AwText.bold(
                 'Este PIN protegerá el acceso local de la app en este dispositivo.',
-                color: AwColors.boldBlack,
+                color: AwColors.white,
                 size: AwSize.s14,
                 textAlign: TextAlign.center,
               ),
@@ -109,29 +104,23 @@ class _SetPinPageState extends State<SetPinPage> {
                             style: ButtonStyle(
                               backgroundColor:
                                   // ignore: deprecated_member_use
-                                  MaterialStateProperty.resolveWith((states) =>
-                                      states.contains(
-                                              // ignore: deprecated_member_use
-                                              MaterialState.disabled)
-                                          ? AwColors.blueGrey
-                                          : AwColors.appBarColor),
+                                  MaterialStateProperty.resolveWith((states) => states.contains(
+                                      // ignore: deprecated_member_use
+                                      MaterialState.disabled) ? AwColors.blueGrey : AwColors.appBarColor),
                               foregroundColor:
                                   // ignore: deprecated_member_use
-                                  MaterialStateProperty.resolveWith(
-                                      (states) => AwColors.white),
+                                  MaterialStateProperty.resolveWith((states) => AwColors.white),
                             ),
                             onPressed: ready
                                 ? () {
-                                    final pin =
-                                        _pinKey.currentState?.currentPin ?? '';
+                                    final pin = _pinKey.currentState?.currentPin ?? '';
                                     _firstPin = pin;
                                     _confirm();
                                   }
                                 : null,
                             child: const Padding(
                               padding: EdgeInsets.symmetric(vertical: 14.0),
-                              child: AwText.bold('Continuar',
-                                  color: AwColors.white),
+                              child: AwText.bold('Continuar', color: AwColors.white),
                             ),
                           );
                         }),

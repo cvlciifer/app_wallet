@@ -58,7 +58,7 @@ class ConsejoProvider {
         context: context,
         builder: (context) => AlertDialog(
           title: const AwText(text: 'Error'),
-          content: AwText(text: error ?? 'No se pudo obtener el consejo.'),
+          content: const AwText(text: 'No se pudo obtener el consejo, intenta mas tarde.'),
           actions: <Widget>[
             WalletButton.primaryButton(
               buttonText: 'Cerrar',
