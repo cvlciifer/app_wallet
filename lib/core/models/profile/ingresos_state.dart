@@ -6,9 +6,10 @@ class IngresosState {
   final bool isSaving;
 
   const IngresosState({
-    this.months = 0,
+    this.months = 1,
     this.previewMonths = const [],
     // Default to 0 so the initial "Mes de inicio" is the current month.
+    // Reverted to preserve previous month/year display behavior.
     this.startOffset = 0,
     this.localIncomes = const {},
     this.isSaving = false,

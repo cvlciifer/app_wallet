@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/core/data_base_local/local_crud.dart';
 import 'package:app_wallet/core/sync_service/sync_service.dart';
-import 'package:app_wallet/core/data_remote/firebase_Service.dart';
+import 'package:app_wallet/core/data_remote/firebase_Service.dart' as remoteService;
 import 'package:app_wallet/core/models/profile/ingresos_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,6 +25,8 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
   Future<void> loadLocalIncomes() async {
     try {
       final rows = await getIncomesLocalImpl();
+      final currentUid = await getUserUid();
+      log('loadLocalIncomes: resolved uid=$currentUid, localRows=${rows.length}');
       final map = <String, Map<String, dynamic>>{};
       for (final r in rows) {
         final id = r['id']?.toString() ?? '';
@@ -32,8 +34,68 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
         if (syncStatus == SyncStatus.pendingDelete.index) continue;
         if (id.isNotEmpty) map[id] = Map<String, dynamic>.from(r);
       }
+
+      // Try to fetch remote incomes and merge them into local DB, but do
+      // NOT overwrite local rows that have pending changes.
+      try {
+        final remote = await remoteService.getAllIncomesFromFirestore();
+        log('loadLocalIncomes: fetched remote incomes=${remote.length}');
+        final remoteIds = <String>[];
+        for (final inc in remote) {
+          final id = inc['id']?.toString() ?? '';
+          if (id.isEmpty) continue;
+          remoteIds.add(id);
+        }
+        final missing = remoteIds.where((id) => !map.containsKey(id)).toList();
+        if (missing.isNotEmpty) log('loadLocalIncomes: remote ids missing locally: ${missing.join(', ')}');
+
+        for (final inc in remote) {
+          try {
+            final id = inc['id']?.toString() ?? '';
+            if (id.isEmpty) continue;
+            final remoteFecha = inc['fecha'];
+            DateTime fechaDt;
+            if (remoteFecha is Timestamp) {
+              fechaDt = remoteFecha.toDate();
+            } else if (remoteFecha is int) {
+              fechaDt = DateTime.fromMillisecondsSinceEpoch(remoteFecha);
+            } else if (remoteFecha is String) {
+              fechaDt = DateTime.tryParse(remoteFecha) ?? DateTime.now();
+            } else {
+              fechaDt = DateTime.now();
+            }
+
+            final fijo = (inc['ingreso_fijo'] as int?) ?? 0;
+            final imp = (inc['ingreso_imprevisto'] as int?) ?? 0;
+
+            final localRow = map[id];
+            final localSync = localRow != null ? (localRow['sync_status'] as int? ?? 0) : SyncStatus.synced.index;
+            if (localRow != null && localSync != SyncStatus.synced.index) {
+              continue;
+            }
+
+            log('loadLocalIncomes: inserting remote id=$id using uid=$currentUid');
+            await createIncomeLocalImpl(fechaDt, fijo, imp, id: id, syncStatus: SyncStatus.synced.index);
+            map[id] = {
+              'id': id,
+              'fecha': fechaDt.millisecondsSinceEpoch,
+              'ingreso_fijo': fijo,
+              'ingreso_imprevisto': imp,
+              'ingreso_total': fijo + imp,
+              'sync_status': SyncStatus.synced.index,
+            };
+          } catch (e, st) {
+            log('loadLocalIncomes: error processing remote income id=${inc['id']}: $e\n$st');
+          }
+        }
+      } catch (e, st) {
+        log('loadLocalIncomes: failed fetching remote incomes: $e\n$st');
+      }
+
       state = state.copyWith(localIncomes: map);
-    } catch (_) {}
+    } catch (e, st) {
+      log('loadLocalIncomes error: $e\n$st');
+    }
   }
 
   void setMonths(int m) {
@@ -71,8 +133,8 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
 
     Future.microtask(() async {
       try {
-        final ok = await upsertIncomeEntry(date, ingresoFijo, ingresoImprevisto,
-            docId: id);
+        final ok = await remoteService.upsertIncomeEntry(date, ingresoFijo, ingresoImprevisto,
+          docId: id);
         if (ok) {
           await createIncomeLocalImpl(date, ingresoFijo, ingresoImprevisto,
               id: id, syncStatus: SyncStatus.synced.index);
@@ -150,7 +212,7 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
           final DateTime date = row['date'] as DateTime;
           final id = row['id'] as String;
           try {
-            final ok = await upsertIncomeEntry(date, amount, null, docId: id);
+            final ok = await remoteService.upsertIncomeEntry(date, amount, null, docId: id);
             if (ok) {
               await createIncomeLocalImpl(date, amount, null,
                   id: id, syncStatus: SyncStatus.synced.index);

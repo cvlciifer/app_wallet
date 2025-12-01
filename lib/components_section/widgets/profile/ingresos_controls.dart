@@ -51,9 +51,7 @@ class IngresosControls extends StatelessWidget {
             else
               AwSpacing.w48,
             AwText.bold(
-              months == 0
-                  ? 'Selecciona'
-                  : (months == 1 ? '1 mes' : '$months meses'),
+              (months == 1 ? '1 mes' : '$months meses'),
               size: AwSize.s16,
               color: AwColors.appBarColor,
             ),

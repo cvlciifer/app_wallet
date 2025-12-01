@@ -184,3 +184,34 @@ Future<bool> upsertIncomeEntry(DateTime date, int ingresoFijo, int? ingresoImpre
     return false;
   }
 }
+
+/// Obtiene todos los ingresos del usuario desde Firestore.
+/// Devuelve una lista de mapas con claves: 'id', 'fecha' (Timestamp o int),
+/// 'ingreso_fijo', 'ingreso_imprevisto', 'ingreso_total'
+Future<List<Map<String, dynamic>>> getAllIncomesFromFirestore() async {
+  final List<Map<String, dynamic>> results = [];
+  String? userEmail = getUserEmail();
+  if (userEmail == null) {
+    log('getAllIncomesFromFirestore: no user email');
+    return results;
+  }
+
+  try {
+    final collection = db.collection('usuarios').doc(userEmail).collection('ingresos');
+    final snapshot = await collection.get();
+    for (final doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      results.add({
+        'id': doc.id,
+        'fecha': data['fecha'],
+        'ingreso_fijo': data['ingreso_fijo'] ?? 0,
+        'ingreso_imprevisto': data['ingreso_imprevisto'] ?? 0,
+        'ingreso_total': data['ingreso_total'] ?? ((data['ingreso_fijo'] ?? 0) + (data['ingreso_imprevisto'] ?? 0)),
+      });
+    }
+  } catch (e, st) {
+    log('getAllIncomesFromFirestore error: $e\n$st');
+  }
+
+  return results;
+}

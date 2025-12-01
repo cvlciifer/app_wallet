@@ -2,37 +2,74 @@ import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/components_section/widgets/profile/income_preview_tile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
+import 'package:app_wallet/core/sync_service/sync_service.dart';
 
-class RegistroIngresosPage extends ConsumerWidget {
+class RegistroIngresosPage extends ConsumerStatefulWidget {
   const RegistroIngresosPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RegistroIngresosPage> createState() => _RegistroIngresosPageState();
+}
+
+class _RegistroIngresosPageState extends ConsumerState<RegistroIngresosPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Ensure we load local incomes and merge remote ones when opening the page.
+    Future.microtask(() => ref.read(ingresosProvider.notifier).loadLocalIncomes());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(ingresosProvider);
     final ctrl = ref.read(ingresosProvider.notifier);
     final formatter =
         NumberFormat.currency(locale: 'es_CL', symbol: '\$', decimalDigits: 0);
 
     final entriesAll = state.localIncomes.values.toList();
-    final now = DateTime.now();
-    final firstOfCurrent = DateTime(now.year, now.month, 1);
 
+    // Show all stored incomes from local DB (including past months).
+    // Only skip tombstones (pendingDelete).
     final entries = entriesAll.where((row) {
-      final fijo = (row['ingreso_fijo'] as int?) ?? 0;
-      final imp = (row['ingreso_imprevisto'] as int?) ?? 0;
-      final fechaMs = (row['fecha'] as int?) ?? 0;
-      final dt = DateTime.fromMillisecondsSinceEpoch(fechaMs);
-      final firstOfRow = DateTime(dt.year, dt.month, 1);
-      return (fijo > 0 || imp > 0) &&
-          (firstOfRow.isAtSameMomentAs(firstOfCurrent) ||
-              firstOfRow.isAfter(firstOfCurrent));
+      final syncStatus = row['sync_status'] as int? ?? 0;
+      if (syncStatus == SyncStatus.pendingDelete.index) return false;
+      return true;
     }).toList();
 
-    entries.sort((a, b) {
-      final fa = (a['fecha'] as int?) ?? 0;
-      final fb = (b['fecha'] as int?) ?? 0;
-      return fa.compareTo(fb);
-    });
+    // Deduplicate by year-month (in case the same month exists under
+    // multiple db ids). Prefer rows with SyncStatus.synced, otherwise pick
+    // the one with larger ingreso_total.
+    final Map<int, Map<String, dynamic>> dedup = {};
+    for (final row in entries) {
+      final fechaMs = (row['fecha'] as int?) ?? 0;
+      final dt = DateTime.fromMillisecondsSinceEpoch(fechaMs);
+      final key = dt.year * 100 + dt.month;
+      final existing = dedup[key];
+      if (existing == null) {
+        dedup[key] = row;
+        continue;
+      }
+      final existSync = (existing['sync_status'] as int?) ?? SyncStatus.synced.index;
+      final rowSync = (row['sync_status'] as int?) ?? SyncStatus.synced.index;
+      if (existSync == SyncStatus.synced.index && rowSync != SyncStatus.synced.index) {
+        // keep existing
+        continue;
+      }
+      if (rowSync == SyncStatus.synced.index && existSync != SyncStatus.synced.index) {
+        dedup[key] = row;
+        continue;
+      }
+      final existTotal = (existing['ingreso_total'] as int?) ?? ((existing['ingreso_fijo'] as int?) ?? 0) + ((existing['ingreso_imprevisto'] as int?) ?? 0);
+      final rowTotal = (row['ingreso_total'] as int?) ?? ((row['ingreso_fijo'] as int?) ?? 0) + ((row['ingreso_imprevisto'] as int?) ?? 0);
+      if (rowTotal >= existTotal) dedup[key] = row;
+    }
+
+    final dedupedEntries = dedup.values.toList()
+      ..sort((a, b) {
+        final fa = (a['fecha'] as int?) ?? 0;
+        final fb = (b['fecha'] as int?) ?? 0;
+        return fa.compareTo(fb);
+      });
 
     return Scaffold(
       backgroundColor: AwColors.white,
@@ -52,10 +89,10 @@ class RegistroIngresosPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AwSpacing.s6,
-                if (entries.isEmpty)
+                if (dedupedEntries.isEmpty)
                   const AwText.normal('No hay ingresos registrados aún.',
                       size: AwSize.s14, color: AwColors.modalGrey),
-                ...entries.map((row) {
+                ...dedupedEntries.map((row) {
                   final fechaMs = (row['fecha'] as int?) ??
                       DateTime.now().millisecondsSinceEpoch;
                   final dt = DateTime.fromMillisecondsSinceEpoch(fechaMs);

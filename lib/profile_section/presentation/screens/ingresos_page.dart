@@ -27,7 +27,9 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(ingresosProvider.notifier).loadLocalIncomes();
       try {
-        ref.read(ingresosProvider.notifier).setMonths(0);
+        // Default to 1 month instead of the 'Selecciona' placeholder.
+        // This removes the 'Selecciona' option and shows '1 mes' by default.
+        ref.read(ingresosProvider.notifier).setMonths(1);
       } catch (_) {}
     });
     _amountController.addListener(_onAmountChanged);
@@ -67,13 +69,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
     });
   }
 
-  DateTime _addMonths(DateTime dt, int months) {
-    final y = dt.year + ((dt.month - 1 + months) ~/ 12);
-    final m = ((dt.month - 1 + months) % 12) + 1;
-    final day = dt.day;
-    final lastDayOfMonth = DateTime(y, m + 1, 0).day;
-    return DateTime(y, m, day <= lastDayOfMonth ? day : lastDayOfMonth);
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +147,15 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                       IngresosControls(
                         initialMonth: state.previewMonths.isNotEmpty
                             ? state.previewMonths.first
-                            : _addMonths(DateTime.now(), state.startOffset),
+                            // If there are no preview months selected, use
+                            // the provider's `startOffset` relative to now.
+                            // This lets the MonthSelector update when the
+                            // user taps the prev/next arrows even if
+                            // `months == 0` (showing 'Selecciona').
+                            : DateTime(
+                                DateTime.now().year,
+                                DateTime.now().month + state.startOffset,
+                                1),
                         startOffset: state.startOffset,
                         months: state.months,
                         ctrl: ctrl,
