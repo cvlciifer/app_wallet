@@ -8,8 +8,7 @@ class RecurrentCreatePage extends ConsumerStatefulWidget {
   const RecurrentCreatePage({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<RecurrentCreatePage> createState() =>
-      _RecurrentCreatePageState();
+  ConsumerState<RecurrentCreatePage> createState() => _RecurrentCreatePageState();
 }
 
 class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
@@ -68,8 +67,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
     final creating = ref.read(recurrentCreateProvider).isSubmitting;
     final globalLoading = ref.read(globalLoaderProvider);
     if (creating || globalLoading) return;
-    final numericValue =
-        _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
+    final numericValue = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
     final enteredAmount = int.tryParse(numericValue);
     final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
     final titleEmpty = _titleController.text.trim().isEmpty;
@@ -83,36 +81,31 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
     }
 
     if (_selectedMonths < 2 || _selectedMonths > 12) {
-      WalletPopup.showNotificationWarningOrange(
-          context: context, message: 'Seleccione entre 2 y 12 meses');
+      WalletPopup.showNotificationWarningOrange(context: context, message: 'Seleccione entre 2 y 12 meses');
       return;
     }
 
     _showOverlay();
     try {
-      final success =
-          await ref.read(recurrentCreateProvider.notifier).createFromForm(
-                title: _titleController.text.trim(),
-                amount: enteredAmount.toDouble(),
-                dayOfMonth: _selectedDay,
-                months: _selectedMonths,
-                startMonth: _selectedStartMonth,
-                startYear: _selectedStartYear,
-                category: _selectedCategory,
-                subcategoryId: _selectedSubcategoryId,
-              );
+      final success = await ref.read(recurrentCreateProvider.notifier).createFromForm(
+            title: _titleController.text.trim(),
+            amount: enteredAmount.toDouble(),
+            dayOfMonth: _selectedDay,
+            months: _selectedMonths,
+            startMonth: _selectedStartMonth,
+            startYear: _selectedStartYear,
+            category: _selectedCategory,
+            subcategoryId: _selectedSubcategoryId,
+          );
       try {
-        final controller =
-            prov.Provider.of<WalletExpensesController>(context, listen: false);
+        final controller = prov.Provider.of<WalletExpensesController>(context, listen: false);
         await controller.loadExpensesSmart();
       } catch (_) {}
       if (!mounted) return;
       if (success) {
         _hideOverlay();
         try {
-          final popupCtx =
-              Navigator.of(context, rootNavigator: true).overlay?.context ??
-                  context;
+          final popupCtx = Navigator.of(context, rootNavigator: true).overlay?.context ?? context;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             try {
               final conn = await Connectivity().checkConnectivity();
@@ -143,18 +136,15 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
             } catch (_) {}
           });
         } catch (_) {}
-        // close the page after showing popup
         Navigator.of(context).pop(true);
         return;
       } else {
-        WalletPopup.showNotificationError(
-            context: context, title: 'Error creando recurrente');
+        WalletPopup.showNotificationError(context: context, title: 'Error creando recurrente');
       }
     } catch (e, st) {
       if (kDebugMode) log('Error creando recurrente', error: e, stackTrace: st);
       if (mounted) {
-        WalletPopup.showNotificationError(
-            context: context, title: 'Error creando recurrente');
+        WalletPopup.showNotificationError(context: context, title: 'Error creando recurrente');
       }
     } finally {
       _hideOverlay();
@@ -188,14 +178,9 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
     showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-                title: const AwText.bold('Entrada no válida',
-                    color: AwColors.boldBlack),
-                content: AwText(text: contentText),
-                actions: [
-                  WalletButton.primaryButton(
-                      buttonText: 'Cerrar.',
-                      onPressed: () => Navigator.pop(ctx))
-                ]));
+            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
+            content: AwText(text: contentText),
+            actions: [WalletButton.primaryButton(buttonText: 'Cerrar.', onPressed: () => Navigator.pop(ctx))]));
   }
 
   Widget _buildDayGrid() {
@@ -216,8 +201,7 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
               color: selected ? AwColors.blue : AwColors.greyLight,
               borderRadius: BorderRadius.circular(6),
             ),
-            child: AwText.normal(d.toString(),
-                color: selected ? AwColors.white : AwColors.boldBlack),
+            child: AwText.normal(d.toString(), color: selected ? AwColors.white : AwColors.boldBlack),
           ),
         );
       }).toList(),
@@ -226,7 +210,6 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Compute allowed start range: from now -12 months to now +12 months
     final now = DateTime.now();
     final startRange = DateTime(now.year, now.month - 12, 1);
     final endRange = DateTime(now.year, now.month + 12, 1);
@@ -252,7 +235,6 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
       return months;
     }
 
-    // Ensure selected start year/month are within allowed range
     final allowedYears = yearsInRange();
     if (!allowedYears.contains(_selectedStartYear)) {
       _selectedStartYear = allowedYears.first;
@@ -284,212 +266,173 @@ class _RecurrentCreatePageState extends ConsumerState<RecurrentCreatePage> {
               notchDepth: 12,
               elevation: 8,
               color: AwColors.white,
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                AwSpacing.s12,
+                const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AwSpacing.s12,
-                    const Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.attach_money,
-                          color: AwColors.appBarColor,
-                          size: AwSize.s26,
-                        ),
-                        AwSpacing.w12,
-                        Expanded(
-                          child: AwText.bold(
-                            'Crear gasto recurrente',
-                            size: AwSize.s20,
-                            color: AwColors.appBarColor,
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      Icons.attach_money,
+                      color: AwColors.appBarColor,
+                      size: AwSize.s26,
                     ),
-                    AwSpacing.s6,
-                    const AwText(
-                      text:
-                          'Un gasto recurrente es aquel que se repite durante un período determinado, como una cuota, una suscripción o un pago mensual. Ingresa la fecha de inicio (día, mes y año) y el número de meses que este gasto se mantendrá.',
-                      color: AwColors.blueGrey,
-                      size: AwSize.s14,
-                      textAlign: TextAlign.left,
+                    AwSpacing.w12,
+                    Expanded(
+                      child: AwText.bold(
+                        'Crear gasto recurrente',
+                        size: AwSize.s20,
+                        color: AwColors.appBarColor,
+                      ),
                     ),
-                    AwSpacing.s12,
-                    CustomTextField(
-                        controller: _titleController,
-                        label: 'Título',
-                        maxLength: 50,
-                        hideCounter: true,
-                        flat: false),
-                    AwSpacing.s12,
-                    CategoryPicker(
-                        controller: _categoryController,
-                        selectedCategory: _selectedCategory,
-                        selectedSubcategoryId: _selectedSubcategoryId,
-                        onSelect: _selectCategory),
-                    AwSpacing.m,
-                    // Local amount input styled as rounded outline to match IngresosPage
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AwColors.greyLight,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const AwText.bold('CLP \$'),
-                        ),
-                        AwSpacing.m,
-                        Expanded(
-                          flex: 8,
-                          child: CustomTextField(
-                            controller: _amountController,
-                            label: 'Precio',
-                            keyboardType: TextInputType.number,
-                            inputFormatters:
-                                NumberFormatHelper.getAmountFormatters(),
-                            onChanged: _handleAmountChange,
-                            flat: false,
-                          ),
-                        ),
-                      ],
+                  ],
+                ),
+                AwSpacing.s6,
+                const AwText(
+                  text:
+                      'Un gasto recurrente es aquel que se repite durante un período determinado, como una cuota, una suscripción o un pago mensual. Ingresa la fecha de inicio (día, mes y año) y el número de meses que este gasto se mantendrá.',
+                  color: AwColors.blueGrey,
+                  size: AwSize.s14,
+                  textAlign: TextAlign.left,
+                ),
+                AwSpacing.s12,
+                CustomTextField(
+                    controller: _titleController, label: 'Título', maxLength: 50, hideCounter: true, flat: false),
+                AwSpacing.s12,
+                CategoryPicker(
+                    controller: _categoryController,
+                    selectedCategory: _selectedCategory,
+                    selectedSubcategoryId: _selectedSubcategoryId,
+                    onSelect: _selectCategory),
+                AwSpacing.m,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AwColors.greyLight,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const AwText.bold('CLP \$'),
                     ),
-                    AwSpacing.s20,
-                    const AwText.bold('Día del mes', color: AwColors.boldBlack),
-                    AwSpacing.s,
-                    _buildDayGrid(),
-                    AwSpacing.m,
-                    // Responsive layout: on narrow screens, stack selectors vertically; on wide screens, place in a row.
-                    LayoutBuilder(builder: (ctx, constraints) {
-                      final isNarrow = constraints.maxWidth < 420;
-                      if (isNarrow) {
-                        return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const AwText.bold('Mes y año de inicio',
-                                  color: AwColors.boldBlack),
-                              AwSpacing.s,
-                              Row(children: [
-                                Expanded(
-                                  child: DropdownButton<int>(
-                                    isExpanded: true,
-                                    value: _selectedStartMonth,
-                                    items: allowedMonthsForSelectedYear
-                                        .map((m) => DropdownMenuItem(
-                                            value: m,
-                                            child: Text(_monthNames[m - 1])))
-                                        .toList(),
-                                    onChanged: (v) => setState(() =>
-                                        _selectedStartMonth = v ??
-                                            allowedMonthsForSelectedYear.first),
-                                  ),
-                                ),
-                                AwSpacing.s,
-                                Expanded(
-                                  child: DropdownButton<int>(
-                                    isExpanded: true,
-                                    value: _selectedStartYear,
-                                    items: allowedYears
-                                        .map((y) => DropdownMenuItem(
-                                            value: y, child: Text('$y')))
-                                        .toList(),
-                                    onChanged: (v) => setState(() {
-                                      final newYear = v ?? allowedYears.first;
-                                      _selectedStartYear = newYear;
-                                      final months = monthsForYear(newYear);
-                                      _selectedStartMonth =
-                                          months.isNotEmpty ? months.first : 1;
-                                    }),
-                                  ),
-                                ),
-                              ]),
-                              AwSpacing.s12,
-                              const AwText.bold('Meses',
-                                  color: AwColors.boldBlack),
-                              AwSpacing.s,
-                              DropdownButton<int>(
-                                isExpanded: true,
-                                value: _selectedMonths,
-                                items: List.generate(11, (i) => i + 2)
-                                    .map((m) => DropdownMenuItem(
-                                        value: m, child: Text('$m')))
-                                    .toList(),
-                                onChanged: (v) =>
-                                    setState(() => _selectedMonths = v ?? 2),
-                              ),
-                            ]);
-                      }
-
-                      // wide
-                      return Row(children: [
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 8,
+                      child: CustomTextField(
+                        controller: _amountController,
+                        label: 'Precio',
+                        keyboardType: TextInputType.number,
+                        inputFormatters: NumberFormatHelper.getAmountFormatters(),
+                        onChanged: _handleAmountChange,
+                        flat: false,
+                      ),
+                    ),
+                  ],
+                ),
+                AwSpacing.s20,
+                const AwText.bold('Día del mes', color: AwColors.boldBlack),
+                AwSpacing.s,
+                _buildDayGrid(),
+                AwSpacing.m,
+                LayoutBuilder(builder: (ctx, constraints) {
+                  final isNarrow = constraints.maxWidth < 420;
+                  if (isNarrow) {
+                    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const AwText.bold('Mes y año de inicio', color: AwColors.boldBlack),
+                      AwSpacing.s,
+                      Row(children: [
                         Expanded(
-                            child: Row(children: [
-                          const AwText.bold('Mes y año de inicio',
-                              color: AwColors.boldBlack),
-                          AwSpacing.s12,
-                          DropdownButton<int>(
+                          child: DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedStartMonth,
                             items: allowedMonthsForSelectedYear
-                                .map((m) => DropdownMenuItem(
-                                    value: m, child: Text(_monthNames[m - 1])))
+                                .map((m) => DropdownMenuItem(value: m, child: Text(_monthNames[m - 1])))
                                 .toList(),
-                            onChanged: (v) => setState(() =>
-                                _selectedStartMonth =
-                                    v ?? allowedMonthsForSelectedYear.first),
+                            onChanged: (v) =>
+                                setState(() => _selectedStartMonth = v ?? allowedMonthsForSelectedYear.first),
                           ),
-                          AwSpacing.s,
-                          DropdownButton<int>(
+                        ),
+                        AwSpacing.s,
+                        Expanded(
+                          child: DropdownButton<int>(
                             isExpanded: true,
                             value: _selectedStartYear,
-                            items: allowedYears
-                                .map((y) => DropdownMenuItem(
-                                    value: y, child: Text('$y')))
-                                .toList(),
+                            items: allowedYears.map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
                             onChanged: (v) => setState(() {
                               final newYear = v ?? allowedYears.first;
                               _selectedStartYear = newYear;
                               final months = monthsForYear(newYear);
-                              _selectedStartMonth = months.isNotEmpty
-                                  ? months.first
-                                  : _selectedStartMonth;
+                              _selectedStartMonth = months.isNotEmpty ? months.first : 1;
                             }),
                           ),
-                        ])),
-                        AwSpacing.s12,
-                        Expanded(
-                            child: Row(children: [
-                          const AwText.bold('Meses', color: AwColors.boldBlack),
-                          AwSpacing.s12,
-                          DropdownButton<int>(
-                            isExpanded: true,
-                            value: _selectedMonths,
-                            items: List.generate(11, (i) => i + 2)
-                                .map((m) => DropdownMenuItem(
-                                    value: m, child: Text('$m')))
-                                .toList(),
-                            onChanged: (v) =>
-                                setState(() => _selectedMonths = v ?? 2),
-                          ),
-                        ])),
-                      ]);
-                    }),
-                    AwSpacing.s20,
-                    WalletButton.primaryButton(
-                        buttonText:
-                            (ref.watch(recurrentCreateProvider).isSubmitting ||
-                                    ref.watch(globalLoaderProvider))
-                                ? 'Creando...'
-                                : 'Crear recurrente',
-                        onPressed:
-                            (ref.watch(recurrentCreateProvider).isSubmitting ||
-                                    ref.watch(globalLoaderProvider))
-                                ? null
-                                : _onCreate),
-                    AwSpacing.s30,
-                  ]),
+                        ),
+                      ]),
+                      AwSpacing.s12,
+                      const AwText.bold('Meses', color: AwColors.boldBlack),
+                      AwSpacing.s,
+                      DropdownButton<int>(
+                        isExpanded: true,
+                        value: _selectedMonths,
+                        items: List.generate(11, (i) => i + 2)
+                            .map((m) => DropdownMenuItem(value: m, child: Text('$m')))
+                            .toList(),
+                        onChanged: (v) => setState(() => _selectedMonths = v ?? 2),
+                      ),
+                    ]);
+                  }
+
+                  return Row(children: [
+                    Expanded(
+                        child: Row(children: [
+                      const AwText.bold('Mes y año de inicio', color: AwColors.boldBlack),
+                      AwSpacing.s12,
+                      DropdownButton<int>(
+                        isExpanded: true,
+                        value: _selectedStartMonth,
+                        items: allowedMonthsForSelectedYear
+                            .map((m) => DropdownMenuItem(value: m, child: Text(_monthNames[m - 1])))
+                            .toList(),
+                        onChanged: (v) => setState(() => _selectedStartMonth = v ?? allowedMonthsForSelectedYear.first),
+                      ),
+                      AwSpacing.s,
+                      DropdownButton<int>(
+                        isExpanded: true,
+                        value: _selectedStartYear,
+                        items: allowedYears.map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
+                        onChanged: (v) => setState(() {
+                          final newYear = v ?? allowedYears.first;
+                          _selectedStartYear = newYear;
+                          final months = monthsForYear(newYear);
+                          _selectedStartMonth = months.isNotEmpty ? months.first : _selectedStartMonth;
+                        }),
+                      ),
+                    ])),
+                    AwSpacing.s12,
+                    Expanded(
+                        child: Row(children: [
+                      const AwText.bold('Meses', color: AwColors.boldBlack),
+                      AwSpacing.s12,
+                      DropdownButton<int>(
+                        isExpanded: true,
+                        value: _selectedMonths,
+                        items: List.generate(11, (i) => i + 2)
+                            .map((m) => DropdownMenuItem(value: m, child: Text('$m')))
+                            .toList(),
+                        onChanged: (v) => setState(() => _selectedMonths = v ?? 2),
+                      ),
+                    ])),
+                  ]);
+                }),
+                AwSpacing.s20,
+                WalletButton.primaryButton(
+                    buttonText: (ref.watch(recurrentCreateProvider).isSubmitting || ref.watch(globalLoaderProvider))
+                        ? 'Creando...'
+                        : 'Crear recurrente',
+                    onPressed: (ref.watch(recurrentCreateProvider).isSubmitting || ref.watch(globalLoaderProvider))
+                        ? null
+                        : _onCreate),
+                AwSpacing.s30,
+              ]),
             ),
             AwSpacing.s40,
           ]),

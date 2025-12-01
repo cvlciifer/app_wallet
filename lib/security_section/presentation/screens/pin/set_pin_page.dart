@@ -106,7 +106,7 @@ class _SetPinPageState extends State<SetPinPage> {
                                   // ignore: deprecated_member_use
                                   MaterialStateProperty.resolveWith((states) => states.contains(
                                       // ignore: deprecated_member_use
-                                      MaterialState.disabled) ? AwColors.blueGrey : AwColors.appBarColor),
+                                      MaterialState.disabled) ? AwColors.blueGrey : AwColors.white),
                               foregroundColor:
                                   // ignore: deprecated_member_use
                                   MaterialStateProperty.resolveWith((states) => AwColors.white),
@@ -120,7 +120,7 @@ class _SetPinPageState extends State<SetPinPage> {
                                 : null,
                             child: const Padding(
                               padding: EdgeInsets.symmetric(vertical: 14.0),
-                              child: AwText.bold('Continuar', color: AwColors.white),
+                              child: AwText.bold('Continuar', color: AwColors.boldBlack),
                             ),
                           );
                         }),
