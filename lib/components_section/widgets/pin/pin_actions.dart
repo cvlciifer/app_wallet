@@ -31,7 +31,7 @@ class PinActions extends StatelessWidget {
                     UnderlinedButton(
                       text: 'Olvidé mi PIN',
                       icon: Icons.lock_reset,
-                      color: AwColors.blue,
+                      color: AwColors.white,
                       onTap: () async {
                         await onForgotPin();
                       },
@@ -40,20 +40,20 @@ class PinActions extends StatelessWidget {
                     UnderlinedButton(
                       text: '¿No eres tú?',
                       onTap: onNotYou,
-                      color: AwColors.blue,
+                      color: AwColors.white,
                     ),
                   ],
                 );
               }
 
-              return Column(
+              return Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   UnderlinedButton(
                     text: 'Olvidé mi PIN',
                     icon: Icons.lock_reset,
-                    color: AwColors.blue,
+                    color: AwColors.white,
                     onTap: () async {
                       await onForgotPin();
                     },
@@ -62,7 +62,7 @@ class PinActions extends StatelessWidget {
                   UnderlinedButton(
                     text: '¿No eres tú?',
                     onTap: onNotYou,
-                    color: AwColors.blue,
+                    color: AwColors.white,
                   ),
                 ],
               );

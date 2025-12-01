@@ -11,6 +11,8 @@ class WalletAppBar extends StatefulWidget implements PreferredSizeWidget {
   final Color? barColor;
   final bool centerTitle;
   final List<Widget>? actions;
+  final double elevation;
+  final Color? shadowColor;
 
   const WalletAppBar({
     super.key,
@@ -24,6 +26,8 @@ class WalletAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.barColor = AwColors.appBarColor,
     this.centerTitle = false,
     this.actions,
+    this.elevation = 4.0,
+    this.shadowColor,
   });
 
   @override
@@ -62,8 +66,9 @@ class _WalletAppBarState extends State<WalletAppBar> {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: widget.barColor ?? AwColors.blue,
-      shadowColor: widget.barColor ?? Colors.transparent,
+      shadowColor: widget.shadowColor ?? widget.barColor ?? Colors.transparent,
       surfaceTintColor: widget.barColor ?? AwColors.blue,
+      elevation: widget.elevation,
       leading: widget.leading ??
           (widget.showBackArrow!
               ? IconButton(

@@ -7,9 +7,7 @@ class ConfirmPinPage extends StatefulWidget {
   final int digits;
   final String? alias;
 
-  const ConfirmPinPage(
-      {Key? key, required this.firstPin, this.digits = 4, this.alias})
-      : super(key: key);
+  const ConfirmPinPage({Key? key, required this.firstPin, this.digits = 4, this.alias}) : super(key: key);
 
   @override
   State<ConfirmPinPage> createState() => _ConfirmPinPageState();
@@ -55,11 +53,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
       _showOverlay();
       setState(() {});
 
-      await pinService.setPin(
-          accountId: uid,
-          pin: _secondPin!,
-          digits: widget.digits,
-          alias: widget.alias);
+      await pinService.setPin(accountId: uid, pin: _secondPin!, digits: widget.digits, alias: widget.alias);
     } catch (e) {
       final msg = e.toString();
       WalletPopup.showNotificationWarningOrange(
@@ -76,18 +70,14 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
 
     try {
       // ignore: use_build_context_synchronously
-      ProviderScope.containerOf(context, listen: false)
-          .read(resetFlowProvider.notifier)
-          .clear();
+      ProviderScope.containerOf(context, listen: false).read(resetFlowProvider.notifier).clear();
     } catch (_) {}
 
     try {
       final aliasOk = await AliasService().syncAliasForCurrentUser();
-      log('ConfirmPinPage: syncAliasForCurrentUser result=$aliasOk',
-          name: 'ConfirmPinPage');
+      log('ConfirmPinPage: syncAliasForCurrentUser result=$aliasOk', name: 'ConfirmPinPage');
     } catch (e, st) {
-      log('ConfirmPinPage: syncAliasForCurrentUser error=$e',
-          name: 'ConfirmPinPage', error: e, stackTrace: st);
+      log('ConfirmPinPage: syncAliasForCurrentUser error=$e', name: 'ConfirmPinPage', error: e, stackTrace: st);
     }
     WalletPopup.showNotificationSuccess(
       // ignore: use_build_context_synchronously
@@ -171,10 +161,8 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
             // ignore: deprecated_member_use
             final textScale = mq.textScaleFactor;
             final availH = constraints.maxHeight;
-            final needsScroll = textScale > 1.05 ||
-                availH < 700 ||
-                mq.viewInsets.bottom > 0 ||
-                mq.viewPadding.bottom > 0;
+            final needsScroll =
+                textScale > 1.05 || availH < 700 || mq.viewInsets.bottom > 0 || mq.viewPadding.bottom > 0;
 
             final content = Padding(
               padding: EdgeInsets.only(
@@ -190,12 +178,15 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                   AwSpacing.s12,
                   GreetingHeader(alias: _alias ?? widget.alias),
                   AwSpacing.s12,
-                  const AwText.bold('Confirma tu PIN',
-                      size: AwSize.s16, color: AwColors.appBarColor),
+                  const AwText.bold(
+                    'Confirma tu PIN',
+                    size: AwSize.s16,
+                    color: AwColors.white,
+                  ),
                   AwSpacing.s,
                   const AwText.normal(
                     'Confirma el PIN que ingresaste anteriormente para activar el acceso local.',
-                    color: AwColors.boldBlack,
+                    color: AwColors.white,
                     size: AwSize.s14,
                     textAlign: TextAlign.center,
                   ),
@@ -217,36 +208,28 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                           child: SizedBox(
                             width: double.infinity,
                             child: Builder(builder: (context) {
-                              final len =
-                                  _pinKey.currentState?.currentLength ?? 0;
+                              final len = _pinKey.currentState?.currentLength ?? 0;
                               final ready = len == widget.digits;
                               return ElevatedButton(
                                 style: ButtonStyle(
                                   // ignore: deprecated_member_use
-                                  backgroundColor:
-                                      MaterialStateProperty.resolveWith(
-                                          // ignore: deprecated_member_use
-                                          (states) => states.contains(
-                                                  MaterialState.disabled)
-                                              ? AwColors.blueGrey
-                                              : AwColors.appBarColor),
+                                  backgroundColor: MaterialStateProperty.resolveWith(
+                                      // ignore: deprecated_member_use
+                                      (states) => states.contains(MaterialState.disabled)
+                                          ? AwColors.blueGrey
+                                          : AwColors.appBarColor),
                                   // ignore: deprecated_member_use
-                                  foregroundColor:
-                                      MaterialStateProperty.resolveWith(
-                                          (_) => AwColors.white),
+                                  foregroundColor: MaterialStateProperty.resolveWith((_) => AwColors.white),
                                 ),
                                 onPressed: ready
                                     ? () {
-                                        _secondPin =
-                                            _pinKey.currentState?.currentPin ??
-                                                '';
+                                        _secondPin = _pinKey.currentState?.currentPin ?? '';
                                         _save();
                                       }
                                     : null,
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 14.0),
-                                  child: AwText.bold('Guardar PIN',
-                                      color: AwColors.white),
+                                  child: AwText.bold('Guardar PIN', color: AwColors.white),
                                 ),
                               );
                             }),
