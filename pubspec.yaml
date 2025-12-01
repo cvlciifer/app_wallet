@@ -65,11 +65,11 @@ dependencies:
 
   display_zoom_checker: ^0.0.1
   auto_size_text: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
   
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
   
   
   # The "flutter_lints" package below contains a set of recommended lints to
