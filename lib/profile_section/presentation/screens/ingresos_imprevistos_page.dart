@@ -103,26 +103,27 @@ class _IngresosImprevistosPageState
       try {
         ref.read(globalLoaderProvider.notifier).state = false;
       } catch (_) {}
-      if (mounted) {
-        if (saved) {
-          try {
-            final rootNav = Navigator.of(context, rootNavigator: true);
-            await rootNav.pushNamedAndRemoveUntil(
-              '/home-page',
-              (r) => false,
-              arguments: {
-                'showPopup': true,
-                'title': 'Ingreso imprevisto guardado'
-              },
-            );
-          } catch (_) {}
-        } else {
-          Navigator.of(context).pop(saved);
-        }
-        setState(() {
-          _isSaving = false;
-        });
+      if (saved) {
+        try {
+          final rootNav = Navigator.of(context, rootNavigator: true);
+          await rootNav.pushNamedAndRemoveUntil(
+            '/home-page',
+            (r) => false,
+            arguments: {
+              'showPopup': true,
+              'title': 'Ingreso imprevisto guardado'
+            },
+          );
+        } catch (_) {}
+      } else {
+        if (mounted) Navigator.of(context).pop(saved);
       }
+
+      // ignore: control_flow_in_finally
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
     }
   }
 
