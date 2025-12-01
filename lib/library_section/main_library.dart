@@ -143,3 +143,4 @@ export 'package:app_wallet/components_section/widgets/profile/month_selector.dar
 export 'package:app_wallet/components_section/widgets/profile/ingresos_amount_field.dart';
 export 'package:app_wallet/components_section/widgets/profile/ingresos_controls.dart';
 export 'package:app_wallet/components_section/widgets/profile/ingresos_preview_list.dart';
+export 'package:app_wallet/welcome_section/presentation/screens/terms_page.dart';

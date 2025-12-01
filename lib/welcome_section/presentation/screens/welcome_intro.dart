@@ -9,8 +9,7 @@ class WelcomeIntroScreen extends StatefulWidget {
   State<WelcomeIntroScreen> createState() => _WelcomeIntroScreenState();
 }
 
-class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
-    with TickerProviderStateMixin {
+class _WelcomeIntroScreenState extends State<WelcomeIntroScreen> with TickerProviderStateMixin {
   String _title = 'Bienvenido a Admin Wallet';
   String _subtitle =
       'Admin Wallet, es tu agenda virtual que te ayudará a gestionar de mejor forma tus gastos en el día a día.';
@@ -46,56 +45,36 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
       duration: const Duration(milliseconds: 800),
     );
 
-    _cardSlide =
-        Tween<Offset>(begin: const Offset(0, -0.9), end: Offset.zero).animate(
+    _cardSlide = Tween<Offset>(begin: const Offset(0, -0.9), end: Offset.zero).animate(
       CurvedAnimation(parent: _cardController, curve: Curves.easeOut),
     );
 
     _titleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _contentController,
-          curve: const Interval(0.0, 0.45, curve: Curves.easeOut)),
+      CurvedAnimation(parent: _contentController, curve: const Interval(0.0, 0.45, curve: Curves.easeOut)),
     );
-    _titleSlide =
-        Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero).animate(
-      CurvedAnimation(
-          parent: _contentController,
-          curve: const Interval(0.0, 0.45, curve: Curves.easeOut)),
+    _titleSlide = Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero).animate(
+      CurvedAnimation(parent: _contentController, curve: const Interval(0.0, 0.45, curve: Curves.easeOut)),
     );
 
     _subtitleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _contentController,
-          curve: const Interval(0.30, 0.7, curve: Curves.easeOut)),
+      CurvedAnimation(parent: _contentController, curve: const Interval(0.30, 0.7, curve: Curves.easeOut)),
     );
-    _subtitleSlide =
-        Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
-      CurvedAnimation(
-          parent: _contentController,
-          curve: const Interval(0.30, 0.7, curve: Curves.easeOut)),
+    _subtitleSlide = Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
+      CurvedAnimation(parent: _contentController, curve: const Interval(0.30, 0.7, curve: Curves.easeOut)),
     );
 
     _iconScale = Tween<double>(begin: 0.75, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _contentController,
-          curve: const Interval(0.55, 1.0, curve: Curves.elasticOut)),
+      CurvedAnimation(parent: _contentController, curve: const Interval(0.55, 1.0, curve: Curves.elasticOut)),
     );
     _iconOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _contentController,
-          curve: const Interval(0.55, 1.0, curve: Curves.easeOut)),
+      CurvedAnimation(parent: _contentController, curve: const Interval(0.55, 1.0, curve: Curves.easeOut)),
     );
 
     _buttonOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _contentController,
-          curve: const Interval(0.80, 1.0, curve: Curves.easeOut)),
+      CurvedAnimation(parent: _contentController, curve: const Interval(0.80, 1.0, curve: Curves.easeOut)),
     );
-    _buttonSlide =
-        Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
-      CurvedAnimation(
-          parent: _contentController,
-          curve: const Interval(0.80, 1.0, curve: Curves.easeOut)),
+    _buttonSlide = Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
+      CurvedAnimation(parent: _contentController, curve: const Interval(0.80, 1.0, curve: Curves.easeOut)),
     );
 
     _cardController.forward().then((_) {
@@ -118,10 +97,8 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
             log('Mensaje remoto cargado: $remoteSubtitle');
             if (mounted) {
               setState(() {
-                if (remoteTitle != null && remoteTitle.isNotEmpty)
-                  _title = remoteTitle;
-                if (remoteSubtitle != null && remoteSubtitle.isNotEmpty)
-                  _subtitle = remoteSubtitle;
+                if (remoteTitle != null && remoteTitle.isNotEmpty) _title = remoteTitle;
+                if (remoteSubtitle != null && remoteSubtitle.isNotEmpty) _subtitle = remoteSubtitle;
               });
             }
           } else if (mounted) {
@@ -141,12 +118,10 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
     await prefs.setBool('seen_welcome_intro', true);
     if (!mounted) return;
 
-    // Use a subtle fade transition to the next screen
     Navigator.of(context).pushReplacement(PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 500),
       reverseTransitionDuration: const Duration(milliseconds: 350),
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          const LoginScreen(),
+      pageBuilder: (context, animation, secondaryAnimation) => const TermsPage(),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(opacity: animation, child: child);
       },
@@ -155,7 +130,6 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Static background (no gradient)
     return Scaffold(
       appBar: const WalletAppBar(
         barColor: AwColors.appBarColor,
@@ -238,8 +212,7 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16.0),
+                                padding: const EdgeInsets.symmetric(vertical: 16.0),
                                 backgroundColor: AwColors.appBarColor,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.0),
@@ -259,14 +232,12 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
                         ),
                       );
 
-                      // If text is scaled significantly or available height is small, allow scrolling inside the card
                       final needsScroll = textScale > 1.15 || cardHeight < 520;
 
                       Widget inner;
                       if (needsScroll) {
                         inner = Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 24.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -279,8 +250,7 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
                         );
                       } else {
                         inner = Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 24.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.max,
                             children: [
@@ -295,8 +265,7 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
                       final cardChild = needsScroll
                           ? SingleChildScrollView(
                               child: ConstrainedBox(
-                                constraints:
-                                    BoxConstraints(minHeight: cardHeight),
+                                constraints: BoxConstraints(minHeight: cardHeight),
                                 child: inner,
                               ),
                             )
@@ -326,7 +295,7 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen>
   void dispose() {
     _cardController.dispose();
     _contentController.dispose();
-    // _bgController removed
+
     super.dispose();
   }
 }

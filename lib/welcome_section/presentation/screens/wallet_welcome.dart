@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/welcome_section/presentation/screens/welcome_intro.dart';
 
@@ -29,7 +27,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     if (!mounted) return;
 
     if (seenIntro) {
-      Navigator.of(context).pushReplacementNamed('/logIn');
+      final accepted = prefs.getBool('accepted_terms') ?? false;
+      if (accepted) {
+        Navigator.of(context).pushReplacementNamed('/logIn');
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const TermsPage()),
+        );
+      }
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const WelcomeIntroScreen()),

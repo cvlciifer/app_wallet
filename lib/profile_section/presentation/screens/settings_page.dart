@@ -56,7 +56,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           }
                         } catch (e) {
                           WalletPopup.showNotificationWarningOrange(
-                            // ignore: use_build_context_synchronously
                             context: context,
                             message: 'No se pudo abrir cambiar alias',
                             visibleTime: 2,
@@ -67,7 +66,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     },
                   ),
                 ),
-                AwSpacing.s6,
+                AwSpacing.s10,
                 SizedBox(
                   width: double.infinity,
                   child: SettingsCard(
@@ -78,7 +77,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       if (connectivity == ConnectivityResult.none) {
                         if (!mounted) return;
                         WalletPopup.showNotificationWarningOrange(
-                          // ignore: use_build_context_synchronously
                           context: context,
                           message: 'No es posible restablecer el PIN sin conexión',
                           visibleTime: 2,
@@ -103,7 +101,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         if (isBlocked) {
                           final remainingDuration = blockedUntil ?? const Duration(days: 1);
                           if (!mounted) return;
-                          // ignore: use_build_context_synchronously
                           Navigator.of(context).push(MaterialPageRoute(
                               builder: (_) => PinLockedPage(
                                     remaining: remainingDuration,
@@ -112,12 +109,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   )));
                         } else {
                           try {
-                            // ignore: use_build_context_synchronously
                             final success = await Navigator.of(context)
                                 .push<bool>(MaterialPageRoute(builder: (_) => const ForgotPinPage()));
                             if (success == true) {
                               if (!mounted) return;
-                              // ignore: use_build_context_synchronously
                               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SetPinPage()));
                             }
                           } catch (e, st) {
@@ -126,7 +121,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             }
                             if (mounted) {
                               WalletPopup.showNotificationWarningOrange(
-                                // ignore: use_build_context_synchronously
                                 context: context,
                                 message: 'No se pudo abrir restablecer PIN',
                                 visibleTime: 2,
@@ -146,6 +140,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     },
                   ),
                 ),
+                AwSpacing.s10,
+                SizedBox(
+                  width: double.infinity,
+                  child: SettingsCard(
+                    title: 'Términos y condiciones',
+                    icon: Icons.note_alt_sharp,
+                    onTap: () async {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const TermsPage(readOnly: true)),
+                      );
+                    },
+                  ),
+                ),
                 AwSpacing.xl,
                 Center(
                   child: ConstrainedBox(
@@ -156,7 +163,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          // sombra justo debajo de la imagen
                           Positioned(
                             bottom: 0,
                             left: 0,
@@ -177,8 +183,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               ),
                             ),
                           ),
-                          // imagen encima
-                          Center(
+                          const Center(
                             child: Image(
                               image: AWImage.settings,
                               fit: BoxFit.contain,

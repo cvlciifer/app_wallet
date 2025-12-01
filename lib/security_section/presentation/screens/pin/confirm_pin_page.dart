@@ -215,9 +215,8 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                                   // ignore: deprecated_member_use
                                   backgroundColor: MaterialStateProperty.resolveWith(
                                       // ignore: deprecated_member_use
-                                      (states) => states.contains(MaterialState.disabled)
-                                          ? AwColors.blueGrey
-                                          : AwColors.appBarColor),
+                                      (states) =>
+                                          states.contains(MaterialState.disabled) ? AwColors.blueGrey : AwColors.white),
                                   // ignore: deprecated_member_use
                                   foregroundColor: MaterialStateProperty.resolveWith((_) => AwColors.white),
                                 ),
@@ -229,7 +228,7 @@ class _ConfirmPinPageState extends State<ConfirmPinPage> {
                                     : null,
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 14.0),
-                                  child: AwText.bold('Guardar PIN', color: AwColors.white),
+                                  child: AwText.bold('Guardar PIN', color: AwColors.boldBlack),
                                 ),
                               );
                             }),
