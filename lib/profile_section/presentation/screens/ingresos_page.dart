@@ -69,8 +69,6 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
     });
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(ingresosProvider);
@@ -152,10 +150,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                             // This lets the MonthSelector update when the
                             // user taps the prev/next arrows even if
                             // `months == 0` (showing 'Selecciona').
-                            : DateTime(
-                                DateTime.now().year,
-                                DateTime.now().month + state.startOffset,
-                                1),
+                            : DateTime(DateTime.now().year,
+                                DateTime.now().month + state.startOffset, 1),
                         startOffset: state.startOffset,
                         months: state.months,
                         ctrl: ctrl,
@@ -190,12 +186,23 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                               } catch (_) {}
                             }
 
+                            final conn =
+                                await Connectivity().checkConnectivity();
+                            final hasConnection =
+                                conn != ConnectivityResult.none;
+
                             await rootNav.pushNamedAndRemoveUntil(
                               '/home-page',
                               (r) => false,
                               arguments: {
                                 'showPopup': true,
-                                'title': 'Ingreso guardado'
+                                'title': 'Ingreso guardado',
+                                if (!hasConnection)
+                                  'message': const AwText.normal(
+                                    'Será sincronizado cuando exista internet',
+                                    color: AwColors.white,
+                                    size: AwSize.s14,
+                                  ),
                               },
                             );
 

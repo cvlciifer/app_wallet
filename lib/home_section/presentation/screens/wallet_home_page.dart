@@ -33,9 +33,24 @@ class _WalletHomePageState extends State<WalletHomePage> {
                     context;
             WidgetsBinding.instance.addPostFrameCallback((__) {
               try {
+                final dynamic msgArg = args['message'];
+                Widget? messageWidget;
+                if (msgArg != null) {
+                  if (msgArg is Widget) {
+                    messageWidget = msgArg;
+                  } else {
+                    messageWidget = AwText.normal(
+                      msgArg.toString(),
+                      color: AwColors.white,
+                      size: AwSize.s14,
+                    );
+                  }
+                }
+
                 WalletPopup.showNotificationSuccess(
                   context: popupCtx,
                   title: args['title']?.toString() ?? 'Operación completada',
+                  message: messageWidget,
                 );
               } catch (_) {}
             });
