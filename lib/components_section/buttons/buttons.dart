@@ -75,7 +75,8 @@ class WalletButton {
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
+                // ignore: deprecated_member_use
+                color: AwColors.grey.withOpacity(0.2),
                 blurRadius: 8,
                 offset: Offset(0, 4),
               ),
