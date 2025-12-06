@@ -2,7 +2,8 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/core/data_base_local/local_crud.dart';
 import 'package:app_wallet/core/sync_service/sync_service.dart';
-import 'package:app_wallet/core/data_remote/firebase_Service.dart' as remoteService;
+import 'package:app_wallet/core/data_remote/firebase_Service.dart'
+    as remoteService;
 import 'package:app_wallet/core/models/profile/ingresos_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,10 +29,14 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
       final currentUid = await getUserUid();
       log('loadLocalIncomes: resolved uid=$currentUid, localRows=${rows.length}');
       final map = <String, Map<String, dynamic>>{};
+      final pendingDeleteIds = <String>{};
       for (final r in rows) {
         final id = r['id']?.toString() ?? '';
         final syncStatus = r['sync_status'] as int? ?? 0;
-        if (syncStatus == SyncStatus.pendingDelete.index) continue;
+        if (syncStatus == SyncStatus.pendingDelete.index) {
+          if (id.isNotEmpty) pendingDeleteIds.add(id);
+          continue;
+        }
         if (id.isNotEmpty) map[id] = Map<String, dynamic>.from(r);
       }
 
@@ -47,7 +52,8 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
           remoteIds.add(id);
         }
         final missing = remoteIds.where((id) => !map.containsKey(id)).toList();
-        if (missing.isNotEmpty) log('loadLocalIncomes: remote ids missing locally: ${missing.join(', ')}');
+        if (missing.isNotEmpty)
+          log('loadLocalIncomes: remote ids missing locally: ${missing.join(', ')}');
 
         for (final inc in remote) {
           try {
@@ -65,17 +71,33 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
               fechaDt = DateTime.now();
             }
 
+            final fechaUtc = fechaDt.toUtc();
+            final derivedId =
+                '${fechaUtc.year}${fechaUtc.month.toString().padLeft(2, '0')}';
+
+            if (pendingDeleteIds.contains(derivedId)) {
+              log('loadLocalIncomes: skipping remote doc id=$id because derivedId=$derivedId is pendingDelete locally');
+              continue;
+            }
+            if (pendingDeleteIds.contains(id)) {
+              log('loadLocalIncomes: skipping remote doc id=$id because it is pendingDelete locally');
+              continue;
+            }
+
             final fijo = (inc['ingreso_fijo'] as int?) ?? 0;
             final imp = (inc['ingreso_imprevisto'] as int?) ?? 0;
 
             final localRow = map[id];
-            final localSync = localRow != null ? (localRow['sync_status'] as int? ?? 0) : SyncStatus.synced.index;
+            final localSync = localRow != null
+                ? (localRow['sync_status'] as int? ?? 0)
+                : SyncStatus.synced.index;
             if (localRow != null && localSync != SyncStatus.synced.index) {
               continue;
             }
 
             log('loadLocalIncomes: inserting remote id=$id using uid=$currentUid');
-            await createIncomeLocalImpl(fechaDt, fijo, imp, id: id, syncStatus: SyncStatus.synced.index);
+            await createIncomeLocalImpl(fechaDt, fijo, imp,
+                id: id, syncStatus: SyncStatus.synced.index);
             map[id] = {
               'id': id,
               'fecha': fechaDt.millisecondsSinceEpoch,
@@ -133,8 +155,8 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
 
     Future.microtask(() async {
       try {
-        final ok = await remoteService.upsertIncomeEntry(date, ingresoFijo, ingresoImprevisto,
-          docId: id);
+        final ok = await remoteService
+            .upsertIncomeEntry(date, ingresoFijo, ingresoImprevisto, docId: id);
         if (ok) {
           await createIncomeLocalImpl(date, ingresoFijo, ingresoImprevisto,
               id: id, syncStatus: SyncStatus.synced.index);
@@ -176,9 +198,69 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
                 .collection('ingresos')
                 .doc(id);
             await docRef.delete();
+            log('deleteIncomeForDate: requested remote delete for doc id=$id');
+
             try {
-              await deleteIncomeLocal(id);
-            } catch (_) {}
+              final remoteList =
+                  await remoteService.getAllIncomesFromFirestore();
+              final targetYear = date.year;
+              final targetMonth = date.month;
+              for (final inc in remoteList) {
+                try {
+                  final rid = inc['id']?.toString() ?? '';
+                  if (rid == id) continue;
+                  final rf = inc['fecha'];
+                  DateTime rdt;
+                  if (rf is Timestamp) {
+                    rdt = rf.toDate();
+                  } else if (rf is int) {
+                    rdt = DateTime.fromMillisecondsSinceEpoch(rf);
+                  } else if (rf is String) {
+                    rdt = DateTime.tryParse(rf) ?? DateTime.now();
+                  } else {
+                    rdt = DateTime.now();
+                  }
+                  if (rdt.year == targetYear && rdt.month == targetMonth) {
+                    try {
+                      final otherRef = FirebaseFirestore.instance
+                          .collection('usuarios')
+                          .doc(email)
+                          .collection('ingresos')
+                          .doc(rid);
+                      await otherRef.delete();
+                      log('deleteIncomeForDate: deleted remote doc with id=$rid matching fecha $rdt');
+                    } catch (e, st) {
+                      log('deleteIncomeForDate: failed deleting remote doc id=$rid -> $e\n$st');
+                    }
+                  }
+                } catch (_) {}
+              }
+            } catch (e, st) {
+              log('deleteIncomeForDate: error enumerating remote incomes -> $e\n$st');
+            }
+
+            try {
+              final localRows = await getIncomesLocalImpl();
+              final targetYear = date.year;
+              final targetMonth = date.month;
+              for (final lr in localRows) {
+                try {
+                  final lid = lr['id']?.toString() ?? '';
+                  final lfecha = (lr['fecha'] as int?) ?? 0;
+                  final ldt = DateTime.fromMillisecondsSinceEpoch(lfecha);
+                  if (ldt.year == targetYear && ldt.month == targetMonth) {
+                    try {
+                      await deleteIncomeLocal(lid);
+                      log('deleteIncomeForDate: deleted local income id=$lid matching month $targetYear-$targetMonth');
+                    } catch (e, st) {
+                      log('deleteIncomeForDate: failed deleting local id=$lid -> $e\n$st');
+                    }
+                  }
+                } catch (_) {}
+              }
+            } catch (e, st) {
+              log('deleteIncomeForDate: error enumerating local incomes -> $e\n$st');
+            }
           } catch (_) {}
         });
       }
@@ -212,7 +294,8 @@ class IngresosNotifier extends StateNotifier<IngresosState> {
           final DateTime date = row['date'] as DateTime;
           final id = row['id'] as String;
           try {
-            final ok = await remoteService.upsertIncomeEntry(date, amount, null, docId: id);
+            final ok = await remoteService.upsertIncomeEntry(date, amount, null,
+                docId: id);
             if (ok) {
               await createIncomeLocalImpl(date, amount, null,
                   id: id, syncStatus: SyncStatus.synced.index);

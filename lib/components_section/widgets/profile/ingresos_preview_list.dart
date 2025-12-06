@@ -161,9 +161,26 @@ class IngresosPreviewList extends StatelessWidget {
                 final newImp = int.tryParse(
                         impCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ??
                     0;
-                await ctrl.updateIncomeForDate(
-                    monthDate, newFijo, newImp == 0 ? null : newImp);
+                await ctrl.updateIncomeForDate(monthDate, newFijo, newImp);
                 await ctrl.loadLocalIncomes();
+
+                try {
+                  // ignore: use_build_context_synchronously
+                  final controller = context.read<WalletExpensesController>();
+                  controller.setMonthFilter(
+                      DateTime(monthDate.year, monthDate.month));
+                } catch (_) {}
+
+                // ignore: use_build_context_synchronously
+                final rootNav = Navigator.of(context, rootNavigator: true);
+                await rootNav.pushNamedAndRemoveUntil(
+                  '/home-page',
+                  (r) => false,
+                  arguments: {
+                    'showPopup': true,
+                    'title': 'Mes editado correctamente'
+                  },
+                );
               }
             },
             onDelete: () async {
@@ -188,14 +205,28 @@ class IngresosPreviewList extends StatelessWidget {
               if (confirm == true) {
                 final ok = await ctrl.deleteIncomeForDate(monthDate);
                 if (ok) {
-                  // ignore: use_build_context_synchronously
-                  WalletPopup.showNotificationSuccess(
-                      context: context, title: 'Ingreso eliminado');
                   await ctrl.loadLocalIncomes();
+                  try {
+                    final controller = context.read<WalletExpensesController>();
+                    controller.setMonthFilter(
+                        DateTime(monthDate.year, monthDate.month));
+                  } catch (_) {}
+
+                  final rootNav = Navigator.of(context, rootNavigator: true);
+                  await rootNav.pushNamedAndRemoveUntil(
+                    '/home-page',
+                    (r) => false,
+                    arguments: {
+                      'showPopup': true,
+                      'title': 'Ingreso eliminado'
+                    },
+                  );
                 } else {
                   // ignore: use_build_context_synchronously
                   WalletPopup.showNotificationWarningOrange(
-                      context: context, message: 'Error eliminando ingreso');
+                      // ignore: use_build_context_synchronously
+                      context: context,
+                      message: 'Error eliminando ingreso');
                 }
               }
             },
