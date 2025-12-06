@@ -41,6 +41,24 @@ class CategoryDetailScreen extends StatelessWidget {
       return subId;
     }
 
+    // Agrupar gastos por subcategoría
+    final Map<String, List<Expense>> expensesBySubcategory = {};
+    for (final expense in expenses) {
+      final subKey = expense.subcategoryId ?? 'sin_subcategoria';
+      expensesBySubcategory.putIfAbsent(subKey, () => []).add(expense);
+    }
+
+    // Calcular totales por subcategoría y ordenar
+    final subcategoryTotals = <String, double>{};
+    for (final entry in expensesBySubcategory.entries) {
+      final total = entry.value.fold<double>(0, (sum, exp) => sum + exp.amount);
+      subcategoryTotals[entry.key] = total;
+    }
+
+    // Ordenar subcategorías por total descendente
+    final sortedSubcategoryKeys = subcategoryTotals.keys.toList()
+      ..sort((a, b) => subcategoryTotals[b]!.compareTo(subcategoryTotals[a]!));
+
     return Scaffold(
       backgroundColor: AwColors.white,
       appBar: AppBar(
@@ -82,91 +100,122 @@ class CategoryDetailScreen extends StatelessWidget {
             : SafeArea(
                 bottom: true,
                 child: ListView.builder(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 56),
-                  itemCount: expenses.length,
+                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 16),
+                  itemCount: sortedSubcategoryKeys.length,
                   itemBuilder: (context, index) {
-                    final e = expenses[index];
-                    final subName = nameForSubId(e.subcategoryId);
-                    final subIcon = iconForSubId(e.subcategoryId);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 20.0),
-                      child: TicketCard(
-                        boxShadowAll: true,
-                        roundTopCorners: true,
-                        topCornerRadius: 10,
-                        compactNotches: true,
-                        elevation: 4,
-                        color: Theme.of(context).colorScheme.surface,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          leading: Icon(
-                            subIcon,
-                            size: AwSize.s30,
-                            color: category.color,
-                          ),
-                          title: Text(
-                            e.title,
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                          ),
-                          subtitle: Text(
-                            subName,
-                            style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      // ignore: deprecated_member_use
-                                      .withOpacity(0.6),
-                                ),
-                          ),
-                          trailing: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 88),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final baseStyle = Theme.of(context).textTheme.bodySmall!;
-                                // If the vertical space for trailing is small, scale date down.
-                                final maxH = constraints.maxHeight;
-                                double dateScale = 1.0;
-                                if (maxH > 0 && maxH < 36) {
-                                  dateScale = 0.78;
-                                } else if (maxH > 0 && maxH < 44) {
-                                  dateScale = 0.88;
-                                }
+                    final subKey = sortedSubcategoryKeys[index];
+                    final subExpenses = expensesBySubcategory[subKey]!;
+                    final subTotal = subcategoryTotals[subKey]!;
+                    final subName = nameForSubId(subKey == 'sin_subcategoria' ? null : subKey);
+                    final subIcon = iconForSubId(subKey == 'sin_subcategoria' ? null : subKey);
 
-                                final dateStyle = baseStyle.copyWith(fontSize: (baseStyle.fontSize ?? 12) * dateScale);
-
-                                return Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Encabezado de subcategoría
+                        Material(
+                          elevation: 4,
+                          borderRadius: BorderRadius.circular(12),
+                          color: AwColors.white,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                            decoration: BoxDecoration(
+                              color: category.color.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  subIcon,
+                                  size: AwSize.s24,
+                                  color: category.color,
+                                ),
+                                AwSpacing.w12,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      AwText.bold(
+                                        subName,
+                                        size: AwSize.s16,
+                                        color: AwColors.boldBlack,
+                                      ),
+                                      AwSpacing.xxs,
+                                      AwText.normal(
+                                        'Total: ${formatNumber(subTotal)}',
+                                        size: AwSize.s14,
+                                        color: category.color,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                AwText.bold(
+                                  '${subExpenses.length}',
+                                  size: AwSize.s18,
+                                  color: AwColors.modalGrey,
+                                ),
+                                AwSpacing.s6,
+                                const AwText.normal(
+                                  'gastos',
+                                  size: AwSize.s12,
+                                  color: AwColors.modalGrey,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        AwSpacing.s12,
+                        // Lista de gastos de esta subcategoría
+                        ...subExpenses.map((e) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0, left: 8.0, right: 8.0),
+                              child: TicketCard(
+                                boxShadowAll: true,
+                                roundTopCorners: true,
+                                topCornerRadius: 10,
+                                compactNotches: true,
+                                elevation: 2,
+                                color: Theme.of(context).colorScheme.surface,
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  leading: Icon(
+                                    subIcon,
+                                    size: AwSize.s26,
+                                    color: category.color,
+                                  ),
+                                  title: Text(
+                                    e.title,
+                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                  ),
+                                  subtitle: Text(
+                                    e.formattedDate,
+                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              // ignore: deprecated_member_use
+                                              .withOpacity(0.6),
+                                        ),
+                                  ),
+                                  trailing: ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 88),
+                                    child: Text(
                                       formatNumber(e.amount),
                                       style: Theme.of(context).textTheme.titleMedium!.copyWith(
                                             fontWeight: FontWeight.bold,
                                             color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                     ),
-                                    AwSpacing.xxs,
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerRight,
-                                      child: Text(
-                                        e.formattedDate,
-                                        style: dateStyle,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
+                                  ),
+                                ),
+                              ),
+                            )),
+                        AwSpacing.m,
+                      ],
                     );
                   },
                 ),

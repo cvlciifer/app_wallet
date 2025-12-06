@@ -1,4 +1,28 @@
 import 'package:app_wallet/library_section/main_library.dart';
+import 'dart:math' as math;
+
+class _HolePainter extends CustomPainter {
+  final Rect holeRect;
+  final double borderRadius;
+  final Color overlayColor;
+
+  _HolePainter({required this.holeRect, this.borderRadius = 8.0, required this.overlayColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = overlayColor;
+    canvas.saveLayer(Offset.zero & size, Paint());
+    canvas.drawRect(Offset.zero & size, paint);
+    final clearPaint = Paint()..blendMode = BlendMode.clear;
+    canvas.drawRRect(RRect.fromRectAndRadius(holeRect, Radius.circular(borderRadius)), clearPaint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _HolePainter old) {
+    return old.holeRect != holeRect || old.borderRadius != borderRadius || old.overlayColor != overlayColor;
+  }
+}
 
 class InformeMensualScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -13,11 +37,21 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
   bool _initializedFromController = false;
+  final GlobalKey _totalCardKey = GlobalKey();
+  final GlobalKey _categoryListKey = GlobalKey();
+  bool _ftuShown = false;
 
   @override
   void initState() {
     super.initState();
     _initializeSelectedMonthYear();
+    // Mostrar FTU después de que se construya la pantalla
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_ftuShown) {
+        _showInformesFTU();
+        _ftuShown = true;
+      }
+    });
   }
 
   @override
@@ -117,6 +151,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
           children: [
             // Floating card at the top
             Material(
+              key: _totalCardKey,
               elevation: 12,
               color: AwColors.white,
               borderRadius: BorderRadius.circular(12),
@@ -184,6 +219,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
             // List below the card
             Expanded(
               child: ListView.builder(
+                key: _categoryListKey,
                 padding: EdgeInsets.zero,
                 itemCount: expenseBuckets.length,
                 itemBuilder: (context, index) {
@@ -220,5 +256,164 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showInformesFTU() async {
+    try {
+      if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Paso 1: Destacar la card de total de gastos
+      await _showOverlayForKey(
+        _totalCardKey,
+        title: 'Filtros y Total de Gastos',
+        message:
+            'Aquí puedes ver el total de tus gastos y seleccionar el año y mes para filtrar. Los filtros te permiten ver gastos de diferentes períodos.',
+        continueText: 'Continuar',
+      );
+
+      // Paso 2: Destacar la lista de categorías
+      await _showOverlayForKey(
+        _categoryListKey,
+        title: 'Categorías y Subcategorías',
+        message:
+            'Estas son tus categorías de gastos. Al presionar una categoría, verás los gastos organizados por subcategorías con sus totales.',
+        continueText: 'Continuar',
+        isFinalStep: true,
+      );
+
+      // Navegar al home con highlight de MiWallet
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home-page',
+          (r) => false,
+          arguments: {'highlightMiWalletButton': true},
+        );
+      }
+
+      // Navegar al home con highlight de MiWallet
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home-page',
+          (r) => false,
+          arguments: {'highlightMiWalletButton': true},
+        );
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _showOverlayForKey(
+    GlobalKey key, {
+    required String title,
+    required String message,
+    String continueText = 'Continuar',
+    bool isFinalStep = false,
+  }) async {
+    try {
+      final ctx = key.currentContext;
+      if (ctx == null) return;
+
+      try {
+        await Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 300), alignment: 0.3);
+      } catch (_) {}
+
+      final renderBox = ctx.findRenderObject() as RenderBox?;
+      if (renderBox == null || !renderBox.attached) return;
+
+      final targetPos = renderBox.localToGlobal(Offset.zero);
+      final targetSize = renderBox.size;
+
+      await showGeneralDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierLabel: 'informes_ftu',
+        barrierColor: Colors.transparent,
+        transitionDuration: const Duration(milliseconds: 200),
+        pageBuilder: (context, a1, a2) {
+          return Material(
+            color: Colors.transparent,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _HolePainter(
+                      holeRect: Rect.fromLTWH(
+                        targetPos.dx - 8,
+                        targetPos.dy - 8,
+                        targetSize.width + 16,
+                        targetSize.height + 16,
+                      ),
+                      borderRadius: 12,
+                      overlayColor: AwColors.black.withOpacity(0.45),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: targetPos.dx - 8,
+                  top: targetPos.dy - 8,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      width: targetSize.width + 16,
+                      height: targetSize.height + 16,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AwColors.appBarColor, width: 3),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: (() {
+                    final screenW = MediaQuery.of(context).size.width;
+                    final popupW = math.min(320, screenW - 32);
+                    return (screenW - popupW) / 2;
+                  })(),
+                  top: (() {
+                    const popupApproxH = 160.0;
+                    final preferAbove = targetPos.dy - popupApproxH - 12;
+                    if (preferAbove >= 16) return preferAbove;
+                    final preferBelow = targetPos.dy + targetSize.height + 12;
+                    final screenH = MediaQuery.of(context).size.height;
+                    if (preferBelow + popupApproxH <= screenH - 16) return preferBelow;
+                    return 16.0;
+                  })(),
+                  child: Container(
+                    width: math.min(320, MediaQuery.of(context).size.width - 32),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AwColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [BoxShadow(color: AwColors.black.withOpacity(0.18), blurRadius: 8)],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AwText.bold(title, size: AwSize.s14),
+                        AwSpacing.s6,
+                        AwText.normal(message, size: AwSize.s12, color: AwColors.modalGrey),
+                        AwSpacing.s10,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: WalletButton.primaryButton(
+                                buttonText: continueText,
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    } catch (_) {}
   }
 }

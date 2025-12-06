@@ -5,10 +5,9 @@ import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
 class HomeIncomeCard extends StatefulWidget {
   final WalletExpensesController controller;
   final bool isWide;
+  final GlobalKey? editIconKey;
 
-  const HomeIncomeCard(
-      {Key? key, required this.controller, this.isWide = false})
-      : super(key: key);
+  const HomeIncomeCard({Key? key, required this.controller, this.isWide = false, this.editIconKey}) : super(key: key);
 
   @override
   State<HomeIncomeCard> createState() => _HomeIncomeCardState();
@@ -21,23 +20,16 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
       builder: (ctx, ref, _) {
         final ingresosState = ref.watch(ingresosProvider);
         final now = DateTime.now();
-        final selectedMonth =
-            widget.controller.monthFilter ?? DateTime(now.year, now.month);
+        final selectedMonth = widget.controller.monthFilter ?? DateTime(now.year, now.month);
 
-        final id =
-            '${selectedMonth.year}${selectedMonth.month.toString().padLeft(2, '0')}';
+        final id = '${selectedMonth.year}${selectedMonth.month.toString().padLeft(2, '0')}';
         final existing = ingresosState.localIncomes[id];
-        final fijo =
-            existing != null ? (existing['ingreso_fijo'] as int? ?? 0) : 0;
-        final imprevisto = existing != null
-            ? (existing['ingreso_imprevisto'] as int? ?? 0)
-            : 0;
+        final fijo = existing != null ? (existing['ingreso_fijo'] as int? ?? 0) : 0;
+        final imprevisto = existing != null ? (existing['ingreso_imprevisto'] as int? ?? 0) : 0;
         final total = fijo + imprevisto;
 
         final expensesThisMonth = widget.controller.allExpenses
-            .where((e) =>
-                e.date.year == selectedMonth.year &&
-                e.date.month == selectedMonth.month)
+            .where((e) => e.date.year == selectedMonth.year && e.date.month == selectedMonth.month)
             .toList();
         final spent = expensesThisMonth.fold(0.0, (sum, e) => sum + e.amount);
 
@@ -45,9 +37,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
           final available = (total -
                   (wide
                       ? widget.controller.allExpenses
-                          .where((e) =>
-                              e.date.year == selectedMonth.year &&
-                              e.date.month == selectedMonth.month)
+                          .where((e) => e.date.year == selectedMonth.year && e.date.month == selectedMonth.month)
                           .fold(0.0, (s, e) => s + e.amount)
                       : spent))
               .toDouble();
@@ -69,25 +59,22 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                   top: 8,
                   right: 8,
                   child: IconButton(
+                    key: widget.editIconKey,
                     padding: const EdgeInsets.all(8),
-                    icon:
-                        const Icon(Icons.edit, size: 18, color: AwColors.black),
-                    onPressed: () => Navigator.of(ctx).push(MaterialPageRoute(
-                        builder: (_) => const IngresosPage())),
+                    icon: const Icon(Icons.edit, size: 18, color: AwColors.black),
+                    onPressed: () => Navigator.of(ctx).push(MaterialPageRoute(builder: (_) => const IngresosPage())),
                   ),
                 ),
               ],
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Row(
                       children: [
                         Expanded(
-                          child: AwText.bold('Saldo Disponible',
-                              size: AwSize.s16, color: AwColors.modalGrey),
+                          child: AwText.bold('Saldo Disponible', size: AwSize.s16, color: AwColors.modalGrey),
                         ),
                       ],
                     ),
@@ -96,8 +83,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                       child: AwText.normal(
                         formatNumber(available),
                         size: 30, // keep as requested
-                        color:
-                            available < 0 ? AwColors.red : AwColors.boldBlack,
+                        color: available < 0 ? AwColors.red : AwColors.boldBlack,
                       ),
                     ),
                     AwSpacing.s,
@@ -115,8 +101,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                                   size: AwSize.s12,
                                   color: AwColors.modalGrey),
                               AwSpacing.xs,
-                              AwText.bold(formatNumber(total.toDouble()),
-                                  size: AwSize.s16, color: AwColors.green),
+                              AwText.bold(formatNumber(total.toDouble()), size: AwSize.s16, color: AwColors.green),
                             ],
                           ),
                         ),
@@ -130,8 +115,7 @@ class _HomeIncomeCardState extends State<HomeIncomeCard> {
                                   size: AwSize.s12,
                                   color: AwColors.modalGrey),
                               AwSpacing.xs,
-                              AwText.bold(formatNumber(spent),
-                                  size: AwSize.s14, color: AwColors.red),
+                              AwText.bold(formatNumber(spent), size: AwSize.s14, color: AwColors.red),
                             ],
                           ),
                         ),
