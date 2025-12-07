@@ -1,19 +1,20 @@
-import 'package:flutter/material.dart';
 import 'package:app_wallet/library_section/main_library.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _confirmEmailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _isPasswordLengthValid = false;
   bool _isPasswordUppercaseValid = false;
@@ -55,7 +56,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    AwText.bold('Regístrate en AdminWallet', color: AwColors.boldBlack, size: AwSize.s20),
+                    const AwText.bold('Regístrate en AdminWallet',
+                        color: AwColors.boldBlack, size: AwSize.s20),
                     AwSpacing.s6,
                     const AwText.normal(
                       'Con esta aplicación tendrás una gestión económica más optimizada.',
@@ -63,15 +65,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       color: AwColors.modalGrey,
                     ),
                     AwSpacing.s18,
-                    TextField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre o Alias',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person),
-                      ),
-                    ),
-                    AwSpacing.s20,
                     TextField(
                       controller: _emailController,
                       decoration: const InputDecoration(
@@ -82,7 +75,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       keyboardType: TextInputType.emailAddress,
                       onChanged: (value) {
                         setState(() {
-                          _areEmailsMatching = _emailController.text == _confirmEmailController.text;
+                          _areEmailsMatching = _emailController.text ==
+                              _confirmEmailController.text;
                         });
                       },
                     ),
@@ -97,13 +91,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       keyboardType: TextInputType.emailAddress,
                       onChanged: (value) {
                         setState(() {
-                          _areEmailsMatching = _emailController.text == _confirmEmailController.text;
+                          _areEmailsMatching = _emailController.text ==
+                              _confirmEmailController.text;
                         });
                       },
                     ),
                     if (!_areEmailsMatching) ...[
                       AwSpacing.s6,
-                      const AwText.normal('Los correos no coinciden', color: AwColors.red),
+                      const AwText.normal('Los correos no coinciden',
+                          color: AwColors.red),
                     ],
                     AwSpacing.s20,
                     TextField(
@@ -113,16 +109,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
-                          icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
-                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                          icon: Icon(_isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off),
+                          onPressed: () => setState(
+                              () => _isPasswordVisible = !_isPasswordVisible),
                         ),
                       ),
                       obscureText: !_isPasswordVisible,
                       onChanged: (value) {
                         setState(() {
                           _isPasswordLengthValid = value.length >= 8;
-                          _isPasswordUppercaseValid = value.contains(RegExp(r'[A-Z]'));
-                          _arePasswordsMatching = _passwordController.text == _confirmPasswordController.text;
+                          _isPasswordUppercaseValid =
+                              value.contains(RegExp(r'[A-Z]'));
+                          _arePasswordsMatching = _passwordController.text ==
+                              _confirmPasswordController.text;
                         });
                       },
                     ),
@@ -132,8 +133,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Wrap(
                         spacing: 10.0,
                         children: [
-                          _buildValidationChip(label: 'Mínimo 8 caracteres', isValid: _isPasswordLengthValid),
-                          _buildValidationChip(label: 'Al menos una mayúscula', isValid: _isPasswordUppercaseValid),
+                          _buildValidationChip(
+                              label: 'Mínimo 8 caracteres',
+                              isValid: _isPasswordLengthValid),
+                          _buildValidationChip(
+                              label: 'Al menos una mayúscula',
+                              isValid: _isPasswordUppercaseValid),
                         ],
                       ),
                     ),
@@ -145,20 +150,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
-                          icon: Icon(_isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off),
-                          onPressed: () => setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+                          icon: Icon(_isConfirmPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off),
+                          onPressed: () => setState(() =>
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible),
                         ),
                       ),
                       obscureText: !_isConfirmPasswordVisible,
                       onChanged: (value) {
                         setState(() {
-                          _arePasswordsMatching = _passwordController.text == _confirmPasswordController.text;
+                          _arePasswordsMatching = _passwordController.text ==
+                              _confirmPasswordController.text;
                         });
                       },
                     ),
                     if (!_arePasswordsMatching) ...[
                       AwSpacing.s6,
-                      const AwText.normal('Las contraseñas no coinciden', color: AwColors.red),
+                      const AwText.normal('Las contraseñas no coinciden',
+                          color: AwColors.red),
                     ],
                     AwSpacing.s40,
                     WalletButton.primaryButton(
@@ -168,10 +179,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               _areEmailsMatching &&
                               _arePasswordsMatching
                           ? () async {
+                              final loader =
+                                  ref.read(globalLoaderProvider.notifier);
+                              loader.state = true;
                               final String email = _emailController.text.trim();
-                              final String username = _nameController.text.trim();
-                              final String password = _passwordController.text.trim();
-                              final registerProvider = context.read<RegisterProvider>();
+                              final String username =
+                                  _nameController.text.trim();
+                              final String password =
+                                  _passwordController.text.trim();
+                              final registerProvider =
+                                  context.read<RegisterProvider>();
                               try {
                                 await registerProvider.registerUser(
                                   email: email,
@@ -180,13 +197,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   token: '',
                                   onSuccess: () {
                                     if (mounted) {
-                                      final overlayCtx = Navigator.of(context).overlay?.context;
+                                      final overlayCtx = Navigator.of(context)
+                                          .overlay
+                                          ?.context;
+                                      loader.state = false;
                                       Navigator.of(context).pop();
                                       if (overlayCtx != null) {
-                                        Future.delayed(const Duration(milliseconds: 120), () {
-                                          WalletPopup.showNotificationSuccess(
-                                            context: overlayCtx,
-                                            title: '¡Felicitaciones, ya has creado tu propia cuenta!',
+                                        Future.delayed(
+                                            const Duration(milliseconds: 120),
+                                            () {
+                                          AwAlert.showCardInfo(
+                                            // ignore: use_build_context_synchronously
+                                            overlayCtx,
+                                            title:
+                                                '¡Felicitaciones, ya has creado tu cuenta!',
+                                            content:
+                                                'Verifica tu correo y la carpeta de spam para finalizar la creación de tu cuenta.',
+                                            okLabel: 'Entendido',
                                           );
                                         });
                                       }
@@ -194,13 +221,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   },
                                   onError: (error) {
                                     if (mounted) {
-                                      WalletPopup.showNotificationError(context: context, title: error);
+                                      loader.state = false;
+                                      WalletPopup.showNotificationError(
+                                          context: context, title: error);
                                     }
                                   },
                                 );
                               } catch (e) {
                                 if (mounted) {
-                                  WalletPopup.showNotificationError(context: context, title: 'Error al registrar: $e');
+                                  loader.state = false;
+                                  WalletPopup.showNotificationError(
+                                      // ignore: use_build_context_synchronously
+                                      context: context,
+                                      title: 'Error al registrar: $e');
+                                }
+                              } finally {
+                                if (mounted) {
+                                  loader.state = false;
                                 }
                               }
                             }
