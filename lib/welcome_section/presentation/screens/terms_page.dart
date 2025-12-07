@@ -75,14 +75,17 @@ Al registrarse, no se almacena información personal como correos electrónicos 
                       AwSpacing.s12,
                       const Text('3. Datos almacenados', style: TextStyle(fontWeight: FontWeight.bold)),
                       const Text(
-                          'PIN de acceso: Se guarda localmente en el dispositivo del usuario de forma hasheada (no se sincronzia a firebase); no puede ser leído por los desarrolladores.'),
+                          'PIN de acceso: Se guarda localmente en el dispositivo del usuario de forma hasheada (no se sincroniza a firebase); no puede ser leído por los desarrolladores.'),
                       AwSpacing.s6,
                       const Text(
-                          'Alias de la cuenta: Se guarda localmente en el dispositivo del usuario y además se sincroniza a firebase.'),
+                          'Alias de usuario: Se guarda localmente en el dispositivo del usuario y además se sincroniza a firebase.'),
                       AwSpacing.s6,
                       const Text(
                           'Gastos e ingresos: se almacenan en Firebase sin hash para permitir sincronización y visualización en la App. Los desarrolladores no usan estos datos con otros fines.'),
                       AwSpacing.s6,
+                      const Text(
+                          'Importación desde Gmail (OPCIONAL y MANUAL): si el usuario desea, podrá pulsar un botón dentro de la App que inicia explícitamente el proceso de conexión y lectura solo de los correos que el flujo autorizado permita (por ejemplo, mensajes con notificaciones de movimiento de Banco Estado). Esta acción es voluntaria y solo se ejecuta cuando el usuario la solicita. No se importan correos automáticamente; el usuario puede revocar el permiso en cualquier momento. En la importación se extraen los datos necesarios para identificar movimientos (fecha, monto, texto relevante) y no se almacena ni se comparte el correo completo salvo lo necesario para el procesamiento técnico autorizado por el usuario.'),
+                      AwSpacing.s12,
                       const Text('4. Consejos financieros', style: TextStyle(fontWeight: FontWeight.bold)),
                       const Text(
                           'La App envía un consejo financiero diario de carácter informativo. No constituyen asesoría profesional; los desarrolladores no se responsabilizan por decisiones tomadas en base a ellos.'),

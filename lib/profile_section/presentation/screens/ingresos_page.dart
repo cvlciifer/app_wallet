@@ -367,10 +367,22 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                               } catch (_) {}
                             }
 
+                            final conn = await Connectivity().checkConnectivity();
+                            final hasConnection = conn != ConnectivityResult.none;
+
                             await rootNav.pushNamedAndRemoveUntil(
                               '/home-page',
                               (r) => false,
-                              arguments: {'showPopup': true, 'title': 'Ingreso guardado'},
+                              arguments: {
+                                'showPopup': true,
+                                'title': 'Ingreso guardado',
+                                if (!hasConnection)
+                                  'message': const AwText.normal(
+                                    'Será sincronizado cuando exista internet',
+                                    color: AwColors.white,
+                                    size: AwSize.s14,
+                                  ),
+                              },
                             );
 
                             try {
