@@ -342,7 +342,7 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
   Future<void> _showProfileFTU() async {
     try {
       if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       // Paso 1: Destacar la card principal
       await _showOverlayForKey(
