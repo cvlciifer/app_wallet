@@ -6,7 +6,10 @@ class _HolePainter extends CustomPainter {
   final double borderRadius;
   final Color overlayColor;
 
-  _HolePainter({required this.holeRect, this.borderRadius = 8.0, required this.overlayColor});
+  _HolePainter(
+      {required this.holeRect,
+      this.borderRadius = 8.0,
+      required this.overlayColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -14,13 +17,17 @@ class _HolePainter extends CustomPainter {
     canvas.saveLayer(Offset.zero & size, Paint());
     canvas.drawRect(Offset.zero & size, paint);
     final clearPaint = Paint()..blendMode = BlendMode.clear;
-    canvas.drawRRect(RRect.fromRectAndRadius(holeRect, Radius.circular(borderRadius)), clearPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(holeRect, Radius.circular(borderRadius)),
+        clearPaint);
     canvas.restore();
   }
 
   @override
   bool shouldRepaint(covariant _HolePainter old) {
-    return old.holeRect != holeRect || old.borderRadius != borderRadius || old.overlayColor != overlayColor;
+    return old.holeRect != holeRect ||
+        old.borderRadius != borderRadius ||
+        old.overlayColor != overlayColor;
   }
 }
 
@@ -64,7 +71,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
       _selectedCategory = init.category;
       _selectedSubcategoryId = init.subcategoryId;
 
-      _amountController.text = NumberFormatHelper.formatAmount(init.amount.toInt().toString());
+      _amountController.text =
+          NumberFormatHelper.formatAmount(init.amount.toInt().toString());
       _categoryController.text = init.category.toString().split('.').last;
     } else if (widget.showFTUOnOpen) {
       _titleController.text = 'Cuenta';
@@ -95,72 +103,82 @@ class _ExpenseFormState extends State<ExpenseForm> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Column(
-        children: [
-          TicketCard(
-            notchDepth: 12,
-            elevation: 10,
-            color: Colors.white,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AwSpacing.s12,
-                const Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.attach_money,
-                      color: AwColors.appBarColor,
-                      size: AwSize.s26,
-                    ),
-                    AwSpacing.w12,
-                    Expanded(
-                      child: AwText.bold(
-                        'Agrega un nuevo gasto',
-                        size: AwSize.s20,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            TicketCard(
+              notchDepth: 12,
+              elevation: 10,
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AwSpacing.s12,
+                  const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.attach_money,
                         color: AwColors.appBarColor,
+                        size: AwSize.s26,
                       ),
+                      AwSpacing.w12,
+                      Expanded(
+                        child: AwText.bold(
+                          'Agrega un nuevo gasto',
+                          size: AwSize.s20,
+                          color: AwColors.appBarColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  AwSpacing.s6,
+                  const AwText(
+                    text:
+                        'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
+                    color: AwColors.blueGrey,
+                    size: AwSize.s14,
+                    textAlign: TextAlign.left,
+                  ),
+                  AwSpacing.xs,
+                  Container(key: _titleKey, child: _buildTitle()),
+                  AwSpacing.s12,
+                  Container(
+                    key: _categoryKey,
+                    child: CategoryPicker(
+                      controller: _categoryController,
+                      selectedCategory: _selectedCategory,
+                      selectedSubcategoryId: _selectedSubcategoryId,
+                      onSelect: _selectCategory,
                     ),
-                  ],
-                ),
-                AwSpacing.s6,
-                const AwText(
-                  text: 'Registra un gasto. Puedes elegir Título, Categoría, Precio y Fecha.',
-                  color: AwColors.blueGrey,
-                  size: AwSize.s14,
-                  textAlign: TextAlign.left,
-                ),
-                AwSpacing.xs,
-                Container(key: _titleKey, child: _buildTitle()),
-                AwSpacing.s12,
-                Container(
-                  key: _categoryKey,
-                  child: CategoryPicker(
-                    controller: _categoryController,
-                    selectedCategory: _selectedCategory,
-                    selectedSubcategoryId: _selectedSubcategoryId,
-                    onSelect: _selectCategory,
                   ),
-                ),
-                AwSpacing.s24,
-                Container(
-                    key: _amountKey, child: AmountInput(controller: _amountController, onChanged: _handleAmountChange)),
-                AwSpacing.s24,
-                Container(key: _dateKey, child: DateSelector(selectedDate: _selectedDate, onTap: _presentDatePicker)),
-                AwSpacing.s20,
-                Container(
-                  key: _submitKey,
-                  child: WalletButton.primaryButton(
-                    buttonText: 'Añadir Gasto',
-                    onPressed: _submitForm,
+                  AwSpacing.s24,
+                  Container(
+                      key: _amountKey,
+                      child: AmountInput(
+                          controller: _amountController,
+                          onChanged: _handleAmountChange)),
+                  AwSpacing.s24,
+                  Container(
+                      key: _dateKey,
+                      child: DateSelector(
+                          selectedDate: _selectedDate,
+                          onTap: _presentDatePicker)),
+                  AwSpacing.s20,
+                  Container(
+                    key: _submitKey,
+                    child: WalletButton.primaryButton(
+                      buttonText: 'Añadir Gasto',
+                      onPressed: _submitForm,
+                    ),
                   ),
-                ),
-                AwSpacing.s30,
-              ],
+                  AwSpacing.s30,
+                ],
+              ),
             ),
-          ),
-          AwSpacing.s40,
-        ],
+            AwSpacing.s40,
+          ],
+        ),
       ),
     );
   }
@@ -168,22 +186,31 @@ class _ExpenseFormState extends State<ExpenseForm> {
   Future<void> _runFTUSequence() async {
     try {
       await Future.delayed(const Duration(milliseconds: 250));
-      await _showOverlayForKey(_titleKey, title: 'Título', message: 'Aquí puedes ingresar el título del gasto.');
-      await _showOverlayForKey(_categoryKey, title: 'Categoría', message: 'Selecciona la categoría del gasto.');
-      await _showOverlayForKey(_amountKey, title: 'Precio', message: 'Ingresa el monto del gasto aquí.');
-      await _showOverlayForKey(_dateKey, title: 'Fecha', message: 'Selecciona la fecha del gasto.');
+      await _showOverlayForKey(_titleKey,
+          title: 'Título',
+          message: 'Aquí puedes ingresar el título del gasto.');
+      await _showOverlayForKey(_categoryKey,
+          title: 'Categoría', message: 'Selecciona la categoría del gasto.');
+      await _showOverlayForKey(_amountKey,
+          title: 'Precio', message: 'Ingresa el monto del gasto aquí.');
+      await _showOverlayForKey(_dateKey,
+          title: 'Fecha', message: 'Selecciona la fecha del gasto.');
       await _showOverlayForKey(_submitKey,
-          title: 'Añadir Gasto', message: 'Para guardar tu gasto presiona este botón.');
+          title: 'Añadir Gasto',
+          message: 'Para guardar tu gasto presiona este botón.');
     } catch (_) {}
   }
 
   Future<void> _showOverlayForKey(GlobalKey key,
-      {required String title, required String message, String continueText = 'Continuar'}) async {
+      {required String title,
+      required String message,
+      String continueText = 'Continuar'}) async {
     try {
       final ctx = key.currentContext;
       if (ctx == null) return;
       try {
-        await Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 300), alignment: 0.3);
+        await Scrollable.ensureVisible(ctx,
+            duration: const Duration(milliseconds: 300), alignment: 0.3);
       } catch (_) {}
 
       final renderBox = ctx.findRenderObject() as RenderBox?;
@@ -191,7 +218,9 @@ class _ExpenseFormState extends State<ExpenseForm> {
       final targetPos = renderBox.localToGlobal(Offset.zero);
       final targetSize = renderBox.size;
 
-      final popupCtx = Navigator.of(context, rootNavigator: true).overlay?.context ?? context;
+      final popupCtx =
+          Navigator.of(context, rootNavigator: true).overlay?.context ??
+              context;
 
       await showGeneralDialog(
         context: context,
@@ -231,7 +260,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
                       height: targetSize.height + 16,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AwColors.appBarColor, width: 3),
+                        border:
+                            Border.all(color: AwColors.appBarColor, width: 3),
                       ),
                       child: const SizedBox.shrink(),
                     ),
@@ -253,19 +283,25 @@ class _ExpenseFormState extends State<ExpenseForm> {
                     return preferBelow > maxTop ? maxTop : preferBelow;
                   })(),
                   child: Container(
-                    width: math.min(320, MediaQuery.of(context).size.width - 32),
+                    width:
+                        math.min(320, MediaQuery.of(context).size.width - 32),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AwColors.white,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [BoxShadow(color: AwColors.black.withOpacity(0.18), blurRadius: 8)],
+                      boxShadow: [
+                        BoxShadow(
+                            color: AwColors.black.withOpacity(0.18),
+                            blurRadius: 8)
+                      ],
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         AwText.bold(title, size: AwSize.s14),
                         AwSpacing.s6,
-                        AwText.normal(message, size: AwSize.s12, color: AwColors.modalGrey),
+                        AwText.normal(message,
+                            size: AwSize.s12, color: AwColors.modalGrey),
                         AwSpacing.s10,
                         Row(
                           children: [
@@ -276,7 +312,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
                                   Navigator.of(context).pop();
 
                                   try {
-                                    if (widget.showFTUOnOpen && key == _submitKey) {
+                                    if (widget.showFTUOnOpen &&
+                                        key == _submitKey) {
                                       _submitForm();
                                     }
                                   } catch (_) {}
@@ -324,9 +361,12 @@ class _ExpenseFormState extends State<ExpenseForm> {
   }
 
   void _submitForm() {
-    final numericValue = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
+    final numericValue =
+        _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
     final enteredAmount = int.tryParse(numericValue);
-    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0 || enteredAmount > 999999999999;
+    final amountIsInvalid = enteredAmount == null ||
+        enteredAmount <= 0 ||
+        enteredAmount > 999999999999;
 
     final titleEmpty = _titleController.text.trim().isEmpty;
     final dateEmpty = _selectedDate == null;
@@ -354,10 +394,12 @@ class _ExpenseFormState extends State<ExpenseForm> {
   }
 
   void _showValidationDialog([String? details]) {
-    final contentText = details ?? 'Asegúrese de ingresar un título, monto y fecha válidos.';
+    final contentText =
+        details ?? 'Asegúrese de ingresar un título, monto y fecha válidos.';
     final dialogContent = Platform.isIOS
         ? CupertinoAlertDialog(
-            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
+            title: const AwText.bold('Entrada no válida',
+                color: AwColors.boldBlack),
             content: AwText(text: contentText),
             actions: [
               WalletButton.primaryButton(
@@ -367,7 +409,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
             ],
           )
         : AlertDialog(
-            title: const AwText.bold('Entrada no válida', color: AwColors.boldBlack),
+            title: const AwText.bold('Entrada no válida',
+                color: AwColors.boldBlack),
             content: AwText(
               text: contentText,
               color: AwColors.black,
