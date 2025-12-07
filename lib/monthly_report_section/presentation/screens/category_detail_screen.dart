@@ -41,6 +41,24 @@ class CategoryDetailScreen extends StatelessWidget {
       return subId;
     }
 
+    // Agrupar gastos por subcategoría
+    final Map<String, List<Expense>> expensesBySubcategory = {};
+    for (final expense in expenses) {
+      final subKey = expense.subcategoryId ?? 'sin_subcategoria';
+      expensesBySubcategory.putIfAbsent(subKey, () => []).add(expense);
+    }
+
+    // Calcular totales por subcategoría y ordenar
+    final subcategoryTotals = <String, double>{};
+    for (final entry in expensesBySubcategory.entries) {
+      final total = entry.value.fold<double>(0, (sum, exp) => sum + exp.amount);
+      subcategoryTotals[entry.key] = total;
+    }
+
+    // Ordenar subcategorías por total descendente
+    final sortedSubcategoryKeys = subcategoryTotals.keys.toList()
+      ..sort((a, b) => subcategoryTotals[b]!.compareTo(subcategoryTotals[a]!));
+
     return Scaffold(
       backgroundColor: AwColors.white,
       appBar: AppBar(
@@ -55,123 +73,97 @@ class CategoryDetailScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        // ignore: deprecated_member_use
-        color: Theme.of(context).colorScheme.background,
-        child: expenses.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Image(
-                      image: AWImage.ghost,
-                      fit: BoxFit.contain,
-                      width: 96,
-                      height: 96,
-                    ),
-                    AwSpacing.m,
-                    Text(
-                      'No hay gastos asociados a esta categoría durante este mes.',
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              )
-            : SafeArea(
-                bottom: true,
-                child: ListView.builder(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 56),
-                  itemCount: expenses.length,
-                  itemBuilder: (context, index) {
-                    final e = expenses[index];
-                    final subName = nameForSubId(e.subcategoryId);
-                    final subIcon = iconForSubId(e.subcategoryId);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 20.0),
-                      child: TicketCard(
-                        boxShadowAll: true,
-                        roundTopCorners: true,
-                        topCornerRadius: 10,
-                        compactNotches: true,
-                        elevation: 4,
-                        color: Theme.of(context).colorScheme.surface,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          leading: Icon(
-                            subIcon,
-                            size: AwSize.s30,
-                            color: category.color,
-                          ),
-                          title: Text(
-                            e.title,
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                          ),
-                          subtitle: Text(
-                            subName,
-                            style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      // ignore: deprecated_member_use
-                                      .withOpacity(0.6),
-                                ),
-                          ),
-                          trailing: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 88),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final baseStyle = Theme.of(context).textTheme.bodySmall!;
-                                // If the vertical space for trailing is small, scale date down.
-                                final maxH = constraints.maxHeight;
-                                double dateScale = 1.0;
-                                if (maxH > 0 && maxH < 36) {
-                                  dateScale = 0.78;
-                                } else if (maxH > 0 && maxH < 44) {
-                                  dateScale = 0.88;
-                                }
+      body: expenses.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Image(
+                    image: AWImage.ghost,
+                    fit: BoxFit.contain,
+                    width: 96,
+                    height: 96,
+                  ),
+                  AwSpacing.m,
+                  Text(
+                    'No hay gastos asociados a esta categoría durante este mes.',
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          : SafeArea(
+              bottom: true,
+              child: ListView.builder(
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 16),
+                itemCount: sortedSubcategoryKeys.length,
+                itemBuilder: (context, index) {
+                  final subKey = sortedSubcategoryKeys[index];
+                  final subExpenses = expensesBySubcategory[subKey]!;
+                  final subName = nameForSubId(subKey == 'sin_subcategoria' ? null : subKey);
+                  final subIcon = iconForSubId(subKey == 'sin_subcategoria' ? null : subKey);
 
-                                final dateStyle = baseStyle.copyWith(fontSize: (baseStyle.fontSize ?? 12) * dateScale);
-
-                                return Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  mainAxisSize: MainAxisSize.min,
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AwSpacing.s12,
+                      ...subExpenses.map((e) => Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TicketCard(
+                              boxShadowAll: true,
+                              roundTopCorners: true,
+                              topCornerRadius: 10,
+                              compactNotches: true,
+                              elevation: 6,
+                              color: AwColors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                leading: Icon(
+                                  subIcon,
+                                  size: AwSize.s26,
+                                  color: category.color,
+                                ),
+                                title: AwText.bold(
+                                  e.title,
+                                  size: AwSize.s18,
+                                  color: AwColors.boldBlack,
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      formatNumber(e.amount),
-                                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context).colorScheme.onSurface,
-                                          ),
+                                    AwText.normal(
+                                      e.formattedDate,
+                                      size: AwSize.s14,
+                                      color: AwColors.grey,
                                     ),
-                                    AwSpacing.xxs,
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerRight,
-                                      child: Text(
-                                        e.formattedDate,
-                                        style: dateStyle,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                    AwText.normal(
+                                      subName,
+                                      size: AwSize.s14,
+                                      color: AwColors.grey,
                                     ),
                                   ],
-                                );
-                              },
+                                ),
+                                trailing: ConstrainedBox(
+                                  constraints: const BoxConstraints(maxWidth: 88),
+                                  child: AwText.bold(
+                                    formatNumber(e.amount),
+                                    size: AwSize.s22,
+                                    color: AwColors.boldBlack,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                          )),
+                      AwSpacing.m,
+                    ],
+                  );
+                },
               ),
-      ),
+            ),
     );
   }
 }

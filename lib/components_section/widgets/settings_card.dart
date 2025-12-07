@@ -40,8 +40,7 @@ class SettingsCard extends StatelessWidget {
       ),
       child: ListTile(
         minLeadingWidth: 40,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         leading: Icon(icon, color: iconColor ?? AwColors.grey, size: iconSize),
         title: AwText.normal(
           title,
@@ -49,11 +48,8 @@ class SettingsCard extends StatelessWidget {
           size: AwSize.s16,
           fontWeight: titleWeight,
         ),
-        subtitle: subtitle != null
-            ? AwText.small(subtitle!, color: AwColors.grey)
-            : null,
-        trailing: trailing ??
-            Icon(Icons.chevron_right, color: AwColors.blue, size: 28),
+        subtitle: subtitle != null ? AwText.small(subtitle!, color: AwColors.grey) : null,
+        trailing: trailing ?? const Icon(Icons.chevron_right, color: AwColors.blue, size: 28),
         onTap: onTap,
       ),
     );

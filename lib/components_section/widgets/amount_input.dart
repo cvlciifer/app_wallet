@@ -4,8 +4,7 @@ class AmountInput extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String>? onChanged;
 
-  const AmountInput({Key? key, required this.controller, this.onChanged})
-      : super(key: key);
+  const AmountInput({Key? key, required this.controller, this.onChanged}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -19,6 +19,19 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
     super.initState();
   }
 
+  bool _shouldRunFTU = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    try {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args['showFTUOnNewExpense'] == true) {
+        _shouldRunFTU = true;
+      }
+    } catch (_) {}
+  }
+
   void _handleExpenseSubmit(Expense expense) async {
     try {
       if (mounted) {
@@ -71,6 +84,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
             child: ExpenseForm(
               onSubmit: _handleExpenseSubmit,
               initialExpense: widget.initialExpense,
+              showFTUOnOpen: _shouldRunFTU,
             ),
           );
         },

@@ -1,10 +1,10 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'dart:math' as math;
-import 'package:app_wallet/home_section/presentation/screens/two_options.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
-import 'package:app_wallet/components_section/widgets/home_income_card.dart';
-import 'package:app_wallet/components_section/widgets/month_selector.dart';
+import 'package:app_wallet/ftu_section/ftu_income_helper.dart';
+import 'package:app_wallet/ftu_section/ftu_add_helper.dart';
+import 'package:app_wallet/ftu_section/ftu_navigation_helper.dart';
 
 class WalletHomePage extends StatefulWidget {
   const WalletHomePage({super.key});
@@ -16,6 +16,11 @@ class WalletHomePage extends StatefulWidget {
 class _WalletHomePageState extends State<WalletHomePage> {
   StreamSubscription<User?>? _authSub;
   bool _localLoaderActive = false;
+  final GlobalKey _editIconKey = GlobalKey();
+  final GlobalKey _fabKey = GlobalKey();
+  final GlobalKey _statisticsButtonKey = GlobalKey();
+  final GlobalKey _informesButtonKey = GlobalKey();
+  final GlobalKey _miWalletButtonKey = GlobalKey();
 
   @override
   void initState() {
@@ -28,9 +33,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
           final isResumed = lifecycle == AppLifecycleState.resumed;
           final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
           if (isResumed && isCurrent) {
-            final popupCtx =
-                Navigator.of(context, rootNavigator: true).overlay?.context ??
-                    context;
+            final popupCtx = Navigator.of(context, rootNavigator: true).overlay?.context ?? context;
             WidgetsBinding.instance.addPostFrameCallback((__) {
               try {
                 final dynamic msgArg = args['message'];
@@ -61,8 +64,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
       try {
         final provController = context.read<WalletExpensesController>();
         try {
-          final container =
-              riverpod.ProviderScope.containerOf(context, listen: false);
+          final container = riverpod.ProviderScope.containerOf(context, listen: false);
 
           _authSub = FirebaseAuth.instance.authStateChanges().listen((_) {
             try {
@@ -76,9 +78,8 @@ class _WalletHomePageState extends State<WalletHomePage> {
               if (!_localLoaderActive) {
                 setState(() => _localLoaderActive = true);
                 try {
-                  riverpod.ProviderScope.containerOf(context, listen: false)
-                      .read(globalLoaderProvider.notifier)
-                      .state = false;
+                  riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state =
+                      false;
                 } catch (_) {}
               }
             } else {
@@ -90,25 +91,66 @@ class _WalletHomePageState extends State<WalletHomePage> {
         });
 
         try {
-          final shouldShowLocal = provController.isLoadingExpenses ||
-              provController.filteredExpenses.isEmpty;
+          final shouldShowLocal = provController.isLoadingExpenses || provController.filteredExpenses.isEmpty;
           if (shouldShowLocal) {
             setState(() => _localLoaderActive = true);
             try {
-              riverpod.ProviderScope.containerOf(context, listen: false)
-                  .read(globalLoaderProvider.notifier)
-                  .state = false;
+              riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state =
+                  false;
             } catch (_) {}
           }
         } catch (_) {}
 
         provController.loadExpensesSmart().then((_) {
           try {
-            final container =
-                riverpod.ProviderScope.containerOf(context, listen: false);
+            final container = riverpod.ProviderScope.containerOf(context, listen: false);
             container.read(ingresosProvider.notifier).init();
           } catch (_) {}
         });
+      } catch (_) {}
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        FTUIncomeHelper.maybeShowFirstTimeIncome(context, _editIconKey);
+      } catch (_) {}
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final args = ModalRoute.of(context)?.settings.arguments;
+        if (args is Map && args['continueFTUAfterIngresosAdd'] == true) {
+          FTUAddHelper.maybeShowAddFTU(context, _fabKey);
+        }
+      } catch (_) {}
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final args = ModalRoute.of(context)?.settings.arguments;
+        if (args is Map && args['continueFTUToStatistics'] == true) {
+          final controller = context.read<WalletExpensesController>();
+          FTUNavigationHelper.showStatisticsFTU(context, _statisticsButtonKey, controller.allExpenses);
+        }
+      } catch (_) {}
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final args = ModalRoute.of(context)?.settings.arguments;
+        if (args is Map && args['highlightInformesButton'] == true) {
+          final controller = context.read<WalletExpensesController>();
+          FTUNavigationHelper.showInformesFTU(context, _informesButtonKey, controller.allExpenses);
+        }
+      } catch (_) {}
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final args = ModalRoute.of(context)?.settings.arguments;
+        if (args is Map && args['highlightMiWalletButton'] == true) {
+          FTUNavigationHelper.showMiWalletFTU(context, _miWalletButtonKey);
+        }
       } catch (_) {}
     });
   }
@@ -123,13 +165,11 @@ class _WalletHomePageState extends State<WalletHomePage> {
 
   void _onBottomNavTap(int index) {
     final controller = context.read<WalletExpensesController>();
-    WalletNavigationService.handleBottomNavigation(
-        context, index, controller.allExpenses);
+    WalletNavigationService.handleBottomNavigation(context, index, controller.allExpenses);
   }
 
-  void _openAddExpenseOverlay() async {
-    final expense =
-        await WalletNavigationService.openAddExpenseOverlay(context);
+  Future<void> _openAddExpenseOverlay() async {
+    final expense = await WalletNavigationService.openAddExpenseOverlay(context);
     if (expense != null) {
       final conn = await Connectivity().checkConnectivity();
       final hasConnection = conn != ConnectivityResult.none;
@@ -137,18 +177,14 @@ class _WalletHomePageState extends State<WalletHomePage> {
       bool success = false;
       try {
         try {
-          riverpod.ProviderScope.containerOf(context, listen: false)
-              .read(globalLoaderProvider.notifier)
-              .state = true;
+          riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state = true;
         } catch (_) {}
 
         await controller.addExpense(expense, hasConnection: hasConnection);
         success = true;
       } catch (e) {
         try {
-          final popupCtx =
-              Navigator.of(context, rootNavigator: true).overlay?.context ??
-                  context;
+          final popupCtx = Navigator.of(context, rootNavigator: true).overlay?.context ?? context;
           WalletPopup.showNotificationError(
             context: popupCtx,
             title: 'Error al crear gasto.',
@@ -156,17 +192,13 @@ class _WalletHomePageState extends State<WalletHomePage> {
         } catch (_) {}
       } finally {
         try {
-          riverpod.ProviderScope.containerOf(context, listen: false)
-              .read(globalLoaderProvider.notifier)
-              .state = false;
+          riverpod.ProviderScope.containerOf(context, listen: false).read(globalLoaderProvider.notifier).state = false;
         } catch (_) {}
       }
 
       if (success) {
         try {
-          final popupCtx =
-              Navigator.of(context, rootNavigator: true).overlay?.context ??
-                  context;
+          final popupCtx = Navigator.of(context, rootNavigator: true).overlay?.context ?? context;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             try {
               if (!hasConnection) {
@@ -204,12 +236,11 @@ class _WalletHomePageState extends State<WalletHomePage> {
   void _showTwoOptionsDialog() {
     showTwoOptionsDialog(
       context,
-      onAddExpense: () {
-        _openAddExpenseOverlay();
+      onAddExpense: () async {
+        await _openAddExpenseOverlay();
       },
-      onAddRecurrent: () {
-        Navigator.of(context).push<bool>(
-            MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
+      onAddRecurrent: () async {
+        await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const RecurrentCreatePage()));
       },
     );
   }
@@ -227,7 +258,6 @@ class _WalletHomePageState extends State<WalletHomePage> {
               if (_localLoaderActive) ...[
                 Positioned.fill(
                   child: Container(
-                    // ignore: deprecated_member_use
                     color: AwColors.white.withOpacity(0.9),
                     child: const Center(
                       child: SizedBox(
@@ -243,6 +273,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        key: _fabKey,
         backgroundColor: AwColors.appBarColor,
         onPressed: _showTwoOptionsDialog,
         tooltip: 'Agregar gasto',
@@ -255,6 +286,9 @@ class _WalletHomePageState extends State<WalletHomePage> {
           return WalletBottomAppBar(
             currentIndex: selected,
             onTap: _onBottomNavTap,
+            statisticsButtonKey: _statisticsButtonKey,
+            informesButtonKey: _informesButtonKey,
+            miWalletButtonKey: _miWalletButtonKey,
           );
         },
       ),
@@ -272,8 +306,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
             onRemoveExpense: (expense) async {
               final connectivity = await Connectivity().checkConnectivity();
               final hasConnection = connectivity != ConnectivityResult.none;
-              await controller.removeExpense(expense,
-                  hasConnection: hasConnection);
+              await controller.removeExpense(expense, hasConnection: hasConnection);
             },
           )
         : const EmptyState();
@@ -281,7 +314,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     if (width < 600) {
       return Column(
         children: [
-          HomeIncomeCard(controller: controller, isWide: false),
+          HomeIncomeCard(controller: controller, isWide: false, editIconKey: _editIconKey),
           monthButtons,
           Expanded(child: mainContent),
         ],
@@ -295,7 +328,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
             children: [
               monthButtons,
               Expanded(
-                child: HomeIncomeCard(controller: controller, isWide: true),
+                child: HomeIncomeCard(controller: controller, isWide: true, editIconKey: _editIconKey),
               ),
             ],
           ),
@@ -306,8 +339,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     );
   }
 
-  Widget _buildMonthButtons(
-      BuildContext context, WalletExpensesController controller) {
+  Widget _buildMonthButtons(BuildContext context, WalletExpensesController controller) {
     final screenWidth = MediaQuery.of(context).size.width;
     final horizontalPadding = math.min(70.0, screenWidth * 0.08);
 
@@ -347,8 +379,7 @@ class _WalletHomePageState extends State<WalletHomePage> {
     final available = controller.getAvailableMonths(excludeCurrent: true);
     if (available.isEmpty) {
       if (mounted) {
-        WalletPopup.showNotificationWarningOrange(
-            context: context, message: 'No hay meses disponibles para filtrar');
+        WalletPopup.showNotificationWarningOrange(context: context, message: 'No hay meses disponibles para filtrar');
       }
       return;
     }
