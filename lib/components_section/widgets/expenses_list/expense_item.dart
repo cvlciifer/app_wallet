@@ -20,7 +20,9 @@ class ExpenseItem extends StatelessWidget {
       child: TicketCard(
         compactNotches: true,
         roundTopCorners: true,
-        topCornerRadius: 7,
+        topCornerRadius: 10,
+        elevation: 10,
+        color: AwColors.white,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

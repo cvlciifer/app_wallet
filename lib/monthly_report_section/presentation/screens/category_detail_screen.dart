@@ -73,154 +73,97 @@ class CategoryDetailScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        // ignore: deprecated_member_use
-        color: Theme.of(context).colorScheme.background,
-        child: expenses.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Image(
-                      image: AWImage.ghost,
-                      fit: BoxFit.contain,
-                      width: 96,
-                      height: 96,
-                    ),
-                    AwSpacing.m,
-                    Text(
-                      'No hay gastos asociados a esta categoría durante este mes.',
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              )
-            : SafeArea(
-                bottom: true,
-                child: ListView.builder(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 16),
-                  itemCount: sortedSubcategoryKeys.length,
-                  itemBuilder: (context, index) {
-                    final subKey = sortedSubcategoryKeys[index];
-                    final subExpenses = expensesBySubcategory[subKey]!;
-                    final subTotal = subcategoryTotals[subKey]!;
-                    final subName = nameForSubId(subKey == 'sin_subcategoria' ? null : subKey);
-                    final subIcon = iconForSubId(subKey == 'sin_subcategoria' ? null : subKey);
+      body: expenses.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Image(
+                    image: AWImage.ghost,
+                    fit: BoxFit.contain,
+                    width: 96,
+                    height: 96,
+                  ),
+                  AwSpacing.m,
+                  Text(
+                    'No hay gastos asociados a esta categoría durante este mes.',
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          : SafeArea(
+              bottom: true,
+              child: ListView.builder(
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 16),
+                itemCount: sortedSubcategoryKeys.length,
+                itemBuilder: (context, index) {
+                  final subKey = sortedSubcategoryKeys[index];
+                  final subExpenses = expensesBySubcategory[subKey]!;
+                  final subName = nameForSubId(subKey == 'sin_subcategoria' ? null : subKey);
+                  final subIcon = iconForSubId(subKey == 'sin_subcategoria' ? null : subKey);
 
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Encabezado de subcategoría
-                        Material(
-                          elevation: 4,
-                          borderRadius: BorderRadius.circular(12),
-                          color: AwColors.white,
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                            decoration: BoxDecoration(
-                              color: category.color.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AwSpacing.s12,
+                      ...subExpenses.map((e) => Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TicketCard(
+                              boxShadowAll: true,
+                              roundTopCorners: true,
+                              topCornerRadius: 10,
+                              compactNotches: true,
+                              elevation: 6,
+                              color: AwColors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                leading: Icon(
                                   subIcon,
-                                  size: AwSize.s24,
+                                  size: AwSize.s26,
                                   color: category.color,
                                 ),
-                                AwSpacing.w12,
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      AwText.bold(
-                                        subName,
-                                        size: AwSize.s16,
-                                        color: AwColors.boldBlack,
-                                      ),
-                                      AwSpacing.xxs,
-                                      AwText.normal(
-                                        'Total: ${formatNumber(subTotal)}',
-                                        size: AwSize.s14,
-                                        color: category.color,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                AwText.bold(
-                                  '${subExpenses.length}',
+                                title: AwText.bold(
+                                  e.title,
                                   size: AwSize.s18,
-                                  color: AwColors.modalGrey,
+                                  color: AwColors.boldBlack,
                                 ),
-                                AwSpacing.s6,
-                                const AwText.normal(
-                                  'gastos',
-                                  size: AwSize.s12,
-                                  color: AwColors.modalGrey,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        AwSpacing.s12,
-                        // Lista de gastos de esta subcategoría
-                        ...subExpenses.map((e) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12.0, left: 8.0, right: 8.0),
-                              child: TicketCard(
-                                boxShadowAll: true,
-                                roundTopCorners: true,
-                                topCornerRadius: 10,
-                                compactNotches: true,
-                                elevation: 2,
-                                color: Theme.of(context).colorScheme.surface,
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  leading: Icon(
-                                    subIcon,
-                                    size: AwSize.s26,
-                                    color: category.color,
-                                  ),
-                                  title: Text(
-                                    e.title,
-                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurface,
-                                        ),
-                                  ),
-                                  subtitle: Text(
-                                    e.formattedDate,
-                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              // ignore: deprecated_member_use
-                                              .withOpacity(0.6),
-                                        ),
-                                  ),
-                                  trailing: ConstrainedBox(
-                                    constraints: const BoxConstraints(maxWidth: 88),
-                                    child: Text(
-                                      formatNumber(e.amount),
-                                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context).colorScheme.onSurface,
-                                          ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AwText.normal(
+                                      e.formattedDate,
+                                      size: AwSize.s14,
+                                      color: AwColors.grey,
                                     ),
+                                    AwText.normal(
+                                      subName,
+                                      size: AwSize.s14,
+                                      color: AwColors.grey,
+                                    ),
+                                  ],
+                                ),
+                                trailing: ConstrainedBox(
+                                  constraints: const BoxConstraints(maxWidth: 88),
+                                  child: AwText.bold(
+                                    formatNumber(e.amount),
+                                    size: AwSize.s22,
+                                    color: AwColors.boldBlack,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ),
-                            )),
-                        AwSpacing.m,
-                      ],
-                    );
-                  },
-                ),
+                            ),
+                          )),
+                      AwSpacing.m,
+                    ],
+                  );
+                },
               ),
-      ),
+            ),
     );
   }
 }

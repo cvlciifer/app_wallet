@@ -8,8 +8,6 @@ class TicketCardHome extends StatelessWidget {
   final double elevation;
   final double borderRadius;
 
-  /// Single opacity parameter that controls layered shadow intensity.
-  /// Set to 0 to disable shadows.
   final double shadowOpacity;
   final EdgeInsetsGeometry padding;
 
@@ -26,9 +24,6 @@ class TicketCardHome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Build a three-layer shadow using a single opacity parameter.
-    // Always provide a shadow: if `shadowOpacity` is <= 0, fall back to
-    // a default so the shadow remains visible.
     final effectiveOpacity = shadowOpacity > 0 ? shadowOpacity : 0.22;
     final boxShadow = [
       BoxShadow(

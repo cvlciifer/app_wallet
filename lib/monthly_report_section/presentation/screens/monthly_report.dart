@@ -1,29 +1,6 @@
 import 'package:app_wallet/library_section/main_library.dart';
 import 'dart:math' as math;
 
-class _HolePainter extends CustomPainter {
-  final Rect holeRect;
-  final double borderRadius;
-  final Color overlayColor;
-
-  _HolePainter({required this.holeRect, this.borderRadius = 8.0, required this.overlayColor});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = overlayColor;
-    canvas.saveLayer(Offset.zero & size, Paint());
-    canvas.drawRect(Offset.zero & size, paint);
-    final clearPaint = Paint()..blendMode = BlendMode.clear;
-    canvas.drawRRect(RRect.fromRectAndRadius(holeRect, Radius.circular(borderRadius)), clearPaint);
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _HolePainter old) {
-    return old.holeRect != holeRect || old.borderRadius != borderRadius || old.overlayColor != overlayColor;
-  }
-}
-
 class InformeMensualScreen extends StatefulWidget {
   final List<Expense> expenses;
 
@@ -154,8 +131,8 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
         ),
         automaticallyImplyLeading: true,
       ),
-      body: Container(
-        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             // Floating card at the top
@@ -345,7 +322,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
               children: [
                 Positioned.fill(
                   child: CustomPaint(
-                    painter: _HolePainter(
+                    painter: HolePainter(
                       holeRect: Rect.fromLTWH(
                         targetPos.dx - 8,
                         targetPos.dy - 8,
