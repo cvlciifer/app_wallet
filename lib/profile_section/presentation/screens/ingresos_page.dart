@@ -63,7 +63,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
           final args = ModalRoute.of(context)?.settings.arguments;
           final shouldRun = (args is Map && args['showFTUOnIngresos'] == true);
           if (shouldRun) {
-            await Future.delayed(const Duration(milliseconds: 150));
+            await Future.delayed(const Duration(milliseconds: 300));
             await _runIngresosOnboardingSequence();
           }
         } catch (_) {}

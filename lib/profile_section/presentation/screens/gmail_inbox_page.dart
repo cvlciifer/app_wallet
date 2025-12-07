@@ -76,27 +76,25 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
   bool _isOutgoingMessage(GmailMessageInfo m) {
     final textToAnalyze = '${m.subject} ${m.snippet} ${m.from}'.toLowerCase();
 
+    // Excluir correos de mensajería
+    final normalizedFrom = m.from.toLowerCase().replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
+    if (normalizedFrom.contains('mensajeria@correobancoestado.cl')) {
+      return false;
+    }
+
     final knownSenders = <String>[
       'noreply@correo.bancoestado.cl',
       'notificaciones@correo.bancoestado.cl',
     ];
 
     final bancoEstadoPhrases = <String>[
-      'se ha realizado una transferencia desde su cuenta corriente',
-      'se ha realizado una compra',
-      'se ha efectuado un pago a través de su tarjeta de débito',
-      'se ha descontado el monto de',
-      'ha realizado una compra en',
-      'le informamos que su pago ha sido procesado exitosamente',
-      'se ha cargado el monto correspondiente a su tarjeta',
-      'Se ha realizado una compra por',
-      'Notificación de compra',
-      'Se ha realizado un giro en',
-      'Acabas de realizar una Transferencia Electronica',
+      'Se ha realizado una compra por ',
+      'Se ha realizado un giro en ',
+      'Se ha realizado un cobro por',
+      'Acabas de realizar una Transferencia Electronica, con los siguientes datos:',
     ];
 
     final normalized = textToAnalyze.replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
-    final normalizedFrom = m.from.toLowerCase().replaceAll('é', 'e').replaceAll('ó', 'o').replaceAll('á', 'a');
 
     if (knownSenders.any((s) => normalizedFrom.contains(s))) {
       if (normalized.contains('pago') ||
@@ -119,6 +117,8 @@ class _GmailInboxPageState extends State<GmailInboxPage> {
       RegExp(r'transferencia enviad', caseSensitive: false),
       RegExp(r'ha realizado una compra en|compra por internet|compra registrada', caseSensitive: false),
       RegExp(r'cargo automatico|cargo por pago|se realizo un cargo', caseSensitive: false),
+      RegExp(r'Monto transferido:', caseSensitive: false),
+      RegExp(r'por ', caseSensitive: false),
     ];
 
     for (final re in generalPatterns) {

@@ -56,7 +56,7 @@ class _FTUAddRecurrentPageState extends State<FTUAddRecurrentPage> {
 
   Future<void> _runFTUSequence() async {
     try {
-      await Future.delayed(const Duration(milliseconds: 150));
+      await Future.delayed(const Duration(milliseconds: 250));
       await _showOverlayForKey(_titleKey, title: 'Título', message: 'Nombre que identifica este gasto recurrente.');
       await _showOverlayForKey(_categoryKey, title: 'Categoría', message: 'Selecciona la categoría del gasto.');
       await _showOverlayForKey(_amountKey, title: 'Precio', message: 'Introduce el monto del pago recurrente.');

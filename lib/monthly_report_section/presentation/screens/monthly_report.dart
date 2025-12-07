@@ -247,7 +247,7 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   Future<void> _showInformesFTU() async {
     try {
       if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 150));
+      await Future.delayed(const Duration(milliseconds: 500));
 
       // Paso 1: Destacar la card de total de gastos
       await _showOverlayForKey(

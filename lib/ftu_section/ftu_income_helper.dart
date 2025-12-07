@@ -34,7 +34,7 @@ class FTUIncomeHelper {
         }
       }
       if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 150));
+      await Future.delayed(const Duration(milliseconds: 400));
 
       final ctx = editIconKey.currentContext;
       if (ctx == null) return;
