@@ -60,7 +60,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         color: AwColors.boldBlack, size: AwSize.s20),
                     AwSpacing.s6,
                     const AwText.normal(
-                      'Con esta aplicación tendrás una gestión económica más optimizada.',
+                      'Ingresa tus datos para completar el registro.',
                       size: AwSize.s14,
                       color: AwColors.modalGrey,
                     ),
@@ -212,7 +212,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                             title:
                                                 '¡Felicitaciones, ya has creado tu cuenta!',
                                             content:
-                                                'Verifica tu correo y la carpeta de spam para finalizar la creación de tu cuenta.',
+                                                'Se ha enviado un correo de verificación. Por favor, revisa la carpeta de spam y verifícate.',
                                             okLabel: 'Entendido',
                                           );
                                         });
