@@ -146,7 +146,6 @@ export 'package:app_wallet/welcome_section/presentation/screens/terms_page.dart'
 export 'package:app_wallet/components_section/widgets/home_income_card.dart';
 export 'package:app_wallet/components_section/widgets/month_selector.dart';
 export 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
-export 'package:app_wallet/core/ftu_config/ftu_config.dart';
 export 'package:app_wallet/ftu_section/first_time_onboarding_dialog.dart';
 export 'package:app_wallet/home_section/presentation/screens/two_options.dart';
 export 'package:app_wallet/ftu_section/ftu_add_expense.dart';

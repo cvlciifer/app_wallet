@@ -44,9 +44,20 @@ class FirstTimeOnboardingDialog extends StatelessWidget {
                     AwSpacing.w12,
                     Expanded(
                       child: WalletButton.textButton(
-                        buttonText: 'Ahora no',
-                        onPressed: () {
-                          Navigator.of(context).pop(false);
+                        buttonText: 'No, Gracias',
+                        colorText: AwColors.red,
+                        onPressed: () async {
+                          // Marcar todos los FTU como completados para cerrar el flujo completamente
+                          try {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setBool('first_time_onboarding_shown', true);
+                            await prefs.setBool('first_time_income_shown', true);
+                            await prefs.setBool('first_time_add_shown', true);
+                            await prefs.setBool('ftu_rejected', true);
+                          } catch (_) {}
+                          if (context.mounted) {
+                            Navigator.of(context).pop(false);
+                          }
                         },
                       ),
                     ),

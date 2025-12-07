@@ -2,7 +2,6 @@ import 'package:app_wallet/library_section/main_library.dart';
 import 'package:app_wallet/profile_section/presentation/screens/registro_ingresos_page.dart';
 import 'dart:developer' as developer;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:app_wallet/core/ftu_config/ftu_config.dart';
 import 'dart:math' as math;
 import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
 
@@ -62,7 +61,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
       WidgetsBinding.instance.addPostFrameCallback((__) async {
         try {
           final args = ModalRoute.of(context)?.settings.arguments;
-          final shouldRun = (args is Map && args['showFTUOnIngresos'] == true) || kForceFTU;
+          final shouldRun = (args is Map && args['showFTUOnIngresos'] == true);
           if (shouldRun) {
             await Future.delayed(const Duration(milliseconds: 300));
             await _runIngresosOnboardingSequence();

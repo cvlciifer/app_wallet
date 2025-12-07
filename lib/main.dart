@@ -462,7 +462,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                         // ignore: deprecated_member_use
                         color: AwColors.black.withOpacity(0.45),
                         child: const Center(
-                          child: WalletLoader(color: AwColors.appBarColor),
+                          child: WalletLoader(color: AwColors.white),
                         ),
                       ),
                     ),

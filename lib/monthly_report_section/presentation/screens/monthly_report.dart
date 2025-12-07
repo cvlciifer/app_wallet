@@ -45,10 +45,19 @@ class _InformeMensualScreenState extends State<InformeMensualScreen> {
   void initState() {
     super.initState();
     _initializeSelectedMonthYear();
-    // Mostrar FTU después de que se construya la pantalla
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Mostrar FTU solo si viene del flujo FTU y el usuario no lo rechazó
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!_ftuShown) {
-        _showInformesFTU();
+        try {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          if (args is Map && args['showFTUOnInformes'] == true) {
+            final prefs = await SharedPreferences.getInstance();
+            final rejected = prefs.getBool('ftu_rejected') ?? false;
+            if (!rejected) {
+              _showInformesFTU();
+            }
+          }
+        } catch (_) {}
         _ftuShown = true;
       }
     });

@@ -9,20 +9,27 @@ class FTUIncomeHelper {
     try {
       final prefs = await SharedPreferences.getInstance();
       final shown = prefs.getBool('first_time_income_shown') ?? false;
+      final rejected = prefs.getBool('ftu_rejected') ?? false;
 
-      if (!kForceFTU && shown) return;
+      // Si el usuario rechazó el FTU, no mostrar nada
+      if (rejected || shown) return;
 
       final onboardingShown = prefs.getBool('first_time_onboarding_shown') ?? false;
-      if ((kForceFTU || !onboardingShown) && context.mounted) {
+      if (!onboardingShown && context.mounted) {
         final result = await showDialog<bool>(
           context: context,
           barrierDismissible: true,
           builder: (_) => const FirstTimeOnboardingDialog(),
         );
 
-        if (result == true || result == false) {
+        // Si el usuario rechazó, salir inmediatamente
+        if (result == false) {
+          return;
+        }
+
+        if (result == true) {
           try {
-            if (!kForceFTU) await prefs.setBool('first_time_onboarding_shown', true);
+            await prefs.setBool('first_time_onboarding_shown', true);
           } catch (_) {}
         }
       }

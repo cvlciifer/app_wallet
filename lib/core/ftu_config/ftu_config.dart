@@ -1,3 +1,2 @@
-// FTU (First Time User) feature flags for debugging/testing
-// Set `kForceFTU` to true to force-show FTU flows during development.
-const bool kForceFTU = false;
+// Este archivo se mantiene por compatibilidad, pero ya no se utiliza kForceFTU.
+// El flujo FTU ahora se controla completamente mediante SharedPreferences.

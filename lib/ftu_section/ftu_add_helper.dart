@@ -9,7 +9,10 @@ class FTUAddHelper {
     try {
       final prefs = await SharedPreferences.getInstance();
       final shown = prefs.getBool('first_time_add_shown') ?? false;
-      if (!kForceFTU && shown) return;
+      final rejected = prefs.getBool('ftu_rejected') ?? false;
+
+      // Si el usuario rechazó el FTU o ya lo vio, no mostrar nada
+      if (rejected || shown) return;
       if (!context.mounted) return;
       await Future.delayed(const Duration(milliseconds: 300));
 

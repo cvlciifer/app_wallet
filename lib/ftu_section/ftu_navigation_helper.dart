@@ -227,6 +227,7 @@ class FTUNavigationHelper {
                                         builder: (ctx) => InformeMensualScreen(
                                           expenses: allExpenses,
                                         ),
+                                        settings: const RouteSettings(arguments: {'showFTUOnInformes': true}),
                                       ),
                                     );
                                   } catch (_) {}
