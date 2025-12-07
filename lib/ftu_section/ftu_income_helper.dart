@@ -34,7 +34,7 @@ class FTUIncomeHelper {
         }
       }
       if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       final ctx = editIconKey.currentContext;
       if (ctx == null) return;
@@ -49,7 +49,7 @@ class FTUIncomeHelper {
         barrierDismissible: false,
         barrierLabel: 'first_time_income',
         barrierColor: Colors.transparent,
-        transitionDuration: const Duration(milliseconds: 200),
+        transitionDuration: const Duration(milliseconds: 150),
         pageBuilder: (context, a1, a2) {
           return Material(
             color: Colors.transparent,

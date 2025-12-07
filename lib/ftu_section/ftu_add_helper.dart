@@ -14,7 +14,7 @@ class FTUAddHelper {
       // Si el usuario rechazó el FTU o ya lo vio, no mostrar nada
       if (rejected || shown) return;
       if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       final ctx = fabKey.currentContext;
       if (ctx == null) return;

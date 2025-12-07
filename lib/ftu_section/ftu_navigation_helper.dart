@@ -9,7 +9,7 @@ class FTUNavigationHelper {
   ) async {
     try {
       if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       final ctx = statisticsButtonKey.currentContext;
       if (ctx == null) return;
@@ -132,7 +132,7 @@ class FTUNavigationHelper {
   ) async {
     try {
       if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       final ctx = informesButtonKey.currentContext;
       if (ctx == null) return;
@@ -254,7 +254,7 @@ class FTUNavigationHelper {
   ) async {
     try {
       if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       final ctx = miWalletButtonKey.currentContext;
       if (ctx == null) return;

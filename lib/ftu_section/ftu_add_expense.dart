@@ -40,7 +40,7 @@ class _FTUAddExpensePageState extends State<FTUAddExpensePage> {
                         final popupCtx = Navigator.of(context, rootNavigator: true).overlay?.context ?? context;
 
                         // Esperar un poco antes de mostrar el diálogo FTU
-                        await Future.delayed(const Duration(milliseconds: 300));
+                        await Future.delayed(const Duration(milliseconds: 150));
 
                         // Llamar a showFTUTwoOptions iniciando desde el paso 'recurrent'
                         // ya que el paso 'expense' fue completado
