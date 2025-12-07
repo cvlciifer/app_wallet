@@ -31,6 +31,10 @@ class RegisterProvider extends ChangeNotifier {
 
       final String token = userCredential.user?.uid ?? '';
 
+      // Verificar si el usuario ya existía en Registros antes de crear el perfil
+      final registroSnapshot = await _firestore.collection('Registros').doc(emailLower).get();
+      final bool isFirstTimeUser = !registroSnapshot.exists;
+
       await _firestore.collection('Registros').doc(email).set({
         'email': emailLower,
         'username': username,
@@ -38,13 +42,16 @@ class RegisterProvider extends ChangeNotifier {
         'created_at': FieldValue.serverTimestamp(),
       });
 
-      await _firestore.collection('usuarios').doc(emailLower).collection('gastos').doc(userCredential.user?.uid).set({
-        'name': "Bienvenido a AdminWallet",
-      });
+      // Solo crear el gasto de bienvenida si es la primera vez que se registra el usuario
+      if (isFirstTimeUser) {
+        await _firestore.collection('usuarios').doc(emailLower).collection('gastos').doc(userCredential.user?.uid).set({
+          'name': "Bienvenido a AdminWallet",
+        });
 
-      await _firestore.collection('usuarios').doc(emailLower).collection('ingresos').doc(userCredential.user?.uid).set({
-        'name': "Bienvenido a AdminWallet",
-      });
+        await _firestore.collection('usuarios').doc(emailLower).collection('ingresos').doc(userCredential.user?.uid).set({
+          'name': "Bienvenido a AdminWallet",
+        });
+      }
 
       onSuccess();
     } on FirebaseAuthException catch (e) {
