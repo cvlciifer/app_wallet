@@ -100,9 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _isPasswordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off,
+                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {
@@ -124,8 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => ForgotPasswordScreen()),
+                      MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
                     );
                   },
                 ),
@@ -138,17 +135,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       setState(() {
                         _errorMessage = null;
                       });
-                      if (_emailController.text.trim().isEmpty ||
-                          _passwordController.text.trim().isEmpty) {
+                      if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
                         if (!mounted) return;
                         setState(() {
-                          _errorMessage =
-                              'Por favor, ingresa tu email y contraseña.';
+                          _errorMessage = 'Por favor, ingresa tu email y contraseña.';
                         });
                         return;
                       }
-                      String emailPattern =
-                          r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+                      String emailPattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
                       RegExp regex = RegExp(emailPattern);
                       if (!regex.hasMatch(_emailController.text.trim())) {
                         if (!mounted) return;
@@ -160,14 +154,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (_passwordController.text.trim().length < 6) {
                         if (!mounted) return;
                         setState(() {
-                          _errorMessage =
-                              'La contraseña debe tener al menos 6 caracteres.';
+                          _errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
                         });
                         return;
                       }
 
-                      final loginProvider =
-                          Provider.of<LoginProvider>(context, listen: false);
+                      final loginProvider = Provider.of<LoginProvider>(context, listen: false);
                       await loginProvider.loginUser(
                         email: _emailController.text.trim(),
                         password: _passwordController.text.trim(),
@@ -176,16 +168,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (!mounted) return;
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(
-                                builder: (_) => const AuthWrapper()),
+                            MaterialPageRoute(builder: (_) => const AuthWrapper()),
                           );
                         },
                         onError: (error) {
                           String translatedError;
-                          if (error ==
-                              'The supplied auth credential is incorrect, malformed or has expired.') {
+                          if (error == 'The supplied auth credential is incorrect, malformed or has expired.') {
                             translatedError =
-                                'Las credenciales de autenticación proporcionadas son incorrectas, están mal formadas o han expirado.';
+                                'Las credenciales de autenticación proporcionadas son incorrectas, o no está verificado su usuario.';
                           } else {
                             translatedError = error;
                           }
@@ -208,16 +198,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       _errorMessage = null;
                     });
 
-                    final loginProvider =
-                        Provider.of<LoginProvider>(context, listen: false);
+                    final loginProvider = Provider.of<LoginProvider>(context, listen: false);
 
                     await loginProvider.signInWithGoogle(
                       onSuccess: () {
                         if (!mounted) return;
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(
-                              builder: (_) => const AuthWrapper()),
+                          MaterialPageRoute(builder: (_) => const AuthWrapper()),
                         );
                       },
                       onError: (error) {
@@ -231,8 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 AwSpacing.s20,
                 Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).padding.bottom + 24),
+                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 24),
                   child: Center(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -244,9 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.bold,
                         );
                         final qp = TextPainter(
-                          text: TextSpan(
-                              text: '¿No tienes una cuenta?',
-                              style: questionStyle),
+                          text: TextSpan(text: '¿No tienes una cuenta?', style: questionStyle),
                           textDirection: TextDirection.ltr,
                           textScaleFactor: textScale,
                         )..layout();
@@ -258,8 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: AwColors.blue,
                         );
                         final bp = TextPainter(
-                          text:
-                              TextSpan(text: 'Registrarse', style: buttonStyle),
+                          text: TextSpan(text: 'Registrarse', style: buttonStyle),
                           textDirection: TextDirection.ltr,
                           textScaleFactor: textScale,
                         )..layout();
@@ -267,8 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Estimate total width with spacing and a small guard
                         final spacing = 6.0;
                         final guard = 24.0; // room for shadows/padding
-                        final totalNeeded =
-                            qp.width + spacing + bp.width + guard;
+                        final totalNeeded = qp.width + spacing + bp.width + guard;
 
                         final fitsInline = totalNeeded <= constraints.maxWidth;
 
@@ -284,8 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                        builder: (context) => RegisterScreen()),
+                                    MaterialPageRoute(builder: (context) => RegisterScreen()),
                                   );
                                 },
                               ),
@@ -303,8 +285,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                        builder: (context) => RegisterScreen()),
+                                    MaterialPageRoute(builder: (context) => RegisterScreen()),
                                   );
                                 },
                               ),
