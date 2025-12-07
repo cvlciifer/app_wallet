@@ -70,8 +70,15 @@ flutter {
     // El plugin de Flutter debe ir después de los plugins de Android y Kotlin.
     id "dev.flutter.flutter-gradle-plugin"
 }
+
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:34.0.0')
+    
+    // ADD: App Distribution API-only library (para todas las variantes)
+    implementation 'com.google.firebase:firebase-appdistribution-api-ktx:16.0.0-beta15'
+    
+    // ADD: App Distribution SDK completo (solo para variante beta)
+    betaImplementation 'com.google.firebase:firebase-appdistribution:16.0.0-beta17'
 }
 
 def localProperties = new Properties()
@@ -111,10 +118,26 @@ android {
         versionName = flutterVersionName  // Nombre de la versión
     }
 
+    flavorDimensions "environment"
+    productFlavors {
+        production {
+            dimension "environment"
+            applicationIdSuffix ""
+        }
+        beta {
+            dimension "environment"
+            applicationIdSuffix ".beta"
+            versionNameSuffix "-beta"
+        }
+    }
+
     buildTypes {
         release {
             // Añade tu propia configuración de firma para builds de release
             signingConfig = signingConfigs.debug // Temporalmente usas la firma de debug
+        }
+        debug {
+            signingConfig = signingConfigs.debug
         }
     }
 }

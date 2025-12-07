@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">App Wallet</string>
+    
+    <!-- Mensaje de información sobre la recopilación de comentarios para App Distribution -->
+    <string name="feedback_additional_info">Tus comentarios nos ayudan a mejorar la aplicación. Los datos de comentarios se recopilan y procesan según nuestra política de privacidad.</string>
+    
+    <!-- Mensaje alternativo para activador personalizado de comentarios -->
+    <string name="feedback_message">¿Tienes comentarios sobre esta versión? Compártelos con nosotros.</string>
+</resources>
