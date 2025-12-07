@@ -545,14 +545,14 @@ class _WalletProfilePageState extends ConsumerState<WalletProfilePage> {
                     'Has terminado el recorrido guiado del primer uso de la app.',
                     size: AwSize.s14,
                     color: AwColors.modalGrey,
-                    textAlign: TextAlign.center,
+                    textAlign: TextAlign.left,
                   ),
                   AwSpacing.s12,
                   const AwText.normal(
-                    'Muchas gracias por utilizar Admin Wallet 💙',
+                    'Muchas gracias por utilizar Admin Wallet',
                     size: AwSize.s16,
                     color: AwColors.boldBlack,
-                    textAlign: TextAlign.center,
+                    textAlign: TextAlign.left,
                   ),
                   AwSpacing.m,
                   SizedBox(

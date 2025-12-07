@@ -83,11 +83,6 @@ Future<void> showFTUTwoOptions(
                       ),
                       child: Column(
                         children: [
-                          AwText.bold(
-                            isExpenseStep ? 'Paso 1 de 2' : 'Paso 2 de 2',
-                            color: AwColors.appBarColor,
-                            size: AwSize.s12,
-                          ),
                           AwSpacing.s6,
                           AwText.normal(
                             isExpenseStep

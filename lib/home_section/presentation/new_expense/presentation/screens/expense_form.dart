@@ -64,17 +64,15 @@ class _ExpenseFormState extends State<ExpenseForm> {
       _selectedCategory = init.category;
       _selectedSubcategoryId = init.subcategoryId;
 
-      // Usar toInt() para evitar que el ".0" de un double introduzca un dígito extra
       _amountController.text = NumberFormatHelper.formatAmount(init.amount.toInt().toString());
       _categoryController.text = init.category.toString().split('.').last;
     } else if (widget.showFTUOnOpen) {
-      // Si estamos en modo FTU, prellenar los campos con datos de ejemplo
       _titleController.text = 'Cuenta';
       _amountController.text = NumberFormatHelper.formatAmount('12345');
       _selectedCategory = Category.comidaBebida;
       _categoryController.text = 'Comida y Bebida';
     }
-    // Si no hay un gasto inicial, por defecto seleccionar la fecha de hoy
+
     _selectedDate ??= DateTime.now();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -175,7 +173,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
       await _showOverlayForKey(_amountKey, title: 'Precio', message: 'Ingresa el monto del gasto aquí.');
       await _showOverlayForKey(_dateKey, title: 'Fecha', message: 'Selecciona la fecha del gasto.');
       await _showOverlayForKey(_submitKey,
-          title: 'Añadir Gasto', message: 'Presiona "Añadir Gasto" para guardar y continuar al siguiente paso.');
+          title: 'Añadir Gasto', message: 'Para guardar tu gasto presiona este botón.');
     } catch (_) {}
   }
 
@@ -197,18 +195,18 @@ class _ExpenseFormState extends State<ExpenseForm> {
 
       await showGeneralDialog(
         context: context,
-        barrierDismissible: true,
+        barrierDismissible: false,
         barrierLabel: 'expense_form_ftu',
         barrierColor: Colors.transparent,
         transitionDuration: const Duration(milliseconds: 200),
         pageBuilder: (context, a1, a2) {
-          return GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Material(
-              color: Colors.transparent,
-              child: Stack(
-                children: [
-                  Positioned.fill(
+          return Material(
+            color: Colors.transparent,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: AbsorbPointer(
+                    absorbing: true,
                     child: CustomPaint(
                       painter: _HolePainter(
                         holeRect: Rect.fromLTWH(
@@ -222,78 +220,76 @@ class _ExpenseFormState extends State<ExpenseForm> {
                       ),
                     ),
                   ),
-                  Positioned(
-                    left: targetPos.dx - 8,
-                    top: targetPos.dy - 8,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Container(
-                        width: targetSize.width + 16,
-                        height: targetSize.height + 16,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AwColors.appBarColor, width: 3),
-                        ),
-                        child: const SizedBox.shrink(),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: (() {
-                      final screenW = MediaQuery.of(context).size.width;
-                      final popupW = math.min(320, screenW - 32);
-                      return (screenW - popupW) / 2;
-                    })(),
-                    top: (() {
-                      final screenH = MediaQuery.of(context).size.height;
-                      const popupApproxH = 140.0;
-                      final preferAbove = targetPos.dy - popupApproxH - 12;
-                      if (preferAbove >= 16) return preferAbove;
-                      final preferBelow = targetPos.dy + targetSize.height + 12;
-                      final maxTop = screenH - popupApproxH;
-                      return preferBelow > maxTop ? maxTop : preferBelow;
-                    })(),
+                ),
+                Positioned(
+                  left: targetPos.dx - 8,
+                  top: targetPos.dy - 8,
+                  child: Material(
+                    color: Colors.transparent,
                     child: Container(
-                      width: math.min(320, MediaQuery.of(context).size.width - 32),
-                      padding: const EdgeInsets.all(12),
+                      width: targetSize.width + 16,
+                      height: targetSize.height + 16,
                       decoration: BoxDecoration(
-                        color: AwColors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: AwColors.black.withOpacity(0.18), blurRadius: 8)],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AwColors.appBarColor, width: 3),
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AwText.bold(title, size: AwSize.s14),
-                          AwSpacing.s6,
-                          AwText.normal(message, size: AwSize.s12, color: AwColors.modalGrey),
-                          AwSpacing.s10,
-                          Row(
-                            children: [
-                              Expanded(
-                                child: WalletButton.primaryButton(
-                                  buttonText: continueText,
-                                  onPressed: () async {
-                                    Navigator.of(context).pop();
-                                    // If this is the final FTU step (submit), execute the same
-                                    // behavior as pressing the "Añadir Gasto" button
-                                    try {
-                                      if (widget.showFTUOnOpen && key == _submitKey) {
-                                        // Call _submitForm to validate and save the expense
-                                        _submitForm();
-                                      }
-                                    } catch (_) {}
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                      child: const SizedBox.shrink(),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Positioned(
+                  left: (() {
+                    final screenW = MediaQuery.of(context).size.width;
+                    final popupW = math.min(320, screenW - 32);
+                    return (screenW - popupW) / 2;
+                  })(),
+                  top: (() {
+                    final screenH = MediaQuery.of(context).size.height;
+                    const popupApproxH = 140.0;
+                    final preferAbove = targetPos.dy - popupApproxH - 12;
+                    if (preferAbove >= 16) return preferAbove;
+                    final preferBelow = targetPos.dy + targetSize.height + 12;
+                    final maxTop = screenH - popupApproxH;
+                    return preferBelow > maxTop ? maxTop : preferBelow;
+                  })(),
+                  child: Container(
+                    width: math.min(320, MediaQuery.of(context).size.width - 32),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AwColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [BoxShadow(color: AwColors.black.withOpacity(0.18), blurRadius: 8)],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AwText.bold(title, size: AwSize.s14),
+                        AwSpacing.s6,
+                        AwText.normal(message, size: AwSize.s12, color: AwColors.modalGrey),
+                        AwSpacing.s10,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: WalletButton.primaryButton(
+                                buttonText: continueText,
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+
+                                  try {
+                                    if (widget.showFTUOnOpen && key == _submitKey) {
+                                      _submitForm();
+                                    }
+                                  } catch (_) {}
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },

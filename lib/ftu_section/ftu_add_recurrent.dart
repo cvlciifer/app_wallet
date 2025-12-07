@@ -63,9 +63,7 @@ class _FTUAddRecurrentPageState extends State<FTUAddRecurrentPage> {
       await _showOverlayForKey(_dayKey, title: 'Día', message: 'El día del mes en que se repetirá el pago.');
       await _showOverlayForKey(_monthsKey, title: 'Meses', message: 'Cantidad de meses que durará el recurrente.');
       await _showOverlayForKey(_submitKey,
-          title: 'Crear Recurrente',
-          message: 'Presiona este botón para continuar con el siguiente paso de la guía.',
-          isFinalStep: true);
+          title: 'Crear Recurrente', message: 'Para Guardar tu recurrente, presiona este botón.', isFinalStep: true);
     } catch (_) {}
   }
 
@@ -87,89 +85,86 @@ class _FTUAddRecurrentPageState extends State<FTUAddRecurrentPage> {
 
       await showGeneralDialog(
         context: context,
-        barrierDismissible: true,
+        barrierDismissible: false,
         barrierLabel: 'recurrent_ftu',
         barrierColor: Colors.transparent,
         transitionDuration: const Duration(milliseconds: 200),
         pageBuilder: (context, a1, a2) {
-          return GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Material(
-              color: Colors.transparent,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _HolePainter(
-                        holeRect: Rect.fromLTWH(
-                          targetPos.dx - 8,
-                          targetPos.dy - 8,
-                          targetSize.width + 16,
-                          targetSize.height + 16,
-                        ),
-                        borderRadius: 8.0,
-                        overlayColor: AwColors.black.withOpacity(0.45),
+          return Material(
+            color: Colors.transparent,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _HolePainter(
+                      holeRect: Rect.fromLTWH(
+                        targetPos.dx - 8,
+                        targetPos.dy - 8,
+                        targetSize.width + 16,
+                        targetSize.height + 16,
                       ),
+                      borderRadius: 8.0,
+                      overlayColor: AwColors.black.withOpacity(0.45),
                     ),
                   ),
-                  Positioned(
-                    left: (() {
-                      final screenW = MediaQuery.of(context).size.width;
-                      final popupW = math.min(320, screenW - 32);
-                      return (screenW - popupW) / 2;
-                    })(),
-                    top: (() {
-                      final screenH = MediaQuery.of(context).size.height;
-                      const popupApproxH = 140.0;
-                      final preferAbove = targetPos.dy - popupApproxH - 12;
-                      if (preferAbove >= 16) return preferAbove;
-                      final preferBelow = targetPos.dy + targetSize.height + 12;
-                      final maxTop = screenH - popupApproxH;
-                      return preferBelow > maxTop ? maxTop : preferBelow;
-                    })(),
-                    child: Container(
-                      width: math.min(320, MediaQuery.of(context).size.width - 32),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AwColors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: AwColors.black.withOpacity(0.18), blurRadius: 8)],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AwText.bold(title, size: AwSize.s14),
-                          AwSpacing.s6,
-                          AwText.normal(message, size: AwSize.s12, color: AwColors.modalGrey),
-                          AwSpacing.s10,
-                          Row(
-                            children: [
-                              Expanded(
-                                child: WalletButton.primaryButton(
-                                  buttonText: 'Entendido',
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    if (isFinalStep) {
-                                      try {
-                                        // Navegar de vuelta al home para continuar con el tutorial de estadísticas
-                                        Navigator.of(popupCtx).pushNamedAndRemoveUntil(
-                                          '/home-page',
-                                          (r) => false,
-                                          arguments: {'continueFTUToStatistics': true},
-                                        );
-                                      } catch (_) {}
-                                    }
-                                  },
-                                ),
+                ),
+                Positioned(
+                  left: (() {
+                    final screenW = MediaQuery.of(context).size.width;
+                    final popupW = math.min(320, screenW - 32);
+                    return (screenW - popupW) / 2;
+                  })(),
+                  top: (() {
+                    final screenH = MediaQuery.of(context).size.height;
+                    const popupApproxH = 140.0;
+                    final preferAbove = targetPos.dy - popupApproxH - 12;
+                    if (preferAbove >= 16) return preferAbove;
+                    final preferBelow = targetPos.dy + targetSize.height + 12;
+                    final maxTop = screenH - popupApproxH;
+                    return preferBelow > maxTop ? maxTop : preferBelow;
+                  })(),
+                  child: Container(
+                    width: math.min(320, MediaQuery.of(context).size.width - 32),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AwColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [BoxShadow(color: AwColors.black.withOpacity(0.18), blurRadius: 8)],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AwText.bold(title, size: AwSize.s14),
+                        AwSpacing.s6,
+                        AwText.normal(message, size: AwSize.s12, color: AwColors.modalGrey),
+                        AwSpacing.s10,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: WalletButton.primaryButton(
+                                buttonText: 'Entendido',
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  if (isFinalStep) {
+                                    try {
+                                      // Navegar de vuelta al home para continuar con el tutorial de estadísticas
+                                      Navigator.of(popupCtx).pushNamedAndRemoveUntil(
+                                        '/home-page',
+                                        (r) => false,
+                                        arguments: {'continueFTUToStatistics': true},
+                                      );
+                                    } catch (_) {}
+                                  }
+                                },
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
@@ -261,7 +256,7 @@ class _FTUAddRecurrentPageState extends State<FTUAddRecurrentPage> {
               Container(
                 key: _submitKey,
                 child: WalletButton.primaryButton(
-                    buttonText: 'Continuar',
+                    buttonText: 'Agregar Recurrente',
                     onPressed: () {
                       try {
                         Navigator.of(context).pushNamedAndRemoveUntil(

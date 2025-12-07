@@ -108,7 +108,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
       await _showOverlayForKey(
         _saveButtonKey,
         title: 'Guardar ingreso',
-        message: 'Presiona Guardar Ingreso para aplicar los cambios. Al continuar volverás al Home.',
+        message: 'Presiona Guardar Ingreso para aplicar los cambios.',
         continueText: 'Continuar',
       );
 

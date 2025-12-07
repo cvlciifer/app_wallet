@@ -99,87 +99,84 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
 
       await showGeneralDialog(
         context: context,
-        barrierDismissible: true,
+        barrierDismissible: false,
         barrierLabel: 'statistics_ftu',
         barrierColor: Colors.transparent,
         transitionDuration: const Duration(milliseconds: 200),
         pageBuilder: (context, a1, a2) {
-          return GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Material(
-              color: Colors.transparent,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _HolePainter(
-                        holeRect: Rect.fromLTWH(
-                          targetPos.dx - 8,
-                          targetPos.dy - 8,
-                          targetSize.width + 16,
-                          targetSize.height + 16,
-                        ),
-                        borderRadius: 8.0,
-                        overlayColor: Colors.black.withOpacity(0.45),
+          return Material(
+            color: Colors.transparent,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _HolePainter(
+                      holeRect: Rect.fromLTWH(
+                        targetPos.dx - 8,
+                        targetPos.dy - 8,
+                        targetSize.width + 16,
+                        targetSize.height + 16,
                       ),
+                      borderRadius: 8.0,
+                      overlayColor: Colors.black.withOpacity(0.45),
                     ),
                   ),
-                  Positioned(
-                    left: (() {
-                      final screenW = MediaQuery.of(context).size.width;
-                      final popupW = math.min(320, screenW - 32);
-                      return (screenW - popupW) / 2;
-                    })(),
-                    top: (() {
-                      final screenH = MediaQuery.of(context).size.height;
-                      const popupApproxH = 140.0;
-                      final preferAbove = targetPos.dy - popupApproxH - 12;
-                      if (preferAbove >= 16) return preferAbove;
-                      final preferBelow = targetPos.dy + targetSize.height + 12;
-                      final maxTop = screenH - popupApproxH;
-                      return preferBelow > maxTop ? maxTop : preferBelow;
-                    })(),
-                    child: Container(
-                      width: math.min(320, MediaQuery.of(context).size.width - 32),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 8)],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AwText.bold(title, size: AwSize.s14),
-                          AwSpacing.s6,
-                          AwText.normal(message, size: AwSize.s12, color: AwColors.modalGrey),
-                          AwSpacing.s10,
-                          Row(
-                            children: [
-                              Expanded(
-                                child: WalletButton.primaryButton(
-                                  buttonText: isFinalStep ? 'Continuar' : 'Entendido',
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    if (isFinalStep) {
-                                      // Navigate to home and highlight Informes button
-                                      Navigator.of(context).pushNamedAndRemoveUntil(
-                                        '/home-page',
-                                        (r) => false,
-                                        arguments: {'highlightInformesButton': true},
-                                      );
-                                    }
-                                  },
-                                ),
+                ),
+                Positioned(
+                  left: (() {
+                    final screenW = MediaQuery.of(context).size.width;
+                    final popupW = math.min(320, screenW - 32);
+                    return (screenW - popupW) / 2;
+                  })(),
+                  top: (() {
+                    final screenH = MediaQuery.of(context).size.height;
+                    const popupApproxH = 140.0;
+                    final preferAbove = targetPos.dy - popupApproxH - 12;
+                    if (preferAbove >= 16) return preferAbove;
+                    final preferBelow = targetPos.dy + targetSize.height + 12;
+                    final maxTop = screenH - popupApproxH;
+                    return preferBelow > maxTop ? maxTop : preferBelow;
+                  })(),
+                  child: Container(
+                    width: math.min(320, MediaQuery.of(context).size.width - 32),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 8)],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AwText.bold(title, size: AwSize.s14),
+                        AwSpacing.s6,
+                        AwText.normal(message, size: AwSize.s12, color: AwColors.modalGrey),
+                        AwSpacing.s10,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: WalletButton.primaryButton(
+                                buttonText: isFinalStep ? 'Continuar' : 'Entendido',
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  if (isFinalStep) {
+                                    // Navigate to home and highlight Informes button
+                                    Navigator.of(context).pushNamedAndRemoveUntil(
+                                      '/home-page',
+                                      (r) => false,
+                                      arguments: {'highlightInformesButton': true},
+                                    );
+                                  }
+                                },
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
