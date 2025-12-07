@@ -82,7 +82,6 @@ class AwAlert {
       barrierColor: AwColors.black.withOpacity(0.45),
       builder: (ctx) {
         final textScale = MediaQuery.of(ctx).textScaleFactor;
-        // Si el textScale es mayor a 1.2 (zoom activado), usar tamaños reducidos
         final adjustedTitleSize =
             textScale > 1.2 ? titleSize * 0.70 : titleSize;
         final adjustedContentSize =
