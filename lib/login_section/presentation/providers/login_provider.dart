@@ -152,6 +152,12 @@ class LoginProvider extends ChangeNotifier {
   Future<void> _createUserProfile(User user) async {
     try {
       final emailLower = (user.email ?? '').toLowerCase();
+
+      // Verificar si el usuario ya existía en Registros antes de crear el perfil
+      final registroSnapshot =
+          await _firestore.collection('Registros').doc(emailLower).get();
+      final bool isFirstTimeUser = !registroSnapshot.exists;
+
       await _firestore.collection('Registros').doc(emailLower).set({
         'email': emailLower,
         'username': user.displayName ?? '',
@@ -160,23 +166,26 @@ class LoginProvider extends ChangeNotifier {
         'created_at': FieldValue.serverTimestamp(),
       });
 
-      await _firestore
-          .collection('usuarios')
-          .doc(emailLower)
-          .collection('gastos')
-          .doc(user.uid)
-          .set({
-        'name': "Bienvenido a AdminWallet",
-      });
+      // Solo crear el gasto de bienvenida si es la primera vez que se registra el usuario
+      if (isFirstTimeUser) {
+        await _firestore
+            .collection('usuarios')
+            .doc(emailLower)
+            .collection('gastos')
+            .doc(user.uid)
+            .set({
+          'name': "Bienvenido a AdminWallet",
+        });
 
-      await _firestore
-          .collection('usuarios')
-          .doc(emailLower)
-          .collection('ingresos')
-          .doc(user.uid)
-          .set({
-        'name': "Bienvenido a AdminWallet",
-      });
+        await _firestore
+            .collection('usuarios')
+            .doc(emailLower)
+            .collection('ingresos')
+            .doc(user.uid)
+            .set({
+          'name': "Bienvenido a AdminWallet",
+        });
+      }
 
       try {
         await DBHelper.instance.database;

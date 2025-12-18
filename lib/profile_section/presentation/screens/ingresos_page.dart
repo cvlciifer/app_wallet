@@ -3,14 +3,16 @@ import 'package:app_wallet/profile_section/presentation/screens/registro_ingreso
 import 'dart:developer' as developer;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
-import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
 
 class _HolePainter extends CustomPainter {
   final Rect holeRect;
   final double borderRadius;
   final Color overlayColor;
 
-  _HolePainter({required this.holeRect, this.borderRadius = 8.0, required this.overlayColor});
+  _HolePainter(
+      {required this.holeRect,
+      this.borderRadius = 8.0,
+      required this.overlayColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -19,13 +21,17 @@ class _HolePainter extends CustomPainter {
     canvas.saveLayer(Offset.zero & size, Paint());
     canvas.drawRect(Offset.zero & size, paint);
     final clearPaint = Paint()..blendMode = BlendMode.clear;
-    canvas.drawRRect(RRect.fromRectAndRadius(holeRect, Radius.circular(borderRadius)), clearPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(holeRect, Radius.circular(borderRadius)),
+        clearPaint);
     canvas.restore();
   }
 
   @override
   bool shouldRepaint(covariant _HolePainter old) {
-    return old.holeRect != holeRect || old.borderRadius != borderRadius || old.overlayColor != overlayColor;
+    return old.holeRect != holeRect ||
+        old.borderRadius != borderRadius ||
+        old.overlayColor != overlayColor;
   }
 }
 
@@ -38,7 +44,8 @@ class IngresosPage extends ConsumerStatefulWidget {
 
 class _IngresosPageState extends ConsumerState<IngresosPage> {
   final TextEditingController _amountController = TextEditingController();
-  final _clpFormatter = NumberFormat.currency(locale: 'es_CL', symbol: r'$', decimalDigits: 0);
+  final _clpFormatter =
+      NumberFormat.currency(locale: 'es_CL', symbol: r'$', decimalDigits: 0);
   Timer? _maxErrorTimer;
   bool _showMaxError = false;
   bool _isAmountValid = false;
@@ -56,6 +63,7 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
       ref.read(ingresosProvider.notifier).loadLocalIncomes();
       try {
         ref.read(ingresosProvider.notifier).setMonths(1);
+        ref.read(ingresosProvider.notifier).generatePreview();
       } catch (_) {}
 
       WidgetsBinding.instance.addPostFrameCallback((__) async {
@@ -86,7 +94,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
       await _showOverlayForKey(
         _amountFieldKey,
         title: 'Ingresa tu monto mensual',
-        message: 'Este monto es tu ingreso mensual y se verá reflejado en el home. Presiona Continuar para seguir.',
+        message:
+            'Este monto es tu ingreso mensual y se verá reflejado en el home. Presiona Continuar para seguir.',
         continueText: 'Continuar',
       );
 
@@ -122,13 +131,16 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
   }
 
   Future<void> _showOverlayForKey(GlobalKey key,
-      {required String title, required String message, String continueText = 'Continuar'}) async {
+      {required String title,
+      required String message,
+      String continueText = 'Continuar'}) async {
     try {
       final ctx = key.currentContext;
       if (ctx == null) return;
 
       try {
-        await Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 300), alignment: 0.3);
+        await Scrollable.ensureVisible(ctx,
+            duration: const Duration(milliseconds: 300), alignment: 0.3);
       } catch (_) {}
 
       final renderBox = ctx.findRenderObject() as RenderBox?;
@@ -173,7 +185,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                         height: targetSize.height + 16,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AwColors.appBarColor, width: 3),
+                          border:
+                              Border.all(color: AwColors.appBarColor, width: 3),
                         ),
                         child: const SizedBox.shrink(),
                       ),
@@ -197,19 +210,25 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                       return preferBelow > maxTop ? maxTop : preferBelow;
                     })(),
                     child: Container(
-                      width: math.min(320, MediaQuery.of(context).size.width - 32),
+                      width:
+                          math.min(320, MediaQuery.of(context).size.width - 32),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: AwColors.white,
                         borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: AwColors.black.withOpacity(0.18), blurRadius: 8)],
+                        boxShadow: [
+                          BoxShadow(
+                              color: AwColors.black.withOpacity(0.18),
+                              blurRadius: 8)
+                        ],
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           AwText.bold(title, size: AwSize.s14),
                           AwSpacing.s6,
-                          AwText.normal(message, size: AwSize.s12, color: AwColors.modalGrey),
+                          AwText.normal(message,
+                              size: AwSize.s12, color: AwColors.modalGrey),
                           AwSpacing.s10,
                           Row(
                             children: [
@@ -240,8 +259,10 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
     final raw = _amountController.text;
     final digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
     final current = int.tryParse(digits) ?? 0;
-    developer.log('[IngresosPage][_onAmountChanged] raw="$raw" digits="$digits" current=$current');
-    final valid = digits.isNotEmpty && current <= MaxAmountFormatter.kEightDigitsMaxAmount;
+    developer.log(
+        '[IngresosPage][_onAmountChanged] raw="$raw" digits="$digits" current=$current');
+    final valid = digits.isNotEmpty &&
+        current <= MaxAmountFormatter.kEightDigitsMaxAmount;
     if (valid != _isAmountValid) {
       if (!mounted) return;
       setState(() {
@@ -280,7 +301,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                 elevation: 6,
                 color: AwColors.white,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 10.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -323,7 +345,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                               _showMaxError = true;
                             });
                             _maxErrorTimer?.cancel();
-                            _maxErrorTimer = Timer(const Duration(seconds: 2), () {
+                            _maxErrorTimer =
+                                Timer(const Duration(seconds: 2), () {
                               if (mounted) {
                                 setState(() => _showMaxError = false);
                               }
@@ -336,7 +359,8 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                       IngresosControls(
                         initialMonth: state.previewMonths.isNotEmpty
                             ? state.previewMonths.first
-                            : DateTime(DateTime.now().year, DateTime.now().month + state.startOffset, 1),
+                            : DateTime(DateTime.now().year,
+                                DateTime.now().month + state.startOffset, 1),
                         startOffset: state.startOffset,
                         months: state.months,
                         ctrl: ctrl,
@@ -344,31 +368,40 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                         monthSelectorKey: _monthSelectorKey,
                         saveButtonKey: _saveButtonKey,
                         onSave: () async {
-                          final fijo = int.tryParse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+                          final fijo = int.tryParse(_amountController.text
+                                  .replaceAll(RegExp(r'[^0-9]'), '')) ??
+                              0;
                           if (fijo <= 0) return;
 
                           try {
-                            ref.read(globalLoaderProvider.notifier).state = true;
+                            ref.read(globalLoaderProvider.notifier).state =
+                                true;
                           } catch (_) {}
 
                           try {
-                            final controller = context.read<WalletExpensesController>();
-                            final rootNav = Navigator.of(context, rootNavigator: true);
+                            final controller =
+                                context.read<WalletExpensesController>();
+                            final rootNav =
+                                Navigator.of(context, rootNavigator: true);
 
                             for (final d in state.previewMonths) {
                               final monthDate = DateTime(d.year, d.month, 1);
-                              await ctrl.updateIncomeForDate(monthDate, fijo, null);
+                              await ctrl.updateIncomeForDate(
+                                  monthDate, fijo, null);
                             }
 
                             if (state.previewMonths.isNotEmpty) {
                               final first = state.previewMonths.first;
                               try {
-                                controller.setMonthFilter(DateTime(first.year, first.month));
+                                controller.setMonthFilter(
+                                    DateTime(first.year, first.month));
                               } catch (_) {}
                             }
 
-                            final conn = await Connectivity().checkConnectivity();
-                            final hasConnection = conn != ConnectivityResult.none;
+                            final conn =
+                                await Connectivity().checkConnectivity();
+                            final hasConnection =
+                                conn != ConnectivityResult.none;
 
                             await rootNav.pushNamedAndRemoveUntil(
                               '/home-page',
@@ -386,21 +419,29 @@ class _IngresosPageState extends ConsumerState<IngresosPage> {
                             );
 
                             try {
-                              ref.read(globalLoaderProvider.notifier).state = false;
+                              ref.read(globalLoaderProvider.notifier).state =
+                                  false;
                             } catch (_) {}
                           } catch (e) {
                             try {
-                              ref.read(globalLoaderProvider.notifier).state = false;
+                              ref.read(globalLoaderProvider.notifier).state =
+                                  false;
                             } catch (_) {}
-                            final popupCtx = Navigator.of(context, rootNavigator: true).overlay?.context ?? context;
+                            final popupCtx =
+                                Navigator.of(context, rootNavigator: true)
+                                        .overlay
+                                        ?.context ??
+                                    context;
                             try {
-                              WalletPopup.showNotificationError(context: popupCtx, title: 'Error guardando ingreso');
+                              WalletPopup.showNotificationError(
+                                  context: popupCtx,
+                                  title: 'Error guardando ingreso');
                             } catch (_) {}
                           }
                         },
                         onOpenRegistro: () async {
-                          await Navigator.of(context)
-                              .push(MaterialPageRoute(builder: (_) => const RegistroIngresosPage()));
+                          await Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const RegistroIngresosPage()));
                           await ctrl.loadLocalIncomes();
                         },
                       ),

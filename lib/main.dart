@@ -1,11 +1,13 @@
-import 'package:app_wallet/login_section/presentation/providers/reset_password.dart' as local_auth;
+import 'package:app_wallet/login_section/presentation/providers/reset_password.dart'
+    as local_auth;
 import 'package:provider/provider.dart' hide Consumer;
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod hide ChangeNotifierProvider;
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod
+    hide ChangeNotifierProvider;
 import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -86,14 +88,16 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
         final bool? zoomState = ZoomService().isZoomed.value;
         log('ZoomService.isZoomed after init: $zoomState');
 
-        final BuildContext ctx = _navigatorKey.currentState?.overlay?.context ?? this.context;
+        final BuildContext ctx =
+            _navigatorKey.currentState?.overlay?.context ?? this.context;
 
         if (zoomState == true) {
           try {
             await Future.delayed(const Duration(milliseconds: 700));
             await WalletPopup.showNotificationWarningOrange(
               context: ctx,
-              message: 'Detectamos que el zoom del sistema está activo. Algunas pantallas serán scrollables.',
+              message:
+                  'Detectamos que el zoom del sistema está activo. Algunas pantallas serán scrollables.',
               visibleTime: 0,
               isDismissible: true,
             );
@@ -122,8 +126,10 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
     log('App lifecycle event: $state (previous: $_lastLifecycleState)');
 
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      if (_lastLifecycleState == AppLifecycleState.resumed || _backgroundedAt == null) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      if (_lastLifecycleState == AppLifecycleState.resumed ||
+          _backgroundedAt == null) {
         _backgroundedAt = DateTime.now();
         log('Recorded background time: $_backgroundedAt');
       } else {
@@ -160,7 +166,9 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       try {
         final ctx = _navigatorKey.currentState?.overlay?.context;
         if (ctx != null) {
-          final resetState = riverpod.ProviderScope.containerOf(ctx, listen: false).read(resetFlowProvider);
+          final resetState =
+              riverpod.ProviderScope.containerOf(ctx, listen: false)
+                  .read(resetFlowProvider);
           if (resetState.status == ResetFlowStatus.allowed) {
             final nav = _navigatorKey.currentState;
             if (nav != null) {
@@ -276,7 +284,8 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
         }
       }
 
-      final BuildContext ctx = _navigatorKey.currentState?.overlay?.context ?? this.context;
+      final BuildContext ctx =
+          _navigatorKey.currentState?.overlay?.context ?? this.context;
 
       bool zoomDetected = val == true;
       if (!zoomDetected) {
@@ -302,7 +311,8 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
 
       await WalletPopup.showNotificationWarningOrange(
         context: ctx,
-        message: 'Detectamos que el zoom del sistema está activo. Algunas pantallas serán scrollables.',
+        message:
+            'Detectamos que el zoom del sistema está activo. Algunas pantallas serán scrollables.',
         visibleTime: 0,
         isDismissible: true,
       );
@@ -322,8 +332,9 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
         final ctxForLoader = _navigatorKey.currentState?.overlay?.context;
         if (ctxForLoader != null) {
           try {
-            riverpod.ProviderScope.containerOf(ctxForLoader, listen: false).read(globalLoaderProvider.notifier).state =
-                true;
+            riverpod.ProviderScope.containerOf(ctxForLoader, listen: false)
+                .read(globalLoaderProvider.notifier)
+                .state = true;
           } catch (_) {}
         }
 
@@ -331,11 +342,14 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
           try {
             final ctx = _navigatorKey.currentState?.overlay?.context;
             if (ctx != null) {
-              riverpod.ProviderScope.containerOf(ctx, listen: false).read(resetFlowProvider.notifier).setProcessing();
+              riverpod.ProviderScope.containerOf(ctx, listen: false)
+                  .read(resetFlowProvider.notifier)
+                  .setProcessing();
             }
           } catch (_) {}
 
-          final consumeUrl = '$_consumeResetUrl?token=${Uri.encodeQueryComponent(token)}';
+          final consumeUrl =
+              '$_consumeResetUrl?token=${Uri.encodeQueryComponent(token)}';
           final resp = await http.get(Uri.parse(consumeUrl));
           if (resp.statusCode == 200) {
             final body = jsonDecode(resp.body) as Map<String, dynamic>;
@@ -345,7 +359,8 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
               final customToken = body['customToken'] as String?;
               if (customToken != null && customToken.isNotEmpty) {
                 try {
-                  await FirebaseAuth.instance.signInWithCustomToken(customToken);
+                  await FirebaseAuth.instance
+                      .signInWithCustomToken(customToken);
                   try {
                     final authSvc = AuthService();
                     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -372,7 +387,9 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                   try {
                     final ctx = _navigatorKey.currentState?.overlay?.context;
                     if (ctx != null) {
-                      riverpod.ProviderScope.containerOf(ctx, listen: false).read(resetFlowProvider.notifier).clear();
+                      riverpod.ProviderScope.containerOf(ctx, listen: false)
+                          .read(resetFlowProvider.notifier)
+                          .clear();
                     }
                   } catch (_) {}
                   return;
@@ -390,7 +407,8 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
               }
 
               if (success) {
-                _navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const SetPinPage()));
+                _navigatorKey.currentState?.push(
+                    MaterialPageRoute(builder: (_) => const SetPinPage()));
               }
             }
           } else {}
@@ -401,12 +419,16 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
             try {
               final ctx = _navigatorKey.currentState?.overlay?.context;
               if (ctx != null) {
-                riverpod.ProviderScope.containerOf(ctx, listen: false).read(resetFlowProvider.notifier).clear();
+                riverpod.ProviderScope.containerOf(ctx, listen: false)
+                    .read(resetFlowProvider.notifier)
+                    .clear();
               }
             } catch (_) {}
             try {
-              final popupCtx = (_navigatorKey.currentState?.overlay?.context ?? context) as BuildContext;
-              WalletPopup.showNotificationError(context: popupCtx, title: 'Token inválido o ya consumido');
+              final popupCtx = (_navigatorKey.currentState?.overlay?.context ??
+                  context) as BuildContext;
+              WalletPopup.showNotificationError(
+                  context: popupCtx, title: 'Token inválido o ya consumido');
             } catch (_) {}
           }
 
@@ -462,7 +484,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
                         // ignore: deprecated_member_use
                         color: AwColors.black.withOpacity(0.45),
                         child: const Center(
-                          child: WalletLoader(color: AwColors.white),
+                          child: WalletLoader(),
                         ),
                       ),
                     ),
