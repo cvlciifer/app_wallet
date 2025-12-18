@@ -66,6 +66,7 @@ class WalletButton {
     required Function()? onPressed,
     MainAxisAlignment? alignment,
     Color colorText = AwColors.blue,
+    double fontSize = AwSize.s16,
   }) {
     return Row(
       mainAxisAlignment: alignment ?? MainAxisAlignment.end,
@@ -74,7 +75,8 @@ class WalletButton {
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
+                // ignore: deprecated_member_use
+                color: AwColors.grey.withOpacity(0.2),
                 blurRadius: 8,
                 offset: Offset(0, 4),
               ),
@@ -83,7 +85,7 @@ class WalletButton {
           child: Text.rich(
             TextSpan(
               style: TextStyle(
-                fontSize: AwSize.s16,
+                fontSize: fontSize,
                 fontWeight: FontWeight.bold,
                 color: colorText,
                 decorationColor: colorText,
@@ -112,7 +114,8 @@ class WalletButton {
     double iconSize = 24.0,
     double fontSize = AwSize.s14,
     FontWeight fontWeight = FontWeight.bold,
-    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    EdgeInsetsGeometry padding =
+        const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
   }) {
     return SizedBox(
       height: height,
@@ -137,7 +140,7 @@ class WalletButton {
                       color: iconColor,
                       size: iconSize,
                     ),
-                    const SizedBox(width: 8),
+                    AwSpacing.w,
                     AwText.bold(
                       buttonText,
                       color: AwColors.white,
@@ -180,13 +183,20 @@ class WalletButton {
                     ),
                   )
                 : null,
-            child: Text(
-              buttonText,
-              style: TextStyle(
-                fontSize: AwSize.s14,
-                fontWeight: FontWeight.bold,
-                color: colorText,
-                letterSpacing: 1.2,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 220),
+              child: AutoSizeText(
+                buttonText,
+                style: TextStyle(
+                  fontSize: AwSize.s14,
+                  fontWeight: FontWeight.bold,
+                  color: colorText,
+                  letterSpacing: 1.2,
+                ),
+                maxLines: 1,
+                minFontSize: 10,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ),
           ),

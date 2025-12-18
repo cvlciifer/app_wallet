@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:flutter/material.dart';
 
 class WalletPopup {
   WalletPopup._();
@@ -9,23 +8,106 @@ class WalletPopup {
   static void showNotificationSuccess({
     required BuildContext context,
     required String title,
-    Text? message,
+    Widget? message,
     String? primaryButtonText,
-    int? visibleTime,
+    int visibleTime = 2,
     bool? isDismissible,
     VoidCallback? onPrimaryTap,
-    bool showCloseButton = true,
+    bool showCloseButton = false,
     VoidCallback? onCloseTap,
   }) {
     showDialog(
-      barrierDismissible: isDismissible ?? false,
+      useRootNavigator: true,
+      barrierDismissible: isDismissible ?? true,
+      barrierColor: AwColors.transparent,
       context: context,
       builder: (context) {
-        bool showButton = primaryButtonText != null;
         setContext(context);
-        if (visibleTime != null) {
-          popUpTimeClose(visibleTime);
-        }
+        popUpTimeClose(visibleTime);
+        return Stack(
+          children: [
+            Positioned(
+              top: AwSize.s64,
+              left: AwSize.s18,
+              right: AwSize.s18,
+              child: Material(
+                color: AwColors.transparent,
+                child: GestureDetector(
+                  onTap: () => closePopUp(),
+                  onHorizontalDragEnd: (_) => closePopUp(),
+                  onVerticalDragEnd: (_) => closePopUp(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: AwSize.s16, horizontal: AwSize.s16),
+                    decoration: BoxDecoration(
+                      color: AwColors.green,
+                      borderRadius: BorderRadius.circular(AwSize.s6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AwColors.grey.withOpacity(0.12),
+                          blurRadius: 6,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle,
+                          color: AwColors.white,
+                          size: AwSize.s20,
+                        ),
+                        AwSpacing.w10,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              LayoutBuilder(builder: (ctx, constraints) {
+                                final computedSize = responsiveFontSize(
+                                    ctx, AwSize.s14,
+                                    min: AwSize.s8, max: AwSize.s14);
+                                return AwText.bold(
+                                  title,
+                                  color: AwColors.white,
+                                  size: computedSize,
+                                );
+                              }),
+                              if (message != null)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.only(top: AwSize.s4),
+                                  child: message,
+                                ),
+                            ],
+                          ),
+                        ),
+                        // No close button for success popup; it auto-closes.
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static Future<void> showNotificationWarningOrange({
+    required BuildContext context,
+    required String message,
+    int? visibleTime = 2,
+    bool isDismissible = true,
+  }) {
+    return showDialog<void>(
+      useRootNavigator: true,
+      barrierDismissible: isDismissible,
+      barrierColor: AwColors.transparent,
+      context: context,
+      builder: (context) {
+        setContext(context);
+        if (visibleTime != null && visibleTime > 0) popUpTimeClose(visibleTime);
         return Stack(
           children: [
             Positioned(
@@ -34,65 +116,56 @@ class WalletPopup {
               right: AwSize.s18,
               child: Material(
                 color: Colors.transparent,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AwColors.white,
-                    borderRadius: BorderRadius.circular(AwSize.s4),
-                    border: const Border(
-                      left: BorderSide(
-                        color: AwColors.green,
-                        width: AwSize.s4,
-                      ),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: AwSize.s12),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.circle_outlined,
-                              size: AwSize.s20,
-                            ),
-                            const SizedBox(width: AwSize.s10),
-                            Expanded(
-                              child: AwText.bold(title, color: AwColors.boldBlack),
-                            ),
-                            if (showCloseButton)
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  size: AwSize.s12,
-                                  color: AwColors.grey,
-                                ),
-                                onPressed: () {
-                                  if (onCloseTap != null) {
-                                    onCloseTap();
-                                  } else {
-                                    closePopUp();
-                                  }
-                                },
-                              ),
-                          ],
+                child: GestureDetector(
+                  onTap: () => closePopUp(),
+                  onHorizontalDragEnd: (_) => closePopUp(),
+                  onVerticalDragEnd: (_) => closePopUp(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: AwSize.s12, horizontal: AwSize.s16),
+                    decoration: BoxDecoration(
+                      color: AwColors.orangeDark,
+                      borderRadius: BorderRadius.circular(AwSize.s6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AwColors.grey.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: AwSize.s30, right: AwSize.s30, bottom: AwSize.s10),
-                          child: Column(
-                            children: [
-                              if (message != null) message,
-                              if (showButton) const AwDivider(),
-                              if (showButton)
-                                WalletButton.primaryButton(
-                                  buttonText: primaryButtonText,
-                                  onPressed: () {
-                                    if (onPrimaryTap != null) {
-                                      onPrimaryTap();
-                                    }
-                                  },
-                                ),
-                              if (showButton) AwSpacing.m
-                            ],
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: AwSize.s34,
+                          height: AwSize.s34,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AwColors.white,
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.warning,
+                              color: AwColors.orangeDark,
+                              size: AwSize.s18,
+                            ),
+                          ),
+                        ),
+                        AwSpacing.w12,
+                        Expanded(
+                          child: LayoutBuilder(
+                            builder: (ctx, constraints) {
+                              final computedSize = responsiveFontSize(
+                                  ctx, AwSize.s14,
+                                  min: AwSize.s8, max: AwSize.s14);
+                              return AwText.normal(
+                                message,
+                                color: AwColors.white,
+                                size: computedSize,
+                                maxLines: null,
+                                textOverflow: TextOverflow.visible,
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -107,123 +180,22 @@ class WalletPopup {
     );
   }
 
-  static void showNotificationWarning(
-      {required BuildContext context,
-      required String title,
-      Text? message,
-      String? primaryButtonText,
-      int? visibleTime,
-      bool? isDismissible,
-      VoidCallback? onPrimaryTap}) {
-    showDialog(
-        barrierDismissible: isDismissible ?? false,
-        context: context,
-        builder: (context) {
-          bool showButton = primaryButtonText != null;
-          setContext(context);
-          if (visibleTime != null) {
-            popUpTimeClose(visibleTime);
-          }
-          return Stack(
-            children: [
-              Positioned(
-                top: AwSize.s64,
-                left: AwSize.s18,
-                right: AwSize.s18,
-                child: Material(
-                  color: Colors.transparent,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AwColors.white,
-                      borderRadius: BorderRadius.circular(AwSize.s4),
-                      border: const Border(
-                        left: BorderSide(
-                          color: AwColors.yellow,
-                          width: AwSize.s4,
-                        ),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: AwSize.s12, top: AwSize.s12),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.warning,
-                                // BciIcon.close,
-                                size: AwSize.s20,
-                              ),
-                              const SizedBox(width: AwSize.s10),
-                              Expanded(
-                                child: AwText.bold(
-                                  title,
-                                  color: AwColors.boldBlack,
-                                  size: AwSize.s14,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  size: AwSize.s12,
-                                  color: AwColors.grey,
-                                ),
-                                onPressed: () {
-                                  closePopUp();
-                                },
-                              ),
-                            ],
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: AwSize.s30, right: AwSize.s30, bottom: AwSize.s10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (message != null) message,
-                                if (showButton) const AwDivider(),
-                                if (showButton)
-                                  SizedBox(
-                                    width: 150,
-                                    child: WalletButton.textButton(
-                                      buttonText: primaryButtonText,
-                                      onPressed: () {
-                                        if (onPrimaryTap != null) {
-                                          onPrimaryTap();
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                if (showButton) AwSpacing.m
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        });
-  }
-
   static void showNotificationError({
     required BuildContext context,
     required String title,
     int? visibleTime,
     bool? isDismissible,
-    bool showCloseButton = true, // Parámetro agregado
-    VoidCallback? onCloseTap, // Para acción personalizada al cerrar
+    bool showCloseButton = false,
+    VoidCallback? onCloseTap,
   }) {
     showDialog(
-      barrierDismissible: isDismissible ?? false,
+      useRootNavigator: true,
+      barrierDismissible: isDismissible ?? true,
+      barrierColor: Colors.transparent,
       context: context,
       builder: (context) {
         setContext(context);
-        if (visibleTime != null) {
-          popUpTimeClose(visibleTime);
-        }
+        popUpTimeClose(visibleTime ?? 2);
         return Stack(
           children: [
             Positioned(
@@ -232,47 +204,121 @@ class WalletPopup {
               right: AwSize.s18,
               child: Material(
                 color: Colors.transparent,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AwColors.white,
-                    borderRadius: BorderRadius.circular(AwSize.s4),
-                    border: const Border(
-                      left: BorderSide(
-                        color: AwColors.red,
-                        width: AwSize.s4,
-                      ),
+                child: GestureDetector(
+                  onTap: () {
+                    if (onCloseTap != null) onCloseTap();
+                    closePopUp();
+                  },
+                  onHorizontalDragEnd: (_) {
+                    if (onCloseTap != null) onCloseTap();
+                    closePopUp();
+                  },
+                  onVerticalDragEnd: (_) {
+                    if (onCloseTap != null) onCloseTap();
+                    closePopUp();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: AwSize.s12, horizontal: AwSize.s16),
+                    decoration: BoxDecoration(
+                      color: AwColors.red,
+                      borderRadius: BorderRadius.circular(AwSize.s6),
+                      boxShadow: [
+                        BoxShadow(
+                          // ignore: deprecated_member_use
+                          color: AwColors.grey.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.error,
+                          color: AwColors.white,
+                          size: AwSize.s20,
+                        ),
+                        AwSpacing.w10,
+                        Expanded(
+                          child: LayoutBuilder(builder: (ctx, constraints) {
+                            final computedSize = responsiveFontSize(
+                                ctx, AwSize.s14,
+                                min: AwSize.s8, max: AwSize.s14);
+                            return AwText.bold(
+                              title,
+                              color: AwColors.white,
+                              size: computedSize,
+                            );
+                          }),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AwSize.s12, AwSize.s12, 0, AwSize.s12),
-                    child: Column(
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static void showAttentionBanner({
+    required BuildContext context,
+    required String message,
+    Color? backgroundColor,
+    int? visibleTime,
+    bool? isDismissible,
+  }) {
+    showDialog(
+      useRootNavigator: true,
+      barrierDismissible: isDismissible ?? true,
+      barrierColor: AwColors.transparent,
+      context: context,
+      builder: (context) {
+        setContext(context);
+        popUpTimeClose(visibleTime ?? 2);
+        return Stack(
+          children: [
+            Positioned(
+              top: AwSize.s64,
+              left: AwSize.s18,
+              right: AwSize.s18,
+              child: Material(
+                color: AwColors.transparent,
+                child: GestureDetector(
+                  onTap: () => closePopUp(),
+                  onHorizontalDragEnd: (_) => closePopUp(),
+                  onVerticalDragEnd: (_) => closePopUp(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: AwSize.s12, horizontal: AwSize.s16),
+                    decoration: BoxDecoration(
+                      color: backgroundColor ?? AwColors.appBarColor,
+                      borderRadius: BorderRadius.circular(AwSize.s6),
+                      boxShadow: [
+                        BoxShadow(
+                          // ignore: deprecated_member_use
+                          color: AwColors.grey.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.warning,
-                              color: AwColors.red,
-                              size: AwSize.s20,
-                            ),
-                            const SizedBox(width: AwSize.s10),
-                            Expanded(
-                              child: AwText.bold(title, color: AwColors.boldBlack),
-                            ),
-                            if (showCloseButton)
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  color: AwColors.grey,
-                                ),
-                                onPressed: () {
-                                  if (onCloseTap != null) {
-                                    onCloseTap();
-                                  } else {
-                                    closePopUp();
-                                  }
-                                },
-                              ),
-                          ],
+                        Expanded(
+                          child: LayoutBuilder(builder: (ctx, constraints) {
+                            final computedSize = responsiveFontSize(
+                                ctx, AwSize.s14,
+                                min: AwSize.s8, max: AwSize.s14);
+                            return AwText.normal(
+                              message,
+                              color: AwColors.white,
+                              size: computedSize,
+                            );
+                          }),
                         ),
                       ],
                     ),
@@ -296,9 +342,22 @@ class WalletPopup {
   }
 
   static void closePopUp() {
-    if (_context != null && Navigator.canPop(_context!)) {
-      Navigator.pop(_context!);
-      _context = null;
+    if (_context == null) return;
+    try {
+      if (_context is Element && !(_context as Element).mounted) {
+        _context = null;
+        return;
+      }
+    } catch (_) {
+      // ignore
     }
+    try {
+      if (Navigator.canPop(_context!)) {
+        Navigator.pop(_context!);
+      }
+    } catch (_) {
+      // ignore errors when navigator not available
+    }
+    _context = null;
   }
 }

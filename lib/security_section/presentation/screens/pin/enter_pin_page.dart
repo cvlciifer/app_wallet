@@ -18,7 +18,8 @@ class _EnterPinPageState extends ConsumerState<EnterPinPage> {
   Widget build(BuildContext context) {
     final uid = widget.accountId ?? AuthService().getCurrentUser()?.uid;
     if (uid == null) {
-      return Scaffold(
+      return const Scaffold(
+        backgroundColor: AwColors.white,
         body: Center(child: AwText.normal('Usuario no identificado')),
       );
     }

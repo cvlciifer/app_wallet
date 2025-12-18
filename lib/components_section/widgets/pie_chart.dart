@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-
 import 'package:app_wallet/library_section/main_library.dart';
 
 class _AngularSample {
@@ -17,7 +16,8 @@ class WalletPieChart extends StatefulWidget {
   WalletPieChartState createState() => WalletPieChartState();
 }
 
-class WalletPieChartState extends State<WalletPieChart> with SingleTickerProviderStateMixin {
+class WalletPieChartState extends State<WalletPieChart>
+    with SingleTickerProviderStateMixin {
   double chartAngle = 0.0;
   double? _startGestureAngle;
   double _baseAngle = 0.0;
@@ -40,27 +40,33 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
           final box = context.findRenderObject() as RenderBox;
           final local = box.globalToLocal(details.globalPosition);
           final center = box.size.center(Offset.zero);
-          _startGestureAngle = math.atan2(local.dy - center.dy, local.dx - center.dx);
+          _startGestureAngle =
+              math.atan2(local.dy - center.dy, local.dx - center.dx);
           _baseAngle = chartAngle;
           _stopInertia();
           _samples.clear();
-          _samples
-              .add(_AngularSample(angle: _startGestureAngle!, time: DateTime.now().millisecondsSinceEpoch.toDouble()));
+          _samples.add(_AngularSample(
+              angle: _startGestureAngle!,
+              time: DateTime.now().millisecondsSinceEpoch.toDouble()));
         },
         onPanUpdate: (details) {
           final box = context.findRenderObject() as RenderBox;
           final local = box.globalToLocal(details.globalPosition);
           final center = box.size.center(Offset.zero);
-          final currentAngle = math.atan2(local.dy - center.dy, local.dx - center.dx);
+          final currentAngle =
+              math.atan2(local.dy - center.dy, local.dx - center.dx);
           if (_startGestureAngle != null) {
             final delta = _normalizeAngle(currentAngle - _startGestureAngle!);
             setState(() {
               chartAngle = _baseAngle + delta;
             });
 
-            _samples.add(_AngularSample(angle: currentAngle, time: DateTime.now().millisecondsSinceEpoch.toDouble()));
+            _samples.add(_AngularSample(
+                angle: currentAngle,
+                time: DateTime.now().millisecondsSinceEpoch.toDouble()));
 
-            final cutoff = DateTime.now().millisecondsSinceEpoch.toDouble() - 200.0;
+            final cutoff =
+                DateTime.now().millisecondsSinceEpoch.toDouble() - 200.0;
             _samples.removeWhere((s) => s.time < cutoff);
           }
         },
@@ -77,33 +83,45 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
         child: Transform.rotate(
           angle: chartAngle,
           alignment: Alignment.center,
-          child: SizedBox(
-            height: 300,
-            width: 300,
-            child: PieChart(
-              PieChartData(
-                sections: _getPieChartSections(widget.data),
-                pieTouchData: PieTouchData(touchCallback: (event, response) {
-                  try {
-                    if (response == null) return;
-                    final touched = response.touchedSection;
-                    if (touched == null) return;
+          child: LayoutBuilder(builder: (ctx, constraints) {
+            final maxSide = math.min(
+                constraints.maxWidth,
+                constraints.maxHeight.isFinite
+                    ? constraints.maxHeight
+                    : double.infinity);
+            final baseSize = maxSide.isFinite && maxSide > 0 ? maxSide : 300.0;
+            final pieSize = math.min(300.0, baseSize);
 
-                    final index = touched.touchedSectionIndex;
-                    if (index < 0 || index >= widget.data.length) return;
+            return SizedBox(
+              height: pieSize,
+              width: pieSize,
+              child: PieChart(
+                PieChartData(
+                  sections: _getPieChartSections(widget.data, pieSize),
+                  pieTouchData: PieTouchData(touchCallback: (event, response) {
+                    try {
+                      if (response == null) return;
+                      final touched = response.touchedSection;
+                      if (touched == null) return;
 
-                    final item = widget.data[index];
-                    if (event.runtimeType.toString().contains('FlTapUpEvent')) {
-                      _showCategoryPopup(context, item);
-                    }
-                  } catch (_) {}
-                }),
-                borderData: FlBorderData(show: false),
-                sectionsSpace: 0,
-                centerSpaceRadius: 40,
+                      final index = touched.touchedSectionIndex;
+                      if (index < 0 || index >= widget.data.length) return;
+
+                      final item = widget.data[index];
+                      if (event.runtimeType
+                          .toString()
+                          .contains('FlTapUpEvent')) {
+                        _showCategoryPopup(context, item);
+                      }
+                    } catch (_) {}
+                  }),
+                  borderData: FlBorderData(show: false),
+                  sectionsSpace: 0,
+                  centerSpaceRadius: pieSize * 0.13,
+                ),
               ),
-            ),
-          ),
+            );
+          }),
         ),
       ),
     );
@@ -111,11 +129,13 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
 
   void _showCategoryPopup(BuildContext context, Map<String, dynamic> item) {
     final label = item['label'] as String;
-    final Color color = (item['color'] as Color?) ?? WalletCategoryHelper.getCategoryColor(label);
+    final Color color = (item['color'] as Color?) ??
+        WalletCategoryHelper.getCategoryColor(label);
     final IconData icon = WalletCategoryHelper.getCategoryIcon(label);
 
     final amount = (item['amount'] as double?) ?? 0.0;
-    final total = widget.data.fold<double>(0.0, (sum, it) => sum + ((it['amount'] as double?) ?? 0.0));
+    final total = widget.data.fold<double>(
+        0.0, (sum, it) => sum + ((it['amount'] as double?) ?? 0.0));
     final percent = total == 0.0 ? 0.0 : (amount / total) * 100;
     final percentStr = '${percent.toStringAsFixed(1)}%';
 
@@ -123,7 +143,7 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
       context: context,
       builder: (ctx) {
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AwColors.transparent,
           insetPadding: const EdgeInsets.all(24),
           child: Align(
             alignment: Alignment.center,
@@ -133,7 +153,10 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
                 color: AwColors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
+                    BoxShadow(
+                      color: AwColors.black26,
+                      blurRadius: 8,
+                      offset: Offset(0, 4)),
                 ],
               ),
               child: Row(
@@ -141,22 +164,23 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
                 children: [
                   CircleAvatar(
                     backgroundColor: color,
-                    child: Icon(icon, color: Colors.white),
+                    child: Icon(icon, color: AwColors.white),
                   ),
-                  const SizedBox(width: 12),
+                  AwSpacing.w12,
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
+                      Text(label,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      AwSpacing.xs,
                       Text(
                         percentStr,
-                        style: const TextStyle(color: Colors.black54),
+                        style: const TextStyle(color: AwColors.black54),
                       ),
                     ],
                   ),
-                  const SizedBox(width: 8),
+                  AwSpacing.w,
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.of(ctx).pop(),
@@ -173,7 +197,8 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(vsync: this, duration: const Duration(seconds: 10));
+    _animController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 10));
   }
 
   @override
@@ -210,7 +235,8 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
     _animListener = () {
       final t = _animController.value * _maxInertiaTime;
 
-      final angleOffset = (initialVelocity / decay) * (1 - math.exp(-decay * t));
+      final angleOffset =
+          (initialVelocity / decay) * (1 - math.exp(-decay * t));
 
       final currentVelocity = initialVelocity * math.exp(-decay * t);
       setState(() {
@@ -242,7 +268,8 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
     _animController.reset();
   }
 
-  List<PieChartSectionData> _getPieChartSections(List<Map<String, dynamic>> data) {
+  List<PieChartSectionData> _getPieChartSections(
+      List<Map<String, dynamic>> data, double pieSize) {
     final labels = data.map((d) => (d['label'] as String)).toList();
 
     final Map<String, Color> labelColor = {};
@@ -297,9 +324,9 @@ class WalletPieChartState extends State<WalletPieChart> with SingleTickerProvide
         color: color,
         value: amount,
         title: '',
-        radius: 100,
-        titleStyle: const TextStyle(
-          fontSize: 16,
+        radius: pieSize * 0.33,
+        titleStyle: TextStyle(
+          fontSize: math.max(12, pieSize * 0.05),
           fontWeight: FontWeight.bold,
           color: AwColors.white,
         ),

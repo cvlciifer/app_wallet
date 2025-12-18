@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,15 +13,18 @@ class WalletExpensesController extends ChangeNotifier {
     for (var c in Category.values) c: false,
   };
 
-  late SyncService syncService;
-  StreamSubscription<User?>? _authSubscription;
-  StreamSubscription<ConnectivityResult>? _connectivitySub;
+  SyncService syncService = SyncService(localCrud: LocalCrud(), firestore: FirebaseFirestore.instance, userEmail: '');
+  StreamSubscription<User?>? _authSub;
+  String _currentEmail = '';
   bool isLoadingExpenses = false;
   WalletExpensesController() {
     // Delay async initialization to ensure we can resolve auth state (may be null if
     // Firebase hasn't restored currentUser yet). We perform async init after
     // construction.
-    _asyncInit();
+    // Defer heavy async work until after the constructor returns and the first
+    // event loop turn finishes. This avoids blocking the UI during debug/startup
+    // when the controller is created synchronously while the app builds.
+    Future.delayed(Duration.zero, () => _asyncInit());
   }
 
   Future<void> _asyncInit() async {
@@ -40,9 +44,37 @@ class WalletExpensesController extends ChangeNotifier {
       firestore: FirebaseFirestore.instance,
       userEmail: email,
     );
-    // keep the connectivity subscription so we can cancel it if the user
-    // changes account and we need to recreate the SyncService
-    _connectivitySub = syncService.startAutoSync();
+    _currentEmail = email;
+    syncService.startAutoSync();
+
+    // Listen for auth changes so switching account reloads data immediately.
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) async {
+      final newEmail = user?.email ?? '';
+      if (newEmail == _currentEmail) return;
+      _currentEmail = newEmail;
+      // Invalidate any cached uid/email in the LocalCrud so subsequent
+      // DB calls resolve the new authenticated user immediately.
+      try {
+        await syncService.localCrud.resetCachedUser();
+      } catch (_) {}
+      // Clear current in-memory expenses immediately so UI doesn't show the
+      // previous account's data while we reload for the new user.
+      _allExpenses.clear();
+      _filteredExpenses.clear();
+      notifyListeners();
+      // Recreate syncService for the new user and perform an immediate sync/load.
+      try {
+        syncService = SyncService(localCrud: LocalCrud(), firestore: FirebaseFirestore.instance, userEmail: newEmail);
+        syncService.startAutoSync();
+        // Push any local pending for the new context, then initialize DB from Firebase
+        await syncService.syncPendingChanges();
+        await syncService.initializeLocalDbFromFirebase();
+      } catch (e, st) {
+        log('Error handling auth change refresh: $e\n$st');
+      }
+      // Refresh controller's view
+      await loadExpensesSmart();
+    });
 
     // Debug: informar el UID resuelto y el estado local al iniciar para ayudar
     // a diagnosticar problemas de persistencia en cold start offline.
@@ -95,7 +127,7 @@ class WalletExpensesController extends ChangeNotifier {
   Future<void> loadExpensesSmart() async {
     isLoadingExpenses = true;
     if (!_isDisposed) notifyListeners();
-    print('loadExpensesSmart llamado');
+    log('loadExpensesSmart llamado');
     final connectivityResult = await Connectivity().checkConnectivity();
     final hasConnection = connectivityResult != ConnectivityResult.none;
 
@@ -110,13 +142,10 @@ class WalletExpensesController extends ChangeNotifier {
       log('Sin internet, mostrando solo base local');
     }
 
-    List<Expense> gastosFromLocal =
-        await syncService.localCrud.getAllExpenses();
+    List<Expense> gastosFromLocal = await syncService.localCrud.getAllExpenses();
     log('Gastos obtenidos localmente: ${gastosFromLocal.length}');
 
-    final visibleExpenses = gastosFromLocal
-        .where((e) => e.syncStatus != SyncStatus.pendingDelete)
-        .toList();
+    final visibleExpenses = gastosFromLocal.where((e) => e.syncStatus != SyncStatus.pendingDelete).toList();
     // Ordenar por fecha descendente: del más reciente al más antiguo
     visibleExpenses.sort((a, b) => b.date.compareTo(a.date));
 
@@ -128,8 +157,14 @@ class WalletExpensesController extends ChangeNotifier {
     if (!_isDisposed) notifyListeners();
   }
 
-  Future<void> addExpense(Expense expense,
-      {required bool hasConnection}) async {
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  Future<void> addExpense(Expense expense, {required bool hasConnection}) async {
     log('addExpense llamado con: ${expense.title}');
     _isLoading = true;
     notifyListeners();
@@ -183,9 +218,8 @@ class WalletExpensesController extends ChangeNotifier {
     }
   }
 
-  Future<void> removeExpense(Expense expense,
-      {required bool hasConnection}) async {
-    log('removeExpense llamado con: \\\${expense.title}');
+  Future<void> removeExpense(Expense expense, {required bool hasConnection}) async {
+    log('removeExpense llamado con: ${expense.title}');
     _isLoading = true;
     notifyListeners();
     try {
@@ -246,8 +280,7 @@ class WalletExpensesController extends ChangeNotifier {
       // month filter
       if (_monthFilter != null) {
         final ed = DateTime(expense.date.year, expense.date.month);
-        if (ed.year != _monthFilter!.year || ed.month != _monthFilter!.month)
-          return false;
+        if (ed.year != _monthFilter!.year || ed.month != _monthFilter!.month) return false;
       }
       // category filters
       if (hasCategoryFilters) {

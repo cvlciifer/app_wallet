@@ -29,6 +29,8 @@ class PinEntryAreaState extends State<PinEntryArea> {
   void appendDigit(String d) => _internalPinKey.currentState?.appendDigit(d);
   void deleteDigit() => _internalPinKey.currentState?.deleteDigit();
 
+  void triggerErrorAnimation() => _internalPinKey.currentState?.triggerErrorAnimation();
+
   String get currentPin => _internalPinKey.currentState?.currentPin ?? '';
 
   int get currentLength => _internalPinKey.currentState?.currentLength ?? 0;
@@ -39,18 +41,19 @@ class PinEntryAreaState extends State<PinEntryArea> {
       mainAxisSize: MainAxisSize.min,
       children: [
         PinInput(
-            key: _internalPinKey,
-            digits: widget.digits,
-            onCompleted: widget.onCompleted,
-            autoComplete: widget.autoComplete,
-            onChanged: widget.onChanged),
-        const SizedBox(height: 12),
+          key: _internalPinKey,
+          digits: widget.digits,
+          onCompleted: widget.onCompleted,
+          autoComplete: widget.autoComplete,
+          onChanged: widget.onChanged,
+        ),
+        const SizedBox(height: 16),
         NumericKeypad(
           onDigit: (d) => appendDigit(d),
           onBackspace: () => deleteDigit(),
         ),
         if (widget.actions != null) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           widget.actions!,
         ],
       ],

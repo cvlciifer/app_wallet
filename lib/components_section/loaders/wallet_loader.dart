@@ -10,8 +10,7 @@ class WalletLoader extends StatefulWidget {
   State<WalletLoader> createState() => _WalletLoaderState();
 }
 
-class _WalletLoaderState extends State<WalletLoader>
-    with SingleTickerProviderStateMixin {
+class _WalletLoaderState extends State<WalletLoader> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override

@@ -12,7 +12,8 @@ class WalletCategoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
+    final total =
+        data.fold(0.0, (sum, item) => sum + (item['amount'] as double));
 
     return Column(
       children: data.map((item) {
@@ -31,7 +32,7 @@ class WalletCategoryList extends StatelessWidget {
                 size: 25,
                 color: color ?? WalletCategoryHelper.getCategoryColor(label),
               ),
-              const SizedBox(width: 8),
+              AwSpacing.w,
               Expanded(
                 flex: 3,
                 child: AwText(
@@ -41,7 +42,7 @@ class WalletCategoryList extends StatelessWidget {
                   textOverflow: TextOverflow.visible,
                 ),
               ),
-              const SizedBox(width: 8),
+              AwSpacing.w,
               ConstrainedBox(
                 constraints: const BoxConstraints(minWidth: 80),
                 child: AwText(
@@ -52,7 +53,7 @@ class WalletCategoryList extends StatelessWidget {
                   textOverflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
+              AwSpacing.w,
               ConstrainedBox(
                 constraints: const BoxConstraints(minWidth: 56),
                 child: AwText(

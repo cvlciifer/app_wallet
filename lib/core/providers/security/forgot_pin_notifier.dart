@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_wallet/library_section/main_library.dart';
 import 'package:http/http.dart' as http;
@@ -104,7 +105,7 @@ class ForgotPinNotifier extends StateNotifier<ForgotPinState> {
         if (body['debugLink'] != null) {
           final debugLink = body['debugLink'] as String;
           if (kDebugMode) {
-            print('Debug reset link (SMTP not configured): $debugLink');
+            developer.log('Debug reset link (SMTP not configured): $debugLink');
             markSent();
             return 'Enlace (debug) creado: $debugLink';
           }
@@ -117,8 +118,8 @@ class ForgotPinNotifier extends StateNotifier<ForgotPinState> {
       return 'Error al solicitar enlace: ${resp.statusCode} — ${resp.body}';
     } catch (e, st) {
       if (kDebugMode) {
-        print('sendSignInLinkToEmail error: $e');
-        print(st);
+        developer.log('sendSignInLinkToEmail error: $e');
+        developer.log(st.toString());
       }
       final msg = e.toString();
       return 'Error al solicitar enlace: $msg';

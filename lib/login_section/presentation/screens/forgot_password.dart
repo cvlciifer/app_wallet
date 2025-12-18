@@ -10,6 +10,7 @@ class ForgotPasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AwColors.white,
       body: Stack(
         children: [
           Container(color: AwColors.greyLight),
@@ -66,27 +67,32 @@ class ForgotPasswordScreen extends StatelessWidget {
                       onPressed: () {
                         final email = _emailController.text.trim();
                         if (email.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Por favor, ingresa tu correo.')),
+                          WalletPopup.showNotificationWarningOrange(
+                            context: context,
+                            message: 'Por favor, ingresa tu correo.',
                           );
                           return;
                         }
 
-                        Provider.of<AuthProvider>(context, listen: false)
-                            .resetPassword(
+                        Provider.of<AuthProvider>(context, listen: false).resetPassword(
                           email,
                           () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(
-                                      'Se ha enviado un enlace de restablecimiento a $email.')),
-                            );
+                            final overlayCtx = Navigator.of(context).overlay?.context;
                             Navigator.of(context).pop();
+                            if (overlayCtx != null) {
+                              // small delay to allow navigation transition to complete
+                              Future.delayed(const Duration(milliseconds: 120), () {
+                                WalletPopup.showNotificationSuccess(
+                                  context: overlayCtx,
+                                  title: 'Se ha enviado un enlace de restablecimiento a $email.',
+                                );
+                              });
+                            }
                           },
                           (errorMessage) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(errorMessage)),
+                            WalletPopup.showNotificationError(
+                              context: context,
+                              title: errorMessage,
                             );
                           },
                         );

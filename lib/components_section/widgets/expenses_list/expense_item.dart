@@ -20,7 +20,9 @@ class ExpenseItem extends StatelessWidget {
       child: TicketCard(
         compactNotches: true,
         roundTopCorners: true,
-        topCornerRadius: 7,
+        topCornerRadius: 10,
+        elevation: 10,
+        color: AwColors.white,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -28,7 +30,7 @@ class ExpenseItem extends StatelessWidget {
               expense.title,
               color: AwColors.boldBlack,
             ),
-            const SizedBox(height: 4),
+            AwSpacing.xs,
             Row(
               children: [
                 AwText(
@@ -42,7 +44,7 @@ class ExpenseItem extends StatelessWidget {
                       categoryIcons[expense.category],
                       color: expense.category.color,
                     ),
-                    const SizedBox(width: 8),
+                    AwSpacing.w,
                     AwText.bold(expense.formattedDate),
                   ],
                 ),

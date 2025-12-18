@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
 
 class NewExpenseScreen extends StatefulWidget {
-  const NewExpenseScreen({super.key});
+  final Expense? initialExpense;
+
+  const NewExpenseScreen({super.key, this.initialExpense});
 
   @override
   State<NewExpenseScreen> createState() {
@@ -15,6 +17,19 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
   @override
   void initState() {
     super.initState();
+  }
+
+  bool _shouldRunFTU = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    try {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args['showFTUOnNewExpense'] == true) {
+        _shouldRunFTU = true;
+      }
+    } catch (_) {}
   }
 
   void _handleExpenseSubmit(Expense expense) async {
@@ -43,15 +58,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: AwText.bold(
-              'Error al agregar gasto: $error',
-              color: AwColors.white,
-            ),
-            backgroundColor: AwColors.red,
-          ),
-        );
+        WalletPopup.showNotificationError(context: context, title: 'Error al agregar gasto: $error');
       }
       log('Error al agregar gasto: $error');
     }
@@ -62,6 +69,7 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
+      backgroundColor: AwColors.white,
       appBar: const WalletAppBar(
         title: AwText.bold(
           'Nuevo Gasto',
@@ -75,6 +83,8 @@ class _NewExpenseScreenState extends State<NewExpenseScreen> {
             padding: EdgeInsets.fromLTRB(16, 24, 16, keyboardSpace + 16),
             child: ExpenseForm(
               onSubmit: _handleExpenseSubmit,
+              initialExpense: widget.initialExpense,
+              showFTUOnOpen: _shouldRunFTU,
             ),
           );
         },
