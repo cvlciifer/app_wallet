@@ -1,5 +1,4 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:provider/provider.dart';
 
 class LogOutDialog extends StatelessWidget {
   const LogOutDialog({super.key});
@@ -19,7 +18,7 @@ class LogOutDialog extends StatelessWidget {
             color: AwColors.orange,
             size: AwSize.s24,
           ),
-          SizedBox(width: AwSize.s10),
+          AwSpacing.w10,
           AwText.bold(
             'Cerrar sesión',
             size: AwSize.s16,
@@ -74,7 +73,7 @@ class LogOutDialog extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: AwSize.s10),
+            AwSpacing.s10,
             WalletButton.textButton(
               buttonText: 'Cancelar',
               alignment: MainAxisAlignment.center,

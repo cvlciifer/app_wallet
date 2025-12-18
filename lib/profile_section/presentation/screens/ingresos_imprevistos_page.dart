@@ -1,0 +1,291 @@
+import 'dart:developer';
+import 'package:app_wallet/library_section/main_library.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app_wallet/components_section/widgets/profile/month_selector.dart';
+import 'package:app_wallet/core/providers/profile/imprevistos_provider.dart';
+import 'package:app_wallet/core/providers/profile/ingresos_provider.dart';
+
+class IngresosImprevistosPage extends ConsumerStatefulWidget {
+  final DateTime? initialMonth;
+  final int? initialImprevisto;
+
+  const IngresosImprevistosPage(
+      {Key? key, this.initialMonth, this.initialImprevisto})
+      : super(key: key);
+
+  @override
+  ConsumerState<IngresosImprevistosPage> createState() =>
+      _IngresosImprevistosPageState();
+}
+
+class _IngresosImprevistosPageState
+    extends ConsumerState<IngresosImprevistosPage> {
+  final TextEditingController _amountCtrl = TextEditingController();
+  int _selectedMonthOffset = 0;
+  Timer? _maxErrorTimer;
+  bool _showMaxError = false;
+  bool _isAmountValid = false;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialMonth != null) {
+      final now = DateTime.now();
+      final diff = (widget.initialMonth!.year - now.year) * 12 +
+          (widget.initialMonth!.month - now.month);
+      _selectedMonthOffset = diff.clamp(-12, 12);
+    } else {
+      try {
+        final providerOffset = ref.read(ingresosProvider).startOffset;
+        _selectedMonthOffset = providerOffset.clamp(-12, 12);
+      } catch (_) {}
+    }
+    if (widget.initialImprevisto != null && widget.initialImprevisto! > 0) {
+      final fmt =
+          NumberFormat.currency(locale: 'es_CL', symbol: '', decimalDigits: 0);
+      _amountCtrl.text = fmt.format(widget.initialImprevisto);
+      final digits = _amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
+      final current = int.tryParse(digits) ?? 0;
+      _isAmountValid = digits.isNotEmpty &&
+          current <= MaxAmountFormatter.kEightDigitsMaxAmount;
+    }
+    _amountCtrl.addListener(_onAmountChanged);
+  }
+
+  @override
+  void dispose() {
+    _maxErrorTimer?.cancel();
+    _amountCtrl.removeListener(_onAmountChanged);
+    _amountCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onAmountChanged() {
+    final digits = _amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final current = int.tryParse(digits) ?? 0;
+    final valid = digits.isNotEmpty &&
+        current <= MaxAmountFormatter.kEightDigitsMaxAmount;
+    if (valid != _isAmountValid) {
+      if (!mounted) return;
+      setState(() {
+        _isAmountValid = valid;
+      });
+    }
+  }
+
+  Future<void> _save() async {
+    if (!_isAmountValid || _isSaving) return;
+    try {
+      ref.read(globalLoaderProvider.notifier).state = true;
+    } catch (_) {}
+    setState(() {
+      _isSaving = true;
+    });
+
+    final value =
+        int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    final now = DateTime.now();
+    final target = DateTime(now.year, now.month + _selectedMonthOffset, 1);
+
+    bool saved = false;
+    try {
+      saved = await ref
+          .read(imprevistosProvider.notifier)
+          .saveImprevisto(target, 0, value);
+    } catch (e) {
+      log('ingresos_imprevistos._save error: $e');
+      if (mounted) {
+        WalletPopup.showNotificationError(
+            context: context, title: 'Error guardando imprevisto');
+      }
+    } finally {
+      try {
+        ref.read(globalLoaderProvider.notifier).state = false;
+      } catch (_) {}
+      if (saved) {
+        try {
+          final rootNav = Navigator.of(context, rootNavigator: true);
+          await rootNav.pushNamedAndRemoveUntil(
+            '/home-page',
+            (r) => false,
+            arguments: {
+              'showPopup': true,
+              'title': 'Ingreso imprevisto guardado'
+            },
+          );
+        } catch (_) {}
+      } else {
+        if (mounted) Navigator.of(context).pop(saved);
+      }
+
+      // ignore: control_flow_in_finally
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final monthLabel = DateTime(now.year, now.month + _selectedMonthOffset, 1);
+    return Scaffold(
+      backgroundColor: AwColors.white,
+      appBar: const WalletAppBar(
+        title: AwText.bold(
+          'Mi Wallet',
+          color: AwColors.white,
+        ),
+        automaticallyImplyLeading: true,
+        actions: [],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: TicketCard(
+              notchDepth: 12,
+              elevation: 6,
+              color: AwColors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.calendar_month,
+                          size: AwSize.s26,
+                          color: AwColors.appBarColor,
+                        ),
+                        AwSpacing.w12,
+                        Expanded(
+                          child: AwText.bold(
+                            'Ingresos Imprevistos',
+                            size: AwSize.s20,
+                            color: AwColors.appBarColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    AwSpacing.s6,
+                    const AwText.normal(
+                      'Un ingreso imprevisto es un dinero extra que no recibes todos los meses, como horas extras o feriados, y que se suma a tu ingreso total.',
+                      size: AwSize.s14,
+                      color: AwColors.modalGrey,
+                    ),
+                    AwSpacing.s6,
+                    AwSpacing.s6,
+                    AwText.normal(
+                      'Este valor se verá reflejado en ${DateFormat('MMMM yyyy', 'es').format(monthLabel)}.',
+                      size: AwSize.s14,
+                      color: AwColors.modalGrey,
+                    ),
+                    AwSpacing.s18,
+                    const AwText.normal('Mes seleccionado',
+                        size: AwSize.s14, color: AwColors.grey),
+                    AwSpacing.s6,
+                    MonthSelector(
+                      month: monthLabel,
+                      canPrev: _selectedMonthOffset > -12,
+                      canNext: _selectedMonthOffset < 12,
+                      onPrev: () {
+                        setState(() {
+                          if (_selectedMonthOffset > -12)
+                            _selectedMonthOffset--;
+                        });
+                        try {
+                          ref
+                              .read(ingresosProvider.notifier)
+                              .setStartOffset(_selectedMonthOffset);
+                        } catch (_) {}
+                      },
+                      onNext: () {
+                        setState(() {
+                          if (_selectedMonthOffset < 12) _selectedMonthOffset++;
+                        });
+                        try {
+                          ref
+                              .read(ingresosProvider.notifier)
+                              .setStartOffset(_selectedMonthOffset);
+                        } catch (_) {}
+                      },
+                    ),
+                    AwSpacing.s12,
+                    const AwText.normal('Valor imprevisto (CLP)',
+                        size: AwSize.s14, color: AwColors.grey),
+                    AwSpacing.s6,
+                    CustomTextField(
+                      controller: _amountCtrl,
+                      label: '',
+                      hintText: 'p. ej. 50.000',
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        MaxAmountFormatter(
+                          maxDigits: MaxAmountFormatter.kEightDigits,
+                          maxAmount: MaxAmountFormatter.kEightDigitsMaxAmount,
+                          onAttemptOverLimit: () {
+                            if (!mounted) return;
+                            setState(() {
+                              _showMaxError = true;
+                            });
+                            _maxErrorTimer?.cancel();
+                            _maxErrorTimer =
+                                Timer(const Duration(seconds: 2), () {
+                              if (mounted) {
+                                setState(() {
+                                  _showMaxError = false;
+                                });
+                              }
+                            });
+                          },
+                        ),
+                        CLPTextInputFormatter(),
+                      ],
+                      textSize: 16,
+                    ),
+                    if (_showMaxError)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8.0),
+                        child: AwText.normal(
+                            'Tope máximo: 8 dígitos (99.999.999)',
+                            color: AwColors.red,
+                            size: AwSize.s14),
+                      ),
+                    AwSpacing.s18,
+                    SizedBox(
+                      height: AwSize.s48,
+                      child: ElevatedButton(
+                        onPressed: _isAmountValid && !_isSaving ? _save : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AwColors.modalPurple,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AwSize.s16),
+                          ),
+                        ),
+                        child: const Center(
+                          child: AwText.bold(
+                            'Agregar',
+                            color: AwColors.white,
+                            size: AwSize.s14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    AwSpacing.s20,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

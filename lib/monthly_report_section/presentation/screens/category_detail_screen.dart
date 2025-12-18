@@ -15,7 +15,7 @@ class CategoryDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final subcats = subcategoriesByCategory[category] ?? [];
 
-    IconData _iconForSubId(String? subId) {
+    IconData iconForSubId(String? subId) {
       if (subId == null) return categoryIcons[category] ?? Icons.category;
       for (final s in subcats) {
         if (s.id == subId) return s.icon;
@@ -28,7 +28,7 @@ class CategoryDetailScreen extends StatelessWidget {
       return categoryIcons[category] ?? Icons.category;
     }
 
-    String _nameForSubId(String? subId) {
+    String nameForSubId(String? subId) {
       if (subId == null) return 'Sin subcategoría';
       for (final s in subcats) {
         if (s.id == subId) return s.name;
@@ -41,8 +41,26 @@ class CategoryDetailScreen extends StatelessWidget {
       return subId;
     }
 
+    // Agrupar gastos por subcategoría
+    final Map<String, List<Expense>> expensesBySubcategory = {};
+    for (final expense in expenses) {
+      final subKey = expense.subcategoryId ?? 'sin_subcategoria';
+      expensesBySubcategory.putIfAbsent(subKey, () => []).add(expense);
+    }
+
+    // Calcular totales por subcategoría y ordenar
+    final subcategoryTotals = <String, double>{};
+    for (final entry in expensesBySubcategory.entries) {
+      final total = entry.value.fold<double>(0, (sum, exp) => sum + exp.amount);
+      subcategoryTotals[entry.key] = total;
+    }
+
+    // Ordenar subcategorías por total descendente
+    final sortedSubcategoryKeys = subcategoryTotals.keys.toList()
+      ..sort((a, b) => subcategoryTotals[b]!.compareTo(subcategoryTotals[a]!));
+
     return Scaffold(
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       appBar: AppBar(
         title: Text(
           category.displayName,
@@ -55,81 +73,97 @@ class CategoryDetailScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        color: Theme.of(context).colorScheme.background,
-        child: expenses.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.info_outline, size: AwSize.s50, color: Theme.of(context).colorScheme.primary),
-                    AwSpacing.m,
-                    Text(
-                      'No hay gastos asociados a esta categoría durante este mes.',
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              )
-            : ListView.builder(
-                itemCount: expenses.length,
+      body: expenses.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Image(
+                    image: AWImage.ghost,
+                    fit: BoxFit.contain,
+                    width: 96,
+                    height: 96,
+                  ),
+                  AwSpacing.m,
+                  Text(
+                    'No hay gastos asociados a esta categoría durante este mes.',
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          : SafeArea(
+              bottom: true,
+              child: ListView.builder(
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 16),
+                itemCount: sortedSubcategoryKeys.length,
                 itemBuilder: (context, index) {
-                  final e = expenses[index];
-                  final subName = _nameForSubId(e.subcategoryId);
-                  final subIcon = _iconForSubId(e.subcategoryId);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20.0),
-                    child: TicketCard(
-                      boxShadowAll: true,
-                      roundTopCorners: true,
-                      topCornerRadius: 10,
-                      compactNotches: true,
-                      elevation: 4,
-                      color: Theme.of(context).colorScheme.surface,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        leading: Icon(
-                          subIcon,
-                          size: AwSize.s30,
-                          color: category.color,
-                        ),
-                        title: Text(
-                          e.title,
-                          style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                        ),
-                        subtitle: Text(
-                          subName,
-                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                              ),
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              formatNumber(e.amount),
-                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.onSurface,
+                  final subKey = sortedSubcategoryKeys[index];
+                  final subExpenses = expensesBySubcategory[subKey]!;
+                  final subName = nameForSubId(subKey == 'sin_subcategoria' ? null : subKey);
+                  final subIcon = iconForSubId(subKey == 'sin_subcategoria' ? null : subKey);
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AwSpacing.s12,
+                      ...subExpenses.map((e) => Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TicketCard(
+                              boxShadowAll: true,
+                              roundTopCorners: true,
+                              topCornerRadius: 10,
+                              compactNotches: true,
+                              elevation: 6,
+                              color: AwColors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                leading: Icon(
+                                  subIcon,
+                                  size: AwSize.s26,
+                                  color: category.color,
+                                ),
+                                title: AwText.bold(
+                                  e.title,
+                                  size: AwSize.s18,
+                                  color: AwColors.boldBlack,
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AwText.normal(
+                                      e.formattedDate,
+                                      size: AwSize.s14,
+                                      color: AwColors.grey,
+                                    ),
+                                    AwText.normal(
+                                      subName,
+                                      size: AwSize.s14,
+                                      color: AwColors.grey,
+                                    ),
+                                  ],
+                                ),
+                                trailing: ConstrainedBox(
+                                  constraints: const BoxConstraints(maxWidth: 88),
+                                  child: AwText.bold(
+                                    formatNumber(e.amount),
+                                    size: AwSize.s22,
+                                    color: AwColors.boldBlack,
+                                    fontWeight: FontWeight.w800,
                                   ),
+                                ),
+                              ),
                             ),
-                            AwSpacing.xs,
-                            Text(e.formattedDate, style: Theme.of(context).textTheme.bodySmall),
-                            AwSpacing.xs,
-                          ],
-                        ),
-                      ),
-                    ),
+                          )),
+                      AwSpacing.m,
+                    ],
                   );
                 },
               ),
-      ),
+            ),
     );
   }
 }

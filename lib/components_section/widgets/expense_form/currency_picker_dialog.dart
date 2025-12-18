@@ -1,5 +1,6 @@
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/home_section/presentation/new_expense/presentation/models/currency.dart' as currency_model;
+import 'package:app_wallet/home_section/presentation/new_expense/presentation/models/currency.dart'
+    as currency_model;
 
 class CurrencyPickerDialog extends StatelessWidget {
   final currency_model.Currency selectedCurrency;
@@ -30,27 +31,37 @@ class CurrencyPickerDialog extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: selectedCurrency == currency ? AwColors.appBarColor.withOpacity(0.1) : Colors.grey.shade100,
+                  // ignore: deprecated_member_use
+                  color: selectedCurrency == currency
+                      // ignore: deprecated_member_use
+                      ? AwColors.appBarColor.withOpacity(0.1)
+                      : AwColors.grey100,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
                   child: AwText.bold(
                     currency.symbol,
                     size: AwSize.s18,
-                    color: selectedCurrency == currency ? AwColors.appBarColor : Colors.grey.shade600,
+                    color: selectedCurrency == currency
+                        ? AwColors.appBarColor
+                        : AwColors.grey600,
                   ),
                 ),
               ),
               title: AwText.bold(
                 currency.code,
-                color: selectedCurrency == currency ? AwColors.appBarColor : Colors.black,
+                color: selectedCurrency == currency
+                    ? AwColors.appBarColor
+                    : AwColors.black,
               ),
               subtitle: AwText(
                 text: currency.name,
                 color: AwColors.black,
                 size: AwSize.s12,
               ),
-              trailing: selectedCurrency == currency ? Icon(Icons.check, color: AwColors.appBarColor) : null,
+              trailing: selectedCurrency == currency
+                  ? Icon(Icons.check, color: AwColors.appBarColor)
+                  : null,
               onTap: () {
                 onCurrencySelected(currency);
                 Navigator.of(context).pop();

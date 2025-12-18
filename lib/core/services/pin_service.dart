@@ -24,8 +24,7 @@ class PinService {
   static const Duration verifyLockDuration = Duration(minutes: 2);
   static const int maxAttempts = maxVerifyAttempts;
   static const Duration lockDuration = verifyLockDuration;
-  // cambiar de 30 segs a 20 minutos
-  static const Duration pinChangeCooldownDuration = Duration(seconds: 30);
+  static const Duration pinChangeCooldownDuration = Duration(minutes: 20);
   static const int pinChangeMaxPerDay = 3;
 
   String _ns(String base, String? accountId) =>
@@ -65,7 +64,7 @@ class PinService {
       final countKey = _ns(_kPinChangeCount, accountId);
       final lastKey = _ns(_kPinLastChange, accountId);
 
-      final now = DateTime.now().toUtc();
+      final now = DateTime.now();
       final today = now.toIso8601String().split('T').first;
 
       final lastChangeStr = await prefs.read(key: lastKey);
@@ -113,7 +112,7 @@ class PinService {
       final dayKey = _ns(_kPinChangeDay, accountId);
       final countKey = _ns(_kPinChangeCount, accountId);
       final lastKey = _ns(_kPinLastChange, accountId);
-      final now = DateTime.now().toUtc();
+      final now = DateTime.now();
       final today = now.toIso8601String().split('T').first;
 
       String? savedDay = await prefs.read(key: dayKey);
@@ -252,7 +251,7 @@ class PinService {
     if (s == null) return null;
     final last = DateTime.tryParse(s);
     if (last == null) return null;
-    final now = DateTime.now().toUtc();
+    final now = DateTime.now();
     final diff = now.difference(last);
     final cooldown = PinService.pinChangeCooldownDuration;
     if (diff < cooldown) return cooldown - diff;
@@ -265,7 +264,7 @@ class PinService {
       final dayKey = _ns(_kPinChangeDay, accountId);
       final countKey = _ns(_kPinChangeCount, accountId);
 
-      final now = DateTime.now().toUtc();
+      final now = DateTime.now();
       final today = now.toIso8601String().split('T').first;
 
       final savedDay = await prefs.read(key: dayKey);
@@ -315,7 +314,7 @@ class PinService {
       final m = int.tryParse(parts[1]);
       final d = int.tryParse(parts[2]);
       if (y == null || m == null || d == null) return null;
-      final nextDay = DateTime.utc(y, m, d).add(const Duration(days: 1));
+      final nextDay = DateTime(y, m, d).add(const Duration(days: 1));
       if (now.isBefore(nextDay)) return nextDay.difference(now);
       return null;
     } catch (_) {

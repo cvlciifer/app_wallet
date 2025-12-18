@@ -38,21 +38,33 @@ class _SetPinPageState extends State<SetPinPage> {
 
   void _confirm() {
     if (_firstPin == null || _firstPin!.length != _digits) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Ingresa un PIN válido')));
+      WalletPopup.showNotificationWarningOrange(
+        context: context,
+        message: 'Ingresa un PIN válido',
+      );
       return;
     }
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => ConfirmPinPage(
-            firstPin: _firstPin!, digits: _digits, alias: widget.alias)));
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => ConfirmPinPage(firstPin: _firstPin!, digits: _digits, alias: widget.alias)));
   }
 
   @override
   Widget build(BuildContext context) {
     return PinPageScaffold(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+      child: LayoutBuilder(builder: (ctx, constraints) {
+        final mq = MediaQuery.of(ctx);
+        // ignore: deprecated_member_use
+        final textScale = mq.textScaleFactor;
+        final availH = constraints.maxHeight;
+        final needsScroll = textScale > 1.05 || availH < 700 || mq.viewInsets.bottom > 0 || mq.viewPadding.bottom > 0;
+
+        final content = Padding(
+          padding: EdgeInsets.only(
+            left: 16.0,
+            right: 16.0,
+            top: 16.0,
+            bottom: mq.viewPadding.bottom + (needsScroll ? 24.0 : 16.0),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -60,12 +72,11 @@ class _SetPinPageState extends State<SetPinPage> {
               AwSpacing.s12,
               GreetingHeader(alias: _alias ?? widget.alias),
               AwSpacing.s12,
-              const AwText.bold('Configura tu PIN de seguridad',
-                  size: AwSize.s16, color: AwColors.appBarColor),
+              const AwText.bold('Configura tu PIN de seguridad', size: AwSize.s16, color: AwColors.white),
               AwSpacing.s,
-              const AwText.normal(
+              const AwText.bold(
                 'Este PIN protegerá el acceso local de la app en este dispositivo.',
-                color: AwColors.boldBlack,
+                color: AwColors.white,
                 size: AwSize.s14,
                 textAlign: TextAlign.center,
               ),
@@ -77,9 +88,7 @@ class _SetPinPageState extends State<SetPinPage> {
                 onCompleted: _onCompleted,
                 onChanged: (len) {
                   if (!mounted) return;
-                  setState(() {
-                    // update UI when length changes; _firstPin stays set by onCompleted
-                  });
+                  setState(() {});
                 },
                 actions: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -95,29 +104,23 @@ class _SetPinPageState extends State<SetPinPage> {
                             style: ButtonStyle(
                               backgroundColor:
                                   // ignore: deprecated_member_use
-                                  MaterialStateProperty.resolveWith((states) =>
-                                      states.contains(
-                                              // ignore: deprecated_member_use
-                                              MaterialState.disabled)
-                                          ? AwColors.blueGrey
-                                          : AwColors.appBarColor),
+                                  MaterialStateProperty.resolveWith((states) => states.contains(
+                                      // ignore: deprecated_member_use
+                                      MaterialState.disabled) ? AwColors.blueGrey : AwColors.white),
                               foregroundColor:
                                   // ignore: deprecated_member_use
-                                  MaterialStateProperty.resolveWith(
-                                      (states) => Colors.white),
+                                  MaterialStateProperty.resolveWith((states) => AwColors.white),
                             ),
                             onPressed: ready
                                 ? () {
-                                    final pin =
-                                        _pinKey.currentState?.currentPin ?? '';
+                                    final pin = _pinKey.currentState?.currentPin ?? '';
                                     _firstPin = pin;
                                     _confirm();
                                   }
                                 : null,
                             child: const Padding(
                               padding: EdgeInsets.symmetric(vertical: 14.0),
-                              child:
-                                  AwText.bold('Continuar', color: Colors.white),
+                              child: AwText.bold('Continuar', color: AwColors.boldBlack),
                             ),
                           );
                         }),
@@ -128,8 +131,19 @@ class _SetPinPageState extends State<SetPinPage> {
               ),
             ],
           ),
-        ),
-      ),
+        );
+
+        if (needsScroll) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: availH),
+              child: Center(child: content),
+            ),
+          );
+        }
+
+        return Center(child: content);
+      }),
     );
   }
 }

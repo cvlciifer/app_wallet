@@ -7,14 +7,13 @@ class GreetingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text =
-        (alias != null && alias!.isNotEmpty) ? 'Hola ${alias!}...' : 'Hola...';
+    final text = (alias != null && alias!.isNotEmpty) ? 'Hola ${alias!}...' : 'Hola...';
     return Align(
       alignment: Alignment.centerLeft,
       child: AwText.bold(
         text,
         size: AwSize.s30,
-        color: AwColors.appBarColor,
+        color: AwColors.white,
       ),
     );
   }

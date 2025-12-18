@@ -1,10 +1,6 @@
 import 'dart:developer';
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class WelcomeIntroScreen extends StatefulWidget {
   const WelcomeIntroScreen({Key? key}) : super(key: key);
@@ -122,11 +118,10 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen> with TickerProv
     await prefs.setBool('seen_welcome_intro', true);
     if (!mounted) return;
 
-    // Use a subtle fade transition to the next screen
     Navigator.of(context).pushReplacement(PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 500),
       reverseTransitionDuration: const Duration(milliseconds: 350),
-      pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+      pageBuilder: (context, animation, secondaryAnimation) => const TermsPage(),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(opacity: animation, child: child);
       },
@@ -135,14 +130,14 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen> with TickerProv
 
   @override
   Widget build(BuildContext context) {
-    // Static background (no gradient)
     return Scaffold(
       appBar: const WalletAppBar(
         barColor: AwColors.appBarColor,
         showCloseIcon: false,
         showWalletIcon: false,
+        automaticallyImplyLeading: false,
       ),
-      backgroundColor: AwColors.greyLight,
+      backgroundColor: AwColors.white,
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -153,103 +148,139 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen> with TickerProv
                   position: _cardSlide,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: SizedBox(
-                      width: double.infinity,
-                      // Make the card occupy most of the vertical space
-                      height: MediaQuery.of(context).size.height * 0.72,
-                      child: TicketCard(
-                        roundTopCorners: true,
-                        topCornerRadius: 20,
-                        child: Padding(
+                    child: LayoutBuilder(builder: (ctx, constraints) {
+                      final availableH = constraints.maxHeight;
+                      final cardHeight = availableH * 0.72;
+                      final textScale = MediaQuery.of(ctx).textScaleFactor;
+
+                      final topContent = Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AwSpacing.s18,
+                          SlideTransition(
+                            position: _titleSlide,
+                            child: FadeTransition(
+                              opacity: _titleOpacity,
+                              child: Text(
+                                _title,
+                                textAlign: TextAlign.left,
+                                style: const TextStyle(
+                                  color: AwColors.appBarColor,
+                                  fontSize: AwSize.s22,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ),
+                          AwSpacing.s20,
+                          FadeTransition(
+                            opacity: _iconOpacity,
+                            child: ScaleTransition(
+                              scale: _iconScale,
+                              child: const Icon(
+                                Icons.account_balance_wallet_rounded,
+                                size: 120,
+                                color: AwColors.appBarColor,
+                              ),
+                            ),
+                          ),
+                          AwSpacing.s30,
+                          SlideTransition(
+                            position: _subtitleSlide,
+                            child: FadeTransition(
+                              opacity: _subtitleOpacity,
+                              child: Text(
+                                _subtitle,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: AwColors.black,
+                                  fontSize: AwSize.s16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          AwSpacing.s30,
+                        ],
+                      );
+
+                      final buttonWidget = FadeTransition(
+                        opacity: _buttonOpacity,
+                        child: SlideTransition(
+                          position: _buttonSlide,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                backgroundColor: AwColors.appBarColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                              ),
+                              onPressed: () => _onContinue(context),
+                              child: const Text(
+                                'Continuar',
+                                style: TextStyle(
+                                  fontSize: AwSize.s16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AwColors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+
+                      final needsScroll = textScale > 1.15 || cardHeight < 520;
+
+                      Widget inner;
+                      if (needsScroll) {
+                        inner = Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              topContent,
+                              AwSpacing.s,
+                              buttonWidget,
+                              AwSpacing.s,
+                            ],
+                          ),
+                        );
+                      } else {
+                        inner = Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.max,
                             children: [
-                              // Top content grouped so it doesn't stretch
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  AwSpacing.s18,
-                                  // Title with fade + slide (more prominent)
-                                  SlideTransition(
-                                    position: _titleSlide,
-                                    child: FadeTransition(
-                                      opacity: _titleOpacity,
-                                      child: Text(
-                                        _title,
-                                        textAlign: TextAlign.left,
-                                        style: const TextStyle(
-                                          color: AwColors.appBarColor,
-                                          fontSize: AwSize.s22,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  AwSpacing.s20,
-                                  FadeTransition(
-                                    opacity: _iconOpacity,
-                                    child: ScaleTransition(
-                                      scale: _iconScale,
-                                      child: const Icon(
-                                        Icons.account_balance_wallet_rounded,
-                                        size: 120,
-                                        color: AwColors.appBarColor,
-                                      ),
-                                    ),
-                                  ),
-                                  AwSpacing.s30,
-                                  SlideTransition(
-                                    position: _subtitleSlide,
-                                    child: FadeTransition(
-                                      opacity: _subtitleOpacity,
-                                      child: Text(
-                                        _subtitle,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          color: AwColors.black,
-                                          fontSize: AwSize.s16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  AwSpacing.s30,
-                                ],
-                              ),
+                              topContent,
                               const Spacer(),
-                              FadeTransition(
-                                opacity: _buttonOpacity,
-                                child: SlideTransition(
-                                  position: _buttonSlide,
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                                        backgroundColor: AwColors.appBarColor,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.0),
-                                        ),
-                                      ),
-                                      onPressed: () => _onContinue(context),
-                                      child: const Text(
-                                        'Continuar',
-                                        style: TextStyle(
-                                          fontSize: AwSize.s16,
-                                          fontWeight: FontWeight.bold,
-                                          color: AwColors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              buttonWidget,
                             ],
                           ),
+                        );
+                      }
+
+                      final cardChild = needsScroll
+                          ? SingleChildScrollView(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(minHeight: cardHeight),
+                                child: inner,
+                              ),
+                            )
+                          : inner;
+
+                      return SizedBox(
+                        width: double.infinity,
+                        height: cardHeight,
+                        child: TicketCard(
+                          roundTopCorners: true,
+                          topCornerRadius: 20,
+                          child: cardChild,
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                   ),
                 ),
               ),
@@ -264,7 +295,7 @@ class _WelcomeIntroScreenState extends State<WelcomeIntroScreen> with TickerProv
   void dispose() {
     _cardController.dispose();
     _contentController.dispose();
-    // _bgController removed
+
     super.dispose();
   }
 }

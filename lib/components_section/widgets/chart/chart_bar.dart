@@ -13,7 +13,7 @@ class ChartBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16), // Ajuste del padding horizontal
+      padding: const EdgeInsets.symmetric(horizontal: 4), // reducir padding horizontal para usar más espacio
       child: FractionallySizedBox(
         heightFactor: fill, // De 0 a 1
         child: DecoratedBox(

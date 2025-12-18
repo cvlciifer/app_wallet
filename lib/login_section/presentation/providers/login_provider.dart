@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:app_wallet/library_section/main_library.dart';
-import 'package:app_wallet/login_section/presentation/providers/auth_service.dart';
 import 'package:sqflite/sqflite.dart';
 
 class LoginProvider extends ChangeNotifier {
@@ -145,13 +144,20 @@ class LoginProvider extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       onError('Error de autenticación: ${e.message}');
     } catch (e) {
-      onError('Error al iniciar sesión con Google: $e');
+      String humanMsg = _humanizeGoogleSignInError(e);
+      onError(humanMsg);
     }
   }
 
   Future<void> _createUserProfile(User user) async {
     try {
       final emailLower = (user.email ?? '').toLowerCase();
+
+      // Verificar si el usuario ya existía en Registros antes de crear el perfil
+      final registroSnapshot =
+          await _firestore.collection('Registros').doc(emailLower).get();
+      final bool isFirstTimeUser = !registroSnapshot.exists;
+
       await _firestore.collection('Registros').doc(emailLower).set({
         'email': emailLower,
         'username': user.displayName ?? '',
@@ -160,23 +166,26 @@ class LoginProvider extends ChangeNotifier {
         'created_at': FieldValue.serverTimestamp(),
       });
 
-      await _firestore
-          .collection('usuarios')
-          .doc(emailLower)
-          .collection('gastos')
-          .doc(user.uid)
-          .set({
-        'name': "Bienvenido a AdminWallet",
-      });
+      // Solo crear el gasto de bienvenida si es la primera vez que se registra el usuario
+      if (isFirstTimeUser) {
+        await _firestore
+            .collection('usuarios')
+            .doc(emailLower)
+            .collection('gastos')
+            .doc(user.uid)
+            .set({
+          'name': "Bienvenido a AdminWallet",
+        });
 
-      await _firestore
-          .collection('usuarios')
-          .doc(emailLower)
-          .collection('ingresos')
-          .doc(user.uid)
-          .set({
-        'name': "Bienvenido a AdminWallet",
-      });
+        await _firestore
+            .collection('usuarios')
+            .doc(emailLower)
+            .collection('ingresos')
+            .doc(user.uid)
+            .set({
+          'name': "Bienvenido a AdminWallet",
+        });
+      }
 
       try {
         await DBHelper.instance.database;
@@ -199,4 +208,21 @@ class LoginProvider extends ChangeNotifier {
       log('Error al cerrar sesión: $e');
     }
   }
+}
+
+String _humanizeGoogleSignInError(Object e) {
+  final s = e.toString();
+
+  if (s.contains('ApiException: 7') || s.contains('network_error')) {
+    return 'No se pudo conectar con Google. Verifica tu conexión a internet e inténtalo nuevamente.';
+  }
+
+  if (e is PlatformException) {
+    final code = e.code;
+    if (code.contains('network_error')) {
+      return 'Hubo un problema de red al conectar con Google. Revisa tu conexión e inténtalo otra vez.';
+    }
+  }
+
+  return 'No se pudo iniciar sesión con Google. Inténtalo nuevamente.';
 }

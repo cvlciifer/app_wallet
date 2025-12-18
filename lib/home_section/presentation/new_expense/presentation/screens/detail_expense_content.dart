@@ -41,11 +41,17 @@ class DetailExpenseContent extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(
               children: [
-                Icon(WalletCategoryHelper.getCategoryIcon(expense.category.displayName),
-                    size: 18, color: WalletCategoryHelper.getCategoryColor(expense.category.displayName)),
-                const SizedBox(width: 8),
+                Icon(
+                    WalletCategoryHelper.getCategoryIcon(
+                        expense.category.displayName),
+                    size: 18,
+                    color: WalletCategoryHelper.getCategoryColor(
+                        expense.category.displayName)),
+                AwSpacing.w,
                 Expanded(
-                  child: AwText(text: _getCategoryName(expense.category), size: AwSize.s18),
+                  child: AwText(
+                      text: _getCategoryName(expense.category),
+                      size: AwSize.s18),
                 ),
               ],
             ),
@@ -57,12 +63,17 @@ class DetailExpenseContent extends StatelessWidget {
             child: Row(
               children: [
                 if (expense.subcategoryId != null)
-                  Icon(WalletCategoryHelper.getCategoryIcon(expense.subcategoryId!),
-                      size: 18, color: WalletCategoryHelper.getCategoryColor(expense.category.displayName)),
-                if (expense.subcategoryId != null) const SizedBox(width: 8),
+                  Icon(
+                      WalletCategoryHelper.getCategoryIcon(
+                          expense.subcategoryId!),
+                      size: 18,
+                      color: WalletCategoryHelper.getCategoryColor(
+                          expense.category.displayName)),
+                if (expense.subcategoryId != null) AwSpacing.w,
                 Expanded(
                   child: AwText(
-                    text: _getSubcategoryName(expense.subcategoryId) ?? 'Sin subcategoría',
+                    text: _getSubcategoryName(expense.subcategoryId) ??
+                        'Sin subcategoría',
                     size: AwSize.s18,
                   ),
                 ),
