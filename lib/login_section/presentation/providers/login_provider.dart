@@ -72,7 +72,8 @@ class LoginProvider extends ChangeNotifier {
         onError(e.message ?? 'Error desconocido al iniciar sesión.');
       }
     } catch (e) {
-      onError('Error al iniciar sesión: $e');
+      String humanMsg = _humanizeFirebaseError(e);
+      onError(humanMsg);
     }
   }
 
@@ -142,7 +143,8 @@ class LoginProvider extends ChangeNotifier {
             'Error al obtener el usuario después del inicio de sesión con Google.');
       }
     } on FirebaseAuthException catch (e) {
-      onError('Error de autenticación: ${e.message}');
+      String humanMsg = _humanizeFirebaseError(e);
+      onError(humanMsg);
     } catch (e) {
       String humanMsg = _humanizeGoogleSignInError(e);
       onError(humanMsg);
@@ -225,4 +227,30 @@ String _humanizeGoogleSignInError(Object e) {
   }
 
   return 'No se pudo iniciar sesión con Google. Inténtalo nuevamente.';
+}
+
+String _humanizeFirebaseError(Object e) {
+  final s = e.toString();
+
+  // Errores de red/conexión
+  if (s.contains('I/O error') ||
+      s.contains('Connection reset') ||
+      s.contains('network') ||
+      s.contains('SocketException') ||
+      s.contains('HandshakeException')) {
+    return 'No se pudo conectar con el servidor. Verifica tu conexión a internet e inténtalo nuevamente.';
+  }
+
+  // Timeout
+  if (s.contains('timeout') || s.contains('TimeoutException')) {
+    return 'La conexión tardó demasiado. Verifica tu conexión e inténtalo nuevamente.';
+  }
+
+  // Errores de permisos
+  if (s.contains('permission-denied')) {
+    return 'No tienes permisos para realizar esta acción.';
+  }
+
+  // Error genérico
+  return 'Ocurrió un error inesperado. Por favor, inténtalo nuevamente.';
 }
