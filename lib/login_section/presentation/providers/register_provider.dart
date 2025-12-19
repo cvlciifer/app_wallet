@@ -22,7 +22,8 @@ class RegisterProvider extends ChangeNotifier {
         return;
       }
 
-      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      final UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: emailLower,
         password: password,
       );
@@ -32,7 +33,8 @@ class RegisterProvider extends ChangeNotifier {
       final String token = userCredential.user?.uid ?? '';
 
       // Verificar si el usuario ya existía en Registros antes de crear el perfil
-      final registroSnapshot = await _firestore.collection('Registros').doc(emailLower).get();
+      final registroSnapshot =
+          await _firestore.collection('Registros').doc(emailLower).get();
       final bool isFirstTimeUser = !registroSnapshot.exists;
 
       await _firestore.collection('Registros').doc(email).set({
@@ -44,11 +46,21 @@ class RegisterProvider extends ChangeNotifier {
 
       // Solo crear el gasto de bienvenida si es la primera vez que se registra el usuario
       if (isFirstTimeUser) {
-        await _firestore.collection('usuarios').doc(emailLower).collection('gastos').doc(userCredential.user?.uid).set({
+        await _firestore
+            .collection('usuarios')
+            .doc(emailLower)
+            .collection('gastos')
+            .doc(userCredential.user?.uid)
+            .set({
           'name': "Bienvenido a AdminWallet",
         });
 
-        await _firestore.collection('usuarios').doc(emailLower).collection('ingresos').doc(userCredential.user?.uid).set({
+        await _firestore
+            .collection('usuarios')
+            .doc(emailLower)
+            .collection('ingresos')
+            .doc(userCredential.user?.uid)
+            .set({
           'name': "Bienvenido a AdminWallet",
         });
       }
@@ -70,8 +82,11 @@ class RegisterProvider extends ChangeNotifier {
 
   Future<bool> checkUserExist(String email) async {
     try {
-      final QuerySnapshot result =
-          await _firestore.collection('usuarios').where('email', isEqualTo: email).limit(1).get();
+      final QuerySnapshot result = await _firestore
+          .collection('usuarios')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
       return result.docs.isNotEmpty;
     } catch (e) {
       return false;
@@ -83,8 +98,8 @@ String _humanizeFirebaseError(Object e) {
   final s = e.toString();
 
   // Errores de red/conexión
-  if (s.contains('I/O error') || 
-      s.contains('Connection reset') || 
+  if (s.contains('I/O error') ||
+      s.contains('Connection reset') ||
       s.contains('network') ||
       s.contains('SocketException') ||
       s.contains('HandshakeException')) {

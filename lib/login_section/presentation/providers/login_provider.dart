@@ -233,8 +233,8 @@ String _humanizeFirebaseError(Object e) {
   final s = e.toString();
 
   // Errores de red/conexión
-  if (s.contains('I/O error') || 
-      s.contains('Connection reset') || 
+  if (s.contains('I/O error') ||
+      s.contains('Connection reset') ||
       s.contains('network') ||
       s.contains('SocketException') ||
       s.contains('HandshakeException')) {
