@@ -63,7 +63,8 @@ class RegisterProvider extends ChangeNotifier {
         onError(e.message ?? 'Error desconocido al registrar el usuario.');
       }
     } catch (e) {
-      onError('Error al registrar el usuario: $e');
+      String humanMsg = _humanizeFirebaseError(e);
+      onError(humanMsg);
     }
   }
 
@@ -76,4 +77,30 @@ class RegisterProvider extends ChangeNotifier {
       return false;
     }
   }
+}
+
+String _humanizeFirebaseError(Object e) {
+  final s = e.toString();
+
+  // Errores de red/conexión
+  if (s.contains('I/O error') || 
+      s.contains('Connection reset') || 
+      s.contains('network') ||
+      s.contains('SocketException') ||
+      s.contains('HandshakeException')) {
+    return 'No se pudo conectar con el servidor. Verifica tu conexión a internet e inténtalo nuevamente.';
+  }
+
+  // Timeout
+  if (s.contains('timeout') || s.contains('TimeoutException')) {
+    return 'La conexión tardó demasiado. Verifica tu conexión e inténtalo nuevamente.';
+  }
+
+  // Errores de permisos
+  if (s.contains('permission-denied')) {
+    return 'No tienes permisos para realizar esta acción.';
+  }
+
+  // Error genérico
+  return 'Ocurrió un error inesperado. Por favor, inténtalo nuevamente.';
 }
